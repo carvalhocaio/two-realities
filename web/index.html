@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two Realities</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <script src="wasm_exec.js"></script>
+  <script>
+    const go = new Go();
+    fetch("game.wasm")
+      .then((res) => res.arrayBuffer())
+      .then((bytes) => WebAssembly.instantiate(bytes, go.importObject))
+      .then((result) => go.run(result.instance));
+  </script>
+</body>
+</html>
