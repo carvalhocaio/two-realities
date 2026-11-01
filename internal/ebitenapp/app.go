@@ -21,7 +21,9 @@ type App struct {
 	session *game.Session
 	input   input.Source
 	canvas  *ebiten.Image
+	ghosts  [world.Count]*ebiten.Image
 	shown   world.World
+	tick    int
 }
 
 func New(session *game.Session, source input.Source) *App {
@@ -34,6 +36,7 @@ func New(session *game.Session, source input.Source) *App {
 }
 
 func (a *App) Update() error {
+	a.tick++
 	a.session.Update(a.input.Read())
 	if a.session.Active() != a.shown {
 		a.shown = a.session.Active()
@@ -43,13 +46,23 @@ func (a *App) Update() error {
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	drawScene(a.canvas, a.session)
-	drawFlash(a.canvas, a.session.Feedback())
+	shake := a.session.Feedback().Shake
+	drawScene(a.canvas, a.session, a.ghostFor(a.session.Active()), a.tick)
+	drawFlash(a.canvas, shake)
 
 	screen.Fill(palettes[a.session.Active()].background)
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(shakeOffset(a.session.Feedback()))
+	op.GeoM.Translate(shakeOffset(shake))
 	screen.DrawImage(a.canvas, op)
+	drawHUD(screen, a.session, a.tick)
+}
+
+func (a *App) ghostFor(active world.World) *ebiten.Image {
+	if a.ghosts[active] == nil {
+		inactive := active.Other()
+		a.ghosts[active] = newGhostImage(a.session.Level().Layer(inactive), palettes[inactive].tile)
+	}
+	return a.ghosts[active]
 }
 
 func (a *App) Layout(int, int) (int, int) {

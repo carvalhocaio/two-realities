@@ -76,7 +76,7 @@ func TestJumpWindowConsumesJump(t *testing.T) {
 
 func floorLevel(t *testing.T) level.Level {
 	t.Helper()
-	lvl, err := level.Parse("[yellow]\n......\n.P....\n######\n[grey]\n.....E\n......\n......\n")
+	lvl, err := level.Parse("fragments: 0\n[yellow]\n......\n.P....\n######\n[grey]\n.....E\n......\n......\n")
 	if err != nil {
 		t.Fatal(err)
 	}

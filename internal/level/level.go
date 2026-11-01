@@ -6,9 +6,11 @@ import (
 )
 
 type Level struct {
-	Layers [world.Count]Grid
-	Spawn  Point
-	Exit   Point
+	Layers         [world.Count]Grid
+	Spawn          Point
+	Exit           Point
+	StartFragments int
+	Fragments      []Point
 }
 
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }

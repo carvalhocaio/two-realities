@@ -8,6 +8,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
 	"github.com/carvalhocaio/two-realities/internal/level"
+	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
 var pixel = func() *ebiten.Image {
@@ -25,27 +26,34 @@ func fillRect(dst *ebiten.Image, r geom.Rect, c color.Color, alpha float32) {
 	dst.DrawImage(pixel, op)
 }
 
-func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color, alpha float32) {
+func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
 	for y := range g.Height() {
 		for x := range g.Width() {
 			if g.Solid(x, y) {
-				fillRect(dst, level.TileRect(level.Point{X: x, Y: y}), c, alpha)
+				fillRect(dst, level.TileRect(level.Point{X: x, Y: y}), c, 1)
 			}
 		}
 	}
 }
 
-func drawScene(dst *ebiten.Image, s *game.Session) {
+func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int) {
 	active := s.Active()
-	inactive := active.Other()
 	lvl := s.Level()
 	pal := palettes[active]
 
 	dst.Fill(pal.background)
-	drawLayer(dst, lvl.Layer(inactive), palettes[inactive].tile, ghostAlpha)
-	drawLayer(dst, lvl.Layer(active), pal.tile, 1)
+	dst.DrawImage(ghost, nil)
+	drawLayer(dst, lvl.Layer(active), pal.tile)
 	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, 1)
+	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
 	fillRect(dst, s.PlayerBox(), pal.player, 1)
+}
+
+func fragmentAlpha(active world.World) float32 {
+	if active == world.Grey {
+		return 1
+	}
+	return inactiveFragmentAlpha
 }
 
 func drawFlash(dst *ebiten.Image, strength float64) {

@@ -9,21 +9,23 @@ import (
 )
 
 const (
-	tileSolid = '#'
-	tileEmpty = '.'
-	tileSpawn = 'P'
-	tileExit  = 'E'
+	tileSolid    = '#'
+	tileEmpty    = '.'
+	tileSpawn    = 'P'
+	tileExit     = 'E'
+	tileFragment = 'Y'
 )
 
 var (
-	ErrUnknownSection   = errors.New("unknown section")
-	ErrDuplicateSection = errors.New("duplicate section")
-	ErrRowOutsideLayer  = errors.New("row outside of a section")
-	ErrMissingSection   = errors.New("missing section")
-	ErrRaggedRows       = errors.New("rows have different lengths")
-	ErrSizeMismatch     = errors.New("layers have different sizes")
-	ErrUnknownTile      = errors.New("unknown tile")
-	ErrMarkerCount      = errors.New("level needs exactly one spawn and one exit")
+	ErrFragmentOutsideGrey = errors.New("fragments are only allowed in the grey layer")
+	ErrUnknownSection      = errors.New("unknown section")
+	ErrDuplicateSection    = errors.New("duplicate section")
+	ErrRowOutsideLayer     = errors.New("row outside of a section")
+	ErrMissingSection      = errors.New("missing section")
+	ErrRaggedRows          = errors.New("rows have different lengths")
+	ErrSizeMismatch        = errors.New("layers have different sizes")
+	ErrUnknownTile         = errors.New("unknown tile")
+	ErrMarkerCount         = errors.New("level needs exactly one spawn and one exit")
 )
 
 var sectionNames = map[string]world.World{
@@ -32,7 +34,11 @@ var sectionNames = map[string]world.World{
 }
 
 func Parse(text string) (Level, error) {
-	rows, err := splitSections(text)
+	head, body, err := splitHeader(strings.Split(text, "\n"))
+	if err != nil {
+		return Level{}, err
+	}
+	rows, err := splitSections(body)
 	if err != nil {
 		return Level{}, err
 	}
@@ -40,10 +46,10 @@ func Parse(text string) (Level, error) {
 		return Level{}, err
 	}
 
-	var lvl Level
+	lvl := Level{StartFragments: head.fragments}
 	markers := map[rune][]Point{}
 	for w := range world.Count {
-		grid, err := parseGrid(rows[w], markers)
+		grid, err := parseGrid(world.World(w), rows[w], markers)
 		if err != nil {
 			return Level{}, fmt.Errorf("%s layer: %w", world.World(w), err)
 		}
@@ -55,15 +61,16 @@ func Parse(text string) (Level, error) {
 	}
 	lvl.Spawn = markers[tileSpawn][0]
 	lvl.Exit = markers[tileExit][0]
+	lvl.Fragments = markers[tileFragment]
 	return lvl, nil
 }
 
-func splitSections(text string) ([world.Count][]string, error) {
+func splitSections(lines []string) ([world.Count][]string, error) {
 	var rows [world.Count][]string
 	seen := map[world.World]bool{}
 	current := world.World(-1)
 
-	for _, line := range strings.Split(text, "\n") {
+	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -109,7 +116,7 @@ func checkSizes(rows [world.Count][]string) error {
 	return nil
 }
 
-func parseGrid(rows []string, markers map[rune][]Point) (Grid, error) {
+func parseGrid(layer world.World, rows []string, markers map[rune][]Point) (Grid, error) {
 	width, height := len(rows[0]), len(rows)
 	solid := make([]bool, width*height)
 	for y, row := range rows {
@@ -118,6 +125,11 @@ func parseGrid(rows []string, markers map[rune][]Point) (Grid, error) {
 			case tileSolid:
 				solid[y*width+x] = true
 			case tileEmpty:
+			case tileFragment:
+				if layer != world.Grey {
+					return Grid{}, fmt.Errorf("%w (at %d,%d)", ErrFragmentOutsideGrey, x, y)
+				}
+				markers[ch] = append(markers[ch], Point{X: x, Y: y})
 			case tileSpawn, tileExit:
 				markers[ch] = append(markers[ch], Point{X: x, Y: y})
 			default:

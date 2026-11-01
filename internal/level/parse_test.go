@@ -7,27 +7,38 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
+const head = "fragments: 0\n"
+
 func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		text    string
 		wantErr error
 	}{
-		{"valid", "[yellow]\n#P.#\n####\n[grey]\n#..E\n#..#\n", nil},
-		{"valid with blank lines and CRLF", "\r\n[yellow]\r\n#P.#\r\n\r\n[grey]\r\n#.E#\r\n", nil},
-		{"markers split across layers", "[yellow]\n#E.#\n[grey]\n#.P#\n", nil},
-		{"missing grey", "[yellow]\n#PE#\n", ErrMissingSection},
-		{"empty section", "[yellow]\n#PE#\n[grey]\n", ErrMissingSection},
-		{"unknown section", "[yellow]\n#PE#\n[blue]\n####\n", ErrUnknownSection},
-		{"duplicate section", "[yellow]\n#PE#\n[yellow]\n####\n", ErrDuplicateSection},
-		{"row before section", "####\n[yellow]\n#PE#\n[grey]\n####\n", ErrRowOutsideLayer},
-		{"ragged rows", "[yellow]\n#PE#\n###\n[grey]\n####\n####\n", ErrRaggedRows},
-		{"different widths", "[yellow]\n#PE#\n[grey]\n#####\n", ErrRaggedRows},
-		{"different heights", "[yellow]\n#PE#\n[grey]\n####\n####\n", ErrSizeMismatch},
-		{"unknown tile", "[yellow]\n#PE#\n[grey]\n#x.#\n", ErrUnknownTile},
-		{"missing spawn", "[yellow]\n#.E#\n[grey]\n####\n", ErrMarkerCount},
-		{"missing exit", "[yellow]\n#P.#\n[grey]\n####\n", ErrMarkerCount},
-		{"two spawns", "[yellow]\n#PE#\n[grey]\n#P.#\n", ErrMarkerCount},
+		{"valid", head + "[yellow]\n#P.#\n####\n[grey]\n#..E\n#..#\n", nil},
+		{"valid with blank lines and CRLF", "\r\n" + "fragments: 2\r\n\r\n[yellow]\r\n#P.#\r\n\r\n[grey]\r\n#.E#\r\n", nil},
+		{"markers split across layers", head + "[yellow]\n#E.#\n[grey]\n#.P#\n", nil},
+		{"fragment in grey", head + "[yellow]\n#PE#\n[grey]\n#YY#\n", nil},
+		{"missing header", "[yellow]\n#PE#\n[grey]\n####\n", ErrMissingHeader},
+		{"empty file", "", ErrMissingHeader},
+		{"header without value", "fragments:\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"header not a number", "fragments: lots\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"header negative", "fragments: -1\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"header unknown key", "lives: 3\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"header without colon", "fragments 3\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"fragment in yellow", head + "[yellow]\n#PEY\n[grey]\n####\n", ErrFragmentOutsideGrey},
+		{"missing grey", head + "[yellow]\n#PE#\n", ErrMissingSection},
+		{"empty section", head + "[yellow]\n#PE#\n[grey]\n", ErrMissingSection},
+		{"unknown section", head + "[yellow]\n#PE#\n[blue]\n####\n", ErrUnknownSection},
+		{"duplicate section", head + "[yellow]\n#PE#\n[yellow]\n####\n", ErrDuplicateSection},
+		{"row before section", head + "####\n[yellow]\n#PE#\n[grey]\n####\n", ErrRowOutsideLayer},
+		{"ragged rows", head + "[yellow]\n#PE#\n###\n[grey]\n####\n####\n", ErrRaggedRows},
+		{"different widths", head + "[yellow]\n#PE#\n[grey]\n#####\n", ErrRaggedRows},
+		{"different heights", head + "[yellow]\n#PE#\n[grey]\n####\n####\n", ErrSizeMismatch},
+		{"unknown tile", head + "[yellow]\n#PE#\n[grey]\n#x.#\n", ErrUnknownTile},
+		{"missing spawn", head + "[yellow]\n#.E#\n[grey]\n####\n", ErrMarkerCount},
+		{"missing exit", head + "[yellow]\n#P.#\n[grey]\n####\n", ErrMarkerCount},
+		{"two spawns", head + "[yellow]\n#PE#\n[grey]\n#P.#\n", ErrMarkerCount},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -40,7 +51,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseLayout(t *testing.T) {
-	lvl, err := Parse("[yellow]\n#P.#\n####\n[grey]\n#..E\n#..#\n")
+	lvl, err := Parse("fragments: 3\n[yellow]\n#P.#\n####\n[grey]\n#.YE\n#Y.#\n")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,6 +66,7 @@ func TestParseLayout(t *testing.T) {
 		{"yellow floor", world.Yellow, 2, 1, true},
 		{"grey gap", world.Grey, 2, 1, false},
 		{"exit tile is empty", world.Grey, 3, 0, false},
+		{"fragment tile is empty", world.Grey, 2, 0, false},
 		{"out of bounds", world.Grey, 9, 9, false},
 	}
 	for _, c := range checks {
@@ -66,6 +78,18 @@ func TestParseLayout(t *testing.T) {
 	}
 	if lvl.Spawn != (Point{1, 0}) || lvl.Exit != (Point{3, 0}) {
 		t.Fatalf("markers = %v %v", lvl.Spawn, lvl.Exit)
+	}
+	if lvl.StartFragments != 3 {
+		t.Fatalf("StartFragments = %d, want 3", lvl.StartFragments)
+	}
+	wantFragments := []Point{{2, 0}, {1, 1}}
+	if len(lvl.Fragments) != len(wantFragments) {
+		t.Fatalf("Fragments = %v, want %v", lvl.Fragments, wantFragments)
+	}
+	for i, p := range wantFragments {
+		if lvl.Fragments[i] != p {
+			t.Fatalf("Fragments = %v, want %v", lvl.Fragments, wantFragments)
+		}
 	}
 }
 

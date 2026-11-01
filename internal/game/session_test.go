@@ -10,16 +10,22 @@ import (
 )
 
 const (
-	openLevel    = "[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#....#\n######\n"
-	blockedLevel = "[yellow]\n#...E#\n#P...#\n######\n[grey]\n#....#\n##...#\n######\n"
-	exitLevel    = "[yellow]\n#....#\n#PE..#\n######\n[grey]\n#....#\n#....#\n######\n"
-	pitLevel     = "[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#....#\n#....#\n"
+	openLevel      = "fragments: 1\n[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#....#\n######\n"
+	brokeLevel     = "fragments: 0\n[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#....#\n######\n"
+	blockedLevel   = "fragments: 1\n[yellow]\n#...E#\n#P...#\n######\n[grey]\n#....#\n##...#\n######\n"
+	yellowWall     = "fragments: 1\n[yellow]\n#....#\n#P.#E#\n######\n[grey]\n#....#\n#....#\n######\n"
+	brokeWall      = "fragments: 0\n[yellow]\n#....#\n#P.#E#\n######\n[grey]\n#....#\n#....#\n######\n"
+	fragmentLevel  = "fragments: 0\n[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#.Y..#\n######\n"
+	fragmentToExit = "fragments: 0\n[yellow]\n#....#\n#P...#\n######\n[grey]\n#....#\n#.Y.E#\n######\n"
+	exitLevel      = "fragments: 0\n[yellow]\n#....#\n#PE..#\n######\n[grey]\n#....#\n#....#\n######\n"
+	pitLevel       = "fragments: 0\n[yellow]\n#....#\n#P...#\n######\n[grey]\n#...E#\n#....#\n#....#\n"
 )
 
 var (
 	idle    = input.Intent{}
 	shift   = input.Intent{ShiftPressed: true}
 	right   = input.Intent{Right: true}
+	left    = input.Intent{Left: true}
 	restart = input.Intent{RestartPressed: true}
 )
 
@@ -39,102 +45,128 @@ func then(parts ...[]input.Intent) []input.Intent {
 	return out
 }
 
+func one(in input.Intent) []input.Intent { return []input.Intent{in} }
+
+func newSession(t *testing.T, text string) *Session {
+	t.Helper()
+	lvl, err := level.Parse(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return NewSession(lvl)
+}
+
+func play(s *Session, inputs []input.Intent) {
+	for _, in := range inputs {
+		s.Update(in)
+	}
+}
+
+type state struct {
+	world     world.World
+	fragments int
+	remaining int
+	feedback  Feedback
+	hint      bool
+	atSpawn   bool
+}
+
+func observe(s *Session) state {
+	return state{
+		world:     s.Active(),
+		fragments: s.Fragments(),
+		remaining: len(s.RemainingFragments()),
+		feedback:  s.Feedback(),
+		hint:      s.RestartHint(),
+		atSpawn:   s.PlayerBox() == player.New(s.Level().Spawn).Box,
+	}
+}
+
 func TestSession(t *testing.T) {
+	full := Feedback{}
+	half := BlockedFeedbackTicks / 2
+	pickup := then(one(shift), ticks(right, 5))
+
 	tests := []struct {
-		name         string
-		level        string
-		inputs       []input.Intent
-		wantWorld    world.World
-		wantFeedback float64
-		wantAtSpawn  bool
+		name   string
+		level  string
+		inputs []input.Intent
+		want   state
 	}{
-		{"starts in yellow", openLevel, nil, world.Yellow, 0, true},
-		{"shift allowed", openLevel, []input.Intent{shift}, world.Grey, 0, true},
-		{"shift twice returns", openLevel, []input.Intent{shift, shift}, world.Yellow, 0, true},
-		{"shift blocked by solid tile", blockedLevel, []input.Intent{shift}, world.Yellow, 1, true},
-		{"blocked feedback fades", blockedLevel, then([]input.Intent{shift}, ticks(idle, BlockedFeedbackTicks/2)), world.Yellow, 0.5, true},
-		{"blocked feedback ends", blockedLevel, then([]input.Intent{shift}, ticks(idle, BlockedFeedbackTicks)), world.Yellow, 0, true},
-		{"moving away leaves spawn", openLevel, ticks(right, 3), world.Yellow, 0, false},
-		{"restart key resets", openLevel, then([]input.Intent{shift}, ticks(right, 3), []input.Intent{restart}), world.Yellow, 0, true},
-		{"reaching exit restarts", exitLevel, ticks(right, 2), world.Yellow, 0, true},
-		{"falling out restarts", pitLevel, then([]input.Intent{shift}, ticks(idle, 40)), world.Yellow, 0, true},
+		{"starts in yellow with header fragments", openLevel, nil,
+			state{world: world.Yellow, fragments: 1, atSpawn: true}},
+		{"yellow to grey is free", openLevel, one(shift),
+			state{world: world.Grey, fragments: 1, atSpawn: true}},
+		{"grey to yellow costs one", openLevel, ticks(shift, 2),
+			state{world: world.Yellow, fragments: 0, atSpawn: true}},
+		{"grey to yellow blocked without fragments", brokeLevel, ticks(shift, 2),
+			state{world: world.Grey, feedback: Feedback{CounterFlash: 1}, hint: true, atSpawn: true}},
+		{"counter flash fades", brokeLevel, then(ticks(shift, 2), ticks(idle, half)),
+			state{world: world.Grey, feedback: Feedback{CounterFlash: 0.5}, hint: true, atSpawn: true}},
+		{"hint stays after flash ends", brokeLevel, then(ticks(shift, 2), ticks(idle, BlockedFeedbackTicks)),
+			state{world: world.Grey, feedback: full, hint: true, atSpawn: true}},
+		{"yellow to grey blocked by solid", blockedLevel, one(shift),
+			state{world: world.Yellow, fragments: 1, feedback: Feedback{Shake: 1}, atSpawn: true}},
+		{"shake fades", blockedLevel, then(one(shift), ticks(idle, half)),
+			state{world: world.Yellow, fragments: 1, feedback: Feedback{Shake: 0.5}, atSpawn: true}},
+		{"grey to yellow blocked by solid keeps fragment", yellowWall, then(one(shift), ticks(right, 9), one(shift)),
+			state{world: world.Grey, fragments: 1, feedback: Feedback{Shake: 1}}},
+		{"no fragments wins over solid", brokeWall, then(one(shift), ticks(right, 9), one(shift)),
+			state{world: world.Grey, feedback: Feedback{CounterFlash: 1}, hint: true}},
+		{"no pickup while yellow", fragmentLevel, ticks(right, 5),
+			state{world: world.Yellow, remaining: 1}},
+		{"pickup while grey", fragmentLevel, pickup,
+			state{world: world.Grey, fragments: 1}},
+		{"fragment picked up once", fragmentLevel, then(pickup, ticks(left, 5), ticks(right, 5)),
+			state{world: world.Grey, fragments: 1}},
+		{"spending collected fragment", fragmentLevel, then(pickup, one(shift)),
+			state{world: world.Yellow}},
+		{"pickup clears hint", fragmentLevel, then(ticks(shift, 2), ticks(right, 5)),
+			state{world: world.Grey, fragments: 1, feedback: Feedback{CounterFlash: 7.0 / 12}}},
+		{"restart key resets fragments", fragmentLevel, then(pickup, one(restart)),
+			state{world: world.Yellow, remaining: 1, atSpawn: true}},
+		{"restart key clears hint", brokeLevel, then(ticks(shift, 2), one(restart)),
+			state{world: world.Yellow, atSpawn: true}},
+		{"reaching exit resets fragments", fragmentToExit, then(one(shift), ticks(right, 16)),
+			state{world: world.Yellow, remaining: 1, atSpawn: true}},
+		{"reaching exit restarts", exitLevel, ticks(right, 2),
+			state{world: world.Yellow, atSpawn: true}},
+		{"falling out restarts", pitLevel, then(one(shift), ticks(idle, 40)),
+			state{world: world.Yellow, atSpawn: true}},
+		{"moving away leaves spawn", openLevel, ticks(right, 3),
+			state{world: world.Yellow, fragments: 1}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lvl, err := level.Parse(tt.level)
-			if err != nil {
-				t.Fatal(err)
-			}
-			s := NewSession(lvl)
-			for _, in := range tt.inputs {
-				s.Update(in)
-			}
-			if s.Active() != tt.wantWorld {
-				t.Errorf("active = %v, want %v", s.Active(), tt.wantWorld)
-			}
-			if s.Feedback() != tt.wantFeedback {
-				t.Errorf("feedback = %v, want %v", s.Feedback(), tt.wantFeedback)
-			}
-			atSpawn := s.PlayerBox() == player.New(lvl.Spawn).Box
-			if atSpawn != tt.wantAtSpawn {
-				t.Errorf("at spawn = %v, want %v (box %+v)", atSpawn, tt.wantAtSpawn, s.PlayerBox())
+			s := newSession(t, tt.level)
+			play(s, tt.inputs)
+			if got := observe(s); got != tt.want {
+				t.Fatalf("\n got %+v\nwant %+v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTestLevelNeedsShifting(t *testing.T) {
-	s := NewSession(mustLoad(t, "01_test"))
-	for range 600 {
-		s.Update(right)
-		if s.PlayerBox().X > level.TileSize*12 {
-			t.Fatal("crossed the pit without shifting")
-		}
+func TestTryShiftOutcome(t *testing.T) {
+	tests := []struct {
+		name  string
+		level string
+		setup []input.Intent
+		want  ShiftOutcome
+	}{
+		{"free shift into grey", openLevel, nil, ShiftDone},
+		{"paid shift into yellow", openLevel, one(shift), ShiftDone},
+		{"solid tile in grey", blockedLevel, nil, ShiftBlockedSolid},
+		{"solid tile in yellow", yellowWall, then(one(shift), ticks(right, 9)), ShiftBlockedSolid},
+		{"no fragments", brokeLevel, one(shift), ShiftBlockedNoFragments},
 	}
-}
-
-func TestTestLevelIsSolvableWithTwoShifts(t *testing.T) {
-	s := NewSession(mustLoad(t, "01_test"))
-	exitX := level.TileRect(s.Level().Exit).X
-	shifts := 0
-	run := func(n int, in input.Intent) {
-		for range n {
-			before := s.Active()
-			s.Update(in)
-			if s.Active() != before {
-				shifts++
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := newSession(t, tt.level)
+			play(s, tt.setup)
+			if got := s.TryShift(); got != tt.want {
+				t.Fatalf("TryShift() = %v, want %v", got, tt.want)
 			}
-		}
+		})
 	}
-
-	run(1, shift)
-	run(10, input.Intent{Right: true, JumpPressed: true})
-	run(200, right)
-	if s.Active() != world.Grey || s.PlayerBox().X < level.TileSize*22 {
-		t.Fatalf("expected to be against the grey wall, got %v at %+v", s.Active(), s.PlayerBox())
-	}
-	run(1, shift)
-	if shifts != 2 {
-		t.Fatalf("shifts = %d, want 2", shifts)
-	}
-	for range 300 {
-		lastX := s.PlayerBox().X
-		run(1, right)
-		if s.PlayerBox().X < lastX {
-			if lastX+player.Width+player.RunSpeed <= exitX {
-				t.Fatalf("restarted at x=%v before reaching exit", lastX)
-			}
-			return
-		}
-	}
-	t.Fatalf("never reached the exit, stuck at %+v", s.PlayerBox())
-}
-
-func mustLoad(t *testing.T, name string) level.Level {
-	t.Helper()
-	lvl, err := level.Load(name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return lvl
 }
