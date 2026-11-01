@@ -31,6 +31,9 @@ type Session struct {
 	restartHint      bool
 	death            DeathCause
 	deathTimer       int
+	checkpoint       *snapshot
+	finished         bool
+	epoch            int
 }
 
 func NewSession(levels ...level.Level) *Session {
@@ -40,14 +43,21 @@ func NewSession(levels ...level.Level) *Session {
 }
 
 func (s *Session) Restart() {
+	s.checkpoint = nil
+	s.respawn()
+}
+
+func (s *Session) respawn() {
+	start := s.startState()
 	s.active = world.Yellow
-	s.player = player.New(s.level.Spawn)
+	s.player = player.New(start.point)
 	s.watchers = make([]Watcher, len(s.level.Watchers))
 	for i, p := range s.level.Watchers {
 		s.watchers[i] = NewWatcher(p)
 	}
-	s.fragments = s.level.StartFragments
-	s.collected = make([]bool, len(s.level.Fragments))
+	s.fragments = start.fragments
+	s.collected = append([]bool(nil), start.collected...)
+	s.epoch++
 	s.solidFeedback = 0
 	s.fragmentFeedback = 0
 	s.restartHint = false
@@ -56,6 +66,9 @@ func (s *Session) Restart() {
 }
 
 func (s *Session) Update(in input.Intent) {
+	if s.finished {
+		return
+	}
 	if s.death != Alive {
 		s.tickDeath()
 		return
@@ -72,6 +85,7 @@ func (s *Session) Update(in input.Intent) {
 
 	s.player.Update(in, s.level.Layer(s.active))
 	s.collectFragments()
+	s.activateCheckpoints()
 	s.updateWatchers()
 
 	switch {
@@ -90,6 +104,8 @@ func (s *Session) Active() world.World  { return s.active }
 func (s *Session) PlayerBox() geom.Rect { return s.player.Box }
 func (s *Session) RestartHint() bool    { return s.restartHint }
 func (s *Session) Watchers() []Watcher  { return s.watchers }
+func (s *Session) Finished() bool       { return s.finished }
+func (s *Session) Epoch() int           { return s.epoch }
 
 func (s *Session) Feedback() Feedback {
 	return Feedback{

@@ -9,13 +9,14 @@ import (
 )
 
 const (
-	tileSolid    = '#'
-	tileEmpty    = '.'
-	tileSpawn    = 'P'
-	tileExit     = 'E'
-	tileFragment = 'Y'
-	tileSpike    = '^'
-	tileWatcher  = 'W'
+	tileSolid      = '#'
+	tileEmpty      = '.'
+	tileSpawn      = 'P'
+	tileExit       = 'E'
+	tileFragment   = 'Y'
+	tileSpike      = '^'
+	tileWatcher    = 'W'
+	tileCheckpoint = 'C'
 )
 
 var (
@@ -71,6 +72,7 @@ func Parse(text string) (Level, error) {
 	lvl.Exit = markers[tileExit][0]
 	lvl.Fragments = markers[tileFragment]
 	lvl.Watchers = markers[tileWatcher]
+	lvl.Checkpoints = markers[tileCheckpoint]
 	return lvl, nil
 }
 
@@ -140,7 +142,7 @@ func parseGrid(layer world.World, rows []string) (Grid, map[rune][]Point, error)
 			case tileSolid:
 				solid[y*width+x] = true
 			case tileEmpty:
-			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher:
+			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher, tileCheckpoint:
 				if err, ok := greyOnly[ch]; ok && layer != world.Grey {
 					return Grid{}, nil, fmt.Errorf("%w (at %d,%d)", err, x, y)
 				}

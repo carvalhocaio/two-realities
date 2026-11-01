@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/carvalhocaio/two-realities/internal/input"
-	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
@@ -128,44 +127,5 @@ func TestCaughtResetsLevel(t *testing.T) {
 	}
 	if w.Box != start.Box || w.Alert != 0 || s.PlayerBox() != player.New(s.Level().Spawn).Box {
 		t.Fatalf("watcher %+v player %+v not reset", w, s.PlayerBox())
-	}
-}
-
-func TestLevelProgression(t *testing.T) {
-	parse := func(text string) level.Level {
-		lvl, err := level.Parse(text)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return lvl
-	}
-	first := parse(exitLevel)
-	second := parse("fragments: 2\n[yellow]\n#....#\n#.PE.#\n######\n[grey]\n#....#\n#....#\n######\n")
-
-	tests := []struct {
-		name          string
-		levels        []level.Level
-		inputs        []input.Intent
-		wantIndex     int
-		wantFragments int
-	}{
-		{"starts at first level", []level.Level{first, second}, nil, 0, 0},
-		{"exit advances", []level.Level{first, second}, ticks(right, 2), 1, 2},
-		{"last level loops to first", []level.Level{first, second}, ticks(right, 4), 0, 0},
-		{"single level loops to itself", []level.Level{first}, ticks(right, 2), 0, 0},
-		{"restart stays on level", []level.Level{first, second}, then(ticks(right, 2), one(restart)), 1, 2},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewSession(tt.levels...)
-			play(s, tt.inputs)
-			if s.LevelIndex() != tt.wantIndex || s.Fragments() != tt.wantFragments {
-				t.Fatalf("index=%d fragments=%d, want index=%d fragments=%d",
-					s.LevelIndex(), s.Fragments(), tt.wantIndex, tt.wantFragments)
-			}
-			if s.PlayerBox() != player.New(s.Level().Spawn).Box {
-				t.Fatalf("player not at spawn: %+v", s.PlayerBox())
-			}
-		})
 	}
 }

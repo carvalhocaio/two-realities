@@ -26,4 +26,5 @@ func (g Grid) Solid(x, y int) bool {
 	return g.InBounds(x, y) && g.solid[y*g.width+x]
 }
 
+func (g Grid) PixelWidth() float64  { return float64(g.width * TileSize) }
 func (g Grid) PixelHeight() float64 { return float64(g.height * TileSize) }

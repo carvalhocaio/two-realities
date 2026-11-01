@@ -13,9 +13,15 @@ type Level struct {
 	StartFragments int
 	Fragments      []Point
 	Watchers       []Point
+	Checkpoints    []Point
 }
 
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }
+
+func (l Level) Bounds() geom.Rect {
+	g := l.Layers[world.Yellow]
+	return geom.Rect{W: g.PixelWidth(), H: g.PixelHeight()}
+}
 
 func TileRect(p Point) geom.Rect {
 	return geom.Rect{X: float64(p.X * TileSize), Y: float64(p.Y * TileSize), W: TileSize, H: TileSize}

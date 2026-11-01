@@ -53,7 +53,7 @@ func newSession(t *testing.T, text string) *Session {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewSession(lvl)
+	return NewSession(lvl, lvl)
 }
 
 func play(s *Session, inputs []input.Intent) {

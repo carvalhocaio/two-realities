@@ -34,6 +34,7 @@ func drawPanel(dst *ebiten.Image, r geom.Rect, pal palette) {
 
 func drawHUD(dst *ebiten.Image, s *game.Session, tick int) {
 	pal := palettes[s.Active()]
+	fillRect(dst, geom.Rect{W: ScreenWidth, H: HUDHeight}, pal.tile, 1)
 	drawWorldIndicator(dst, s, pal)
 	drawFragmentCounter(dst, s, pal, tick)
 	if s.RestartHint() {

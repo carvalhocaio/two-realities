@@ -13,7 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := ebitenapp.Run(game.NewSession(levels...)); err != nil {
+	if err := ebitenapp.Run(game.NewFlow(levels...)); err != nil {
 		log.Fatal(err)
 	}
 }

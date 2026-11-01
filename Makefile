@@ -1,16 +1,20 @@
 GOROOT := $(shell go env GOROOT)
 PORT ?= 8080
 
-.PHONY: run test lint build-wasm serve
+.PHONY: run run-dev test lint build-wasm serve
 
 run:
 	go run ./cmd/game
+
+run-dev:
+	go run -tags dev ./cmd/game
 
 test:
 	go test ./...
 
 lint:
 	go vet ./...
+	go vet -tags dev ./...
 	@unformatted="$$(gofmt -l .)"; \
 	if [ -n "$$unformatted" ]; then echo "gofmt needed:"; echo "$$unformatted"; exit 1; fi
 

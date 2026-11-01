@@ -52,6 +52,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
 	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, 1)
+	drawCheckpoints(dst, s, pal)
 	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
 	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey)
 	if playerVisible(s, tick) {
@@ -70,11 +71,9 @@ func fragmentAlpha(active world.World) float32 {
 	return inactiveFragmentAlpha
 }
 
-func drawFlash(dst *ebiten.Image, c color.Color, strength float64) {
+func drawFlash(dst *ebiten.Image, area geom.Rect, c color.Color, strength float64) {
 	if strength <= 0 {
 		return
 	}
-	b := dst.Bounds()
-	area := geom.Rect{W: float64(b.Dx()), H: float64(b.Dy())}
 	fillRect(dst, area, c, float32(strength))
 }
