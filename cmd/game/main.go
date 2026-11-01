@@ -8,14 +8,12 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/level"
 )
 
-const firstLevel = "01_test"
-
 func main() {
-	lvl, err := level.Load(firstLevel)
+	levels, err := level.LoadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := ebitenapp.Run(game.NewSession(lvl)); err != nil {
+	if err := ebitenapp.Run(game.NewSession(levels...)); err != nil {
 		log.Fatal(err)
 	}
 }

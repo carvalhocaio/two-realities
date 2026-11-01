@@ -18,12 +18,13 @@ const (
 )
 
 type App struct {
-	session *game.Session
-	input   input.Source
-	canvas  *ebiten.Image
-	ghosts  [world.Count]*ebiten.Image
-	shown   world.World
-	tick    int
+	session    *game.Session
+	input      input.Source
+	canvas     *ebiten.Image
+	ghosts     [world.Count]*ebiten.Image
+	ghostLevel int
+	shown      world.World
+	tick       int
 }
 
 func New(session *game.Session, source input.Source) *App {
@@ -46,21 +47,35 @@ func (a *App) Update() error {
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	shake := a.session.Feedback().Shake
+	blocked := a.session.Feedback().Shake
+	dying := deathStrength(a.session)
 	drawScene(a.canvas, a.session, a.ghostFor(a.session.Active()), a.tick)
-	drawFlash(a.canvas, shake)
+	drawFlash(a.canvas, blockedFlash, blocked*blockedFlashAlpha)
+	drawFlash(a.canvas, deathFlash, dying*deathFlashAlpha)
 
 	screen.Fill(palettes[a.session.Active()].background)
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(shakeOffset(shake))
+	op.GeoM.Translate(shakeOffset(max(blocked, dying)))
 	screen.DrawImage(a.canvas, op)
 	drawHUD(screen, a.session, a.tick)
 }
 
+func deathStrength(s *game.Session) float64 {
+	if s.Death() == game.Alive {
+		return 0
+	}
+	return 1 - s.DeathProgress()
+}
+
 func (a *App) ghostFor(active world.World) *ebiten.Image {
+	if a.ghostLevel != a.session.LevelIndex() {
+		a.ghosts = [world.Count]*ebiten.Image{}
+		a.ghostLevel = a.session.LevelIndex()
+	}
 	if a.ghosts[active] == nil {
 		inactive := active.Other()
-		a.ghosts[active] = newGhostImage(a.session.Level().Layer(inactive), palettes[inactive].tile)
+		lvl := a.session.Level()
+		a.ghosts[active] = newGhostImage(lvl.Layer(inactive), lvl.Spikes[inactive], palettes[inactive].tile, palettes[inactive].spike)
 	}
 	return a.ghosts[active]
 }

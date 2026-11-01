@@ -14,10 +14,13 @@ const (
 	tileSpawn    = 'P'
 	tileExit     = 'E'
 	tileFragment = 'Y'
+	tileSpike    = '^'
+	tileWatcher  = 'W'
 )
 
 var (
 	ErrFragmentOutsideGrey = errors.New("fragments are only allowed in the grey layer")
+	ErrWatcherOutsideGrey  = errors.New("watchers are only allowed in the grey layer")
 	ErrUnknownSection      = errors.New("unknown section")
 	ErrDuplicateSection    = errors.New("duplicate section")
 	ErrRowOutsideLayer     = errors.New("row outside of a section")
@@ -49,11 +52,16 @@ func Parse(text string) (Level, error) {
 	lvl := Level{StartFragments: head.fragments}
 	markers := map[rune][]Point{}
 	for w := range world.Count {
-		grid, err := parseGrid(world.World(w), rows[w], markers)
+		layer := world.World(w)
+		grid, layerMarkers, err := parseGrid(layer, rows[w])
 		if err != nil {
-			return Level{}, fmt.Errorf("%s layer: %w", world.World(w), err)
+			return Level{}, fmt.Errorf("%s layer: %w", layer, err)
 		}
 		lvl.Layers[w] = grid
+		lvl.Spikes[w] = layerMarkers[tileSpike]
+		for ch, points := range layerMarkers {
+			markers[ch] = append(markers[ch], points...)
+		}
 	}
 
 	if len(markers[tileSpawn]) != 1 || len(markers[tileExit]) != 1 {
@@ -62,6 +70,7 @@ func Parse(text string) (Level, error) {
 	lvl.Spawn = markers[tileSpawn][0]
 	lvl.Exit = markers[tileExit][0]
 	lvl.Fragments = markers[tileFragment]
+	lvl.Watchers = markers[tileWatcher]
 	return lvl, nil
 }
 
@@ -116,26 +125,30 @@ func checkSizes(rows [world.Count][]string) error {
 	return nil
 }
 
-func parseGrid(layer world.World, rows []string, markers map[rune][]Point) (Grid, error) {
+var greyOnly = map[rune]error{
+	tileFragment: ErrFragmentOutsideGrey,
+	tileWatcher:  ErrWatcherOutsideGrey,
+}
+
+func parseGrid(layer world.World, rows []string) (Grid, map[rune][]Point, error) {
 	width, height := len(rows[0]), len(rows)
 	solid := make([]bool, width*height)
+	markers := map[rune][]Point{}
 	for y, row := range rows {
 		for x, ch := range row {
 			switch ch {
 			case tileSolid:
 				solid[y*width+x] = true
 			case tileEmpty:
-			case tileFragment:
-				if layer != world.Grey {
-					return Grid{}, fmt.Errorf("%w (at %d,%d)", ErrFragmentOutsideGrey, x, y)
+			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher:
+				if err, ok := greyOnly[ch]; ok && layer != world.Grey {
+					return Grid{}, nil, fmt.Errorf("%w (at %d,%d)", err, x, y)
 				}
 				markers[ch] = append(markers[ch], Point{X: x, Y: y})
-			case tileSpawn, tileExit:
-				markers[ch] = append(markers[ch], Point{X: x, Y: y})
 			default:
-				return Grid{}, fmt.Errorf("%w %q at %d,%d", ErrUnknownTile, ch, x, y)
+				return Grid{}, nil, fmt.Errorf("%w %q at %d,%d", ErrUnknownTile, ch, x, y)
 			}
 		}
 	}
-	return NewGrid(width, height, solid), nil
+	return NewGrid(width, height, solid), markers, nil
 }

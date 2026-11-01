@@ -27,6 +27,9 @@ func TestParse(t *testing.T) {
 		{"header unknown key", "lives: 3\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
 		{"header without colon", "fragments 3\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
 		{"fragment in yellow", head + "[yellow]\n#PEY\n[grey]\n####\n", ErrFragmentOutsideGrey},
+		{"spikes in both layers", head + "[yellow]\n#PE^\n[grey]\n#^^#\n", nil},
+		{"watcher in grey", head + "[yellow]\n#PE#\n[grey]\n#W.#\n", nil},
+		{"watcher in yellow", head + "[yellow]\n#PEW\n[grey]\n####\n", ErrWatcherOutsideGrey},
 		{"missing grey", head + "[yellow]\n#PE#\n", ErrMissingSection},
 		{"empty section", head + "[yellow]\n#PE#\n[grey]\n", ErrMissingSection},
 		{"unknown section", head + "[yellow]\n#PE#\n[blue]\n####\n", ErrUnknownSection},
@@ -93,17 +96,44 @@ func TestParseLayout(t *testing.T) {
 	}
 }
 
-func TestEmbeddedLevelsLoad(t *testing.T) {
-	entries, err := files.ReadDir("levels")
+func TestParseHazards(t *testing.T) {
+	lvl, err := Parse(head + "[yellow]\n#P^#\n####\n[grey]\n#W.E\n#.^^\n")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, e := range entries {
-		name := e.Name()[:len(e.Name())-len(".txt")]
-		t.Run(name, func(t *testing.T) {
-			if _, err := Load(name); err != nil {
-				t.Fatal(err)
+	checks := []struct {
+		name string
+		got  []Point
+		want []Point
+	}{
+		{"yellow spikes", lvl.Spikes[world.Yellow], []Point{{2, 0}}},
+		{"grey spikes", lvl.Spikes[world.Grey], []Point{{2, 1}, {3, 1}}},
+		{"watchers", lvl.Watchers, []Point{{1, 0}}},
+	}
+	for _, c := range checks {
+		t.Run(c.name, func(t *testing.T) {
+			if len(c.got) != len(c.want) {
+				t.Fatalf("got %v, want %v", c.got, c.want)
+			}
+			for i := range c.want {
+				if c.got[i] != c.want[i] {
+					t.Fatalf("got %v, want %v", c.got, c.want)
+				}
 			}
 		})
+	}
+	if lvl.Layer(world.Yellow).Solid(2, 0) || lvl.Layer(world.Grey).Solid(1, 0) {
+		t.Fatal("spike and watcher tiles must not be solid")
+	}
+}
+
+func TestEmbeddedLevelsLoad(t *testing.T) {
+	levels, err := LoadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	names, _ := Names()
+	if len(levels) != len(names) || len(levels) == 0 {
+		t.Fatalf("loaded %d levels from %v", len(levels), names)
 	}
 }

@@ -8,7 +8,9 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
-const BlockedFeedbackTicks = 12
+const (
+	BlockedFeedbackTicks = 12
+)
 
 type Feedback struct {
 	Shake        float64
@@ -16,33 +18,48 @@ type Feedback struct {
 }
 
 type Session struct {
+	levels           []level.Level
+	index            int
 	level            level.Level
 	active           world.World
 	player           player.Player
+	watchers         []Watcher
 	fragments        int
 	collected        []bool
 	solidFeedback    int
 	fragmentFeedback int
 	restartHint      bool
+	death            DeathCause
+	deathTimer       int
 }
 
-func NewSession(lvl level.Level) *Session {
-	s := &Session{level: lvl}
-	s.Restart()
+func NewSession(levels ...level.Level) *Session {
+	s := &Session{levels: levels}
+	s.enterLevel(0)
 	return s
 }
 
 func (s *Session) Restart() {
 	s.active = world.Yellow
 	s.player = player.New(s.level.Spawn)
+	s.watchers = make([]Watcher, len(s.level.Watchers))
+	for i, p := range s.level.Watchers {
+		s.watchers[i] = NewWatcher(p)
+	}
 	s.fragments = s.level.StartFragments
 	s.collected = make([]bool, len(s.level.Fragments))
 	s.solidFeedback = 0
 	s.fragmentFeedback = 0
 	s.restartHint = false
+	s.death = Alive
+	s.deathTimer = 0
 }
 
 func (s *Session) Update(in input.Intent) {
+	if s.death != Alive {
+		s.tickDeath()
+		return
+	}
 	if in.RestartPressed {
 		s.Restart()
 		return
@@ -55,9 +72,16 @@ func (s *Session) Update(in input.Intent) {
 
 	s.player.Update(in, s.level.Layer(s.active))
 	s.collectFragments()
+	s.updateWatchers()
 
-	if s.reachedExit() || s.fellOut() {
-		s.Restart()
+	switch {
+	case s.touchingSpikes():
+		s.die(DeathSpikes)
+	case s.fellOut():
+		s.die(DeathFall)
+	}
+	if s.death == Alive && s.reachedExit() {
+		s.nextLevel()
 	}
 }
 
@@ -65,6 +89,7 @@ func (s *Session) Level() level.Level   { return s.level }
 func (s *Session) Active() world.World  { return s.active }
 func (s *Session) PlayerBox() geom.Rect { return s.player.Box }
 func (s *Session) RestartHint() bool    { return s.restartHint }
+func (s *Session) Watchers() []Watcher  { return s.watchers }
 
 func (s *Session) Feedback() Feedback {
 	return Feedback{

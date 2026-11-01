@@ -15,7 +15,7 @@ const (
 	hatchSpacing      = 4
 )
 
-func newGhostImage(g level.Grid, c color.Color) *ebiten.Image {
+func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *ebiten.Image {
 	img := ebiten.NewImage(g.Width()*level.TileSize, g.Height()*level.TileSize)
 	for y := range g.Height() {
 		for x := range g.Width() {
@@ -25,6 +25,7 @@ func newGhostImage(g level.Grid, c color.Color) *ebiten.Image {
 			}
 		}
 	}
+	drawGhostSpikes(img, spikes, spike)
 	return img
 }
 

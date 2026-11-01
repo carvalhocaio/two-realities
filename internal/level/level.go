@@ -7,10 +7,12 @@ import (
 
 type Level struct {
 	Layers         [world.Count]Grid
+	Spikes         [world.Count][]Point
 	Spawn          Point
 	Exit           Point
 	StartFragments int
 	Fragments      []Point
+	Watchers       []Point
 }
 
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }

@@ -11,6 +11,12 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
+const (
+	blockedFlashAlpha = 0.35
+	deathFlashAlpha   = 0.6
+	deathBlinkTicks   = 4
+)
+
 var pixel = func() *ebiten.Image {
 	img := ebiten.NewImage(1, 1)
 	img.Fill(color.White)
@@ -44,9 +50,17 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	dst.Fill(pal.background)
 	dst.DrawImage(ghost, nil)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
+	drawSpikes(dst, lvl.Spikes[active], pal.spike)
 	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, 1)
 	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
-	fillRect(dst, s.PlayerBox(), pal.player, 1)
+	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey)
+	if playerVisible(s, tick) {
+		fillRect(dst, s.PlayerBox(), pal.player, 1)
+	}
+}
+
+func playerVisible(s *game.Session, tick int) bool {
+	return s.Death() == game.Alive || (tick/deathBlinkTicks)%2 == 0
 }
 
 func fragmentAlpha(active world.World) float32 {
@@ -56,11 +70,11 @@ func fragmentAlpha(active world.World) float32 {
 	return inactiveFragmentAlpha
 }
 
-func drawFlash(dst *ebiten.Image, strength float64) {
+func drawFlash(dst *ebiten.Image, c color.Color, strength float64) {
 	if strength <= 0 {
 		return
 	}
 	b := dst.Bounds()
 	area := geom.Rect{W: float64(b.Dx()), H: float64(b.Dy())}
-	fillRect(dst, area, blockedFlash, float32(strength*0.35))
+	fillRect(dst, area, c, float32(strength))
 }

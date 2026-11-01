@@ -131,7 +131,7 @@ func TestSession(t *testing.T) {
 			state{world: world.Yellow, remaining: 1, atSpawn: true}},
 		{"reaching exit restarts", exitLevel, ticks(right, 2),
 			state{world: world.Yellow, atSpawn: true}},
-		{"falling out restarts", pitLevel, then(one(shift), ticks(idle, 40)),
+		{"falling out dies then restarts", pitLevel, then(one(shift), ticks(idle, 20+DeathFreezeTicks)),
 			state{world: world.Yellow, atSpawn: true}},
 		{"moving away leaves spawn", openLevel, ticks(right, 3),
 			state{world: world.Yellow, fragments: 1}},
