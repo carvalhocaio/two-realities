@@ -13,10 +13,10 @@ import (
 
 func handleDevKeys(a *App) {
 	switch {
-	case inpututil.IsKeyJustPressed(ebiten.KeyBracketLeft):
+	case inpututil.IsKeyJustPressed(ebiten.KeyMinus):
 		a.music.nudgeLatency(-1)
 		a.showNotice(fmt.Sprintf("LAT %dMS", a.music.latency.Milliseconds()))
-	case inpututil.IsKeyJustPressed(ebiten.KeyBracketRight):
+	case inpututil.IsKeyJustPressed(ebiten.KeyEqual):
 		a.music.nudgeLatency(1)
 		a.showNotice(fmt.Sprintf("LAT %dMS", a.music.latency.Milliseconds()))
 	}
@@ -25,9 +25,9 @@ func handleDevKeys(a *App) {
 	}
 	s := a.flow.Session()
 	switch {
-	case inpututil.IsKeyJustPressed(ebiten.KeyN):
+	case inpututil.IsKeyJustPressed(ebiten.KeyBracketRight):
 		s.GoToLevel(s.LevelIndex() + 1)
-	case inpututil.IsKeyJustPressed(ebiten.KeyP):
+	case inpututil.IsKeyJustPressed(ebiten.KeyBracketLeft):
 		s.GoToLevel(s.LevelIndex() - 1)
 	}
 }

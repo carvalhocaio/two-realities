@@ -15,6 +15,11 @@ func NewRecords(store save.Storage) *Records {
 	return &Records{store: store, data: data.Normalized()}
 }
 
+func (r *Records) Degraded() bool {
+	d, ok := r.store.(interface{ Degraded() bool })
+	return ok && d.Degraded()
+}
+
 func (r *Records) BestLevel(name string) (int, bool) {
 	t, ok := r.data.BestLevel[name]
 	return t, ok

@@ -63,7 +63,7 @@ func (a *App) Update() error {
 func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
-		drawTitleScreen(screen, a.tick)
+		drawTitleScreen(screen, a.flow.StorageNotice(), a.tick)
 	case game.ScreenEnd:
 		drawEndScreen(screen, a.flow.Session().Summary(), a.tick)
 	default:
@@ -119,7 +119,7 @@ func Run(levels []level.Level, store save.Storage) error {
 	ebiten.SetWindowSize(ScreenWidth*windowScale, ScreenHeight*windowScale)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetTPS(60)
-	app, err := New(levels, store, Keyboard{})
+	app, err := New(levels, store, NewKeyboard())
 	if err != nil {
 		return err
 	}

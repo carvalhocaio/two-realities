@@ -10,6 +10,7 @@ type Intent struct {
 	DownPressed    bool
 	ConfirmPressed bool
 	MutePressed    bool
+	FocusLost      bool
 }
 
 func (i Intent) Acts() bool {

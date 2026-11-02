@@ -35,6 +35,7 @@ type Flow struct {
 	menu    MenuItem
 	assist  bool
 	muted   bool
+	started bool
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
@@ -59,7 +60,7 @@ func (f *Flow) Update(in input.Intent) {
 			f.start()
 		}
 	case ScreenPlaying:
-		if in.PausePressed {
+		if in.PausePressed || in.FocusLost {
 			f.screen, f.menu = ScreenPaused, MenuResume
 			return
 		}
@@ -77,7 +78,12 @@ func (f *Flow) Update(in input.Intent) {
 	}
 }
 
+func (f *Flow) StorageNotice() bool {
+	return !f.started && f.records.Degraded()
+}
+
 func (f *Flow) start() {
+	f.started = true
 	f.session = NewSession(f.clock, f.levels...)
 	f.session.UseRecords(f.records)
 	f.session.SetAssist(f.assist)
@@ -86,14 +92,14 @@ func (f *Flow) start() {
 
 func (f *Flow) updateMenu(in input.Intent) {
 	switch {
+	case in.ConfirmPressed:
+		f.confirm()
 	case in.PausePressed:
 		f.screen = ScreenPlaying
 	case in.UpPressed:
 		f.menu = (f.menu + MenuCount - 1) % MenuCount
 	case in.DownPressed:
 		f.menu = (f.menu + 1) % MenuCount
-	case in.ConfirmPressed:
-		f.confirm()
 	}
 }
 

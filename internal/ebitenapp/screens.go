@@ -35,15 +35,21 @@ func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
 	}
 }
 
-func drawTitleScreen(dst *ebiten.Image, tick int) {
+const storageNoticeMsg = "PROGRESS WON'T BE SAVED IN THIS BROWSER"
+
+func drawTitleScreen(dst *ebiten.Image, storageNotice bool, tick int) {
 	yellow, grey := palettes[world.Yellow], palettes[world.Grey]
-	drawLines(dst, yellow.background, []line{
+	lines := []line{
 		{text: "TWO REALITIES", y: 40, scale: titleScale, c: yellow.text},
 		{text: "PRESS SHIFT TO START", y: 90, scale: 1, c: grey.background, blink: true},
 		{text: "ARROWS OR A D: MOVE    SPACE: JUMP", y: 130, scale: 1, c: yellow.text},
 		{text: "SHIFT: SWAP WORLDS    R: RESTART", y: 140, scale: 1, c: yellow.text},
-		{text: "M: MUTE    T: TIMER    ESC: PAUSE", y: 150, scale: 1, c: yellow.text},
-	}, tick)
+		{text: "M: MUTE    T: TIMER    P OR ESC: PAUSE", y: 150, scale: 1, c: yellow.text},
+	}
+	if storageNotice {
+		lines = append(lines, line{text: storageNoticeMsg, y: 168, scale: 1, c: warningColor})
+	}
+	drawLines(dst, yellow.background, lines, tick)
 }
 
 func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, tick int) {
