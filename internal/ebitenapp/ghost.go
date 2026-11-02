@@ -11,8 +11,8 @@ import (
 
 const (
 	ghostOutlineAlpha = 0.75
-	ghostHatchAlpha   = 0.35
-	hatchSpacing      = 4
+	ghostDotAlpha     = 0.9
+	dotSpacing        = 2
 )
 
 func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *ebiten.Image {
@@ -20,8 +20,7 @@ func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *eb
 	for y := range g.Height() {
 		for x := range g.Width() {
 			if g.Solid(x, y) {
-				drawHatch(img, x, y, c)
-				drawExposedEdges(img, g, x, y, c)
+				drawDottedEdges(img, g, x, y, c)
 			}
 		}
 	}
@@ -29,31 +28,39 @@ func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *eb
 	return img
 }
 
-func drawHatch(dst *ebiten.Image, tx, ty int, c color.Color) {
-	for py := range level.TileSize {
-		for px := range level.TileSize {
-			gx, gy := tx*level.TileSize+px, ty*level.TileSize+py
-			if (gx+gy)%hatchSpacing == 0 {
-				fillRect(dst, geom.Rect{X: float64(gx), Y: float64(gy), W: 1, H: 1}, c, ghostHatchAlpha)
-			}
+func drawDot(dst *ebiten.Image, x, y float64, c color.Color) {
+	if (int(x)+int(y))%dotSpacing == 0 {
+		fillRect(dst, geom.Rect{X: x, Y: y, W: 1, H: 1}, c, ghostDotAlpha)
+	}
+}
+
+func drawDottedEdges(dst *ebiten.Image, g level.Grid, x, y int, c color.Color) {
+	r := level.TileRect(level.Point{X: x, Y: y})
+	for i := range level.TileSize {
+		o := float64(i)
+		if !g.Solid(x, y-1) {
+			drawDot(dst, r.X+o, r.Y, c)
+		}
+		if !g.Solid(x, y+1) {
+			drawDot(dst, r.X+o, r.Bottom()-1, c)
+		}
+		if !g.Solid(x-1, y) {
+			drawDot(dst, r.X, r.Y+o, c)
+		}
+		if !g.Solid(x+1, y) {
+			drawDot(dst, r.Right()-1, r.Y+o, c)
 		}
 	}
 }
 
-func drawExposedEdges(dst *ebiten.Image, g level.Grid, x, y int, c color.Color) {
-	r := level.TileRect(level.Point{X: x, Y: y})
-	edges := []struct {
-		exposed bool
-		line    geom.Rect
-	}{
-		{!g.Solid(x, y-1), geom.Rect{X: r.X, Y: r.Y, W: r.W, H: 1}},
-		{!g.Solid(x, y+1), geom.Rect{X: r.X, Y: r.Bottom() - 1, W: r.W, H: 1}},
-		{!g.Solid(x-1, y), geom.Rect{X: r.X, Y: r.Y, W: 1, H: r.H}},
-		{!g.Solid(x+1, y), geom.Rect{X: r.Right() - 1, Y: r.Y, W: 1, H: r.H}},
+func drawDottedBox(dst *ebiten.Image, r geom.Rect, c color.Color) {
+	r = geom.Rect{X: float64(int(r.X)), Y: float64(int(r.Y)), W: r.W, H: r.H}
+	for x := r.X; x < r.Right(); x++ {
+		drawDot(dst, x, r.Y, c)
+		drawDot(dst, x, r.Bottom()-1, c)
 	}
-	for _, e := range edges {
-		if e.exposed {
-			fillRect(dst, e.line, c, ghostOutlineAlpha)
-		}
+	for y := r.Y; y < r.Bottom(); y++ {
+		drawDot(dst, r.X, y, c)
+		drawDot(dst, r.Right()-1, y, c)
 	}
 }

@@ -20,7 +20,7 @@ const (
 func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, active bool, limit int) {
 	for _, w := range watchers {
 		if !active {
-			drawGhostBox(dst, w.Box, enemyColor)
+			drawDottedBox(dst, w.Box, enemyColor)
 			continue
 		}
 		drawSight(dst, w, grey)
@@ -30,7 +30,7 @@ func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, a
 	}
 }
 
-func drawGhostBox(dst *ebiten.Image, r geom.Rect, c color.Color) {
+func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color) {
 	edges := []geom.Rect{
 		{X: r.X, Y: r.Y, W: r.W, H: 1},
 		{X: r.X, Y: r.Bottom() - 1, W: r.W, H: 1},

@@ -65,7 +65,7 @@ func drawRail(dst *ebiten.Image, r level.Rail) {
 func drawWardenEye(dst *ebiten.Image, w game.WardenView, r level.Rail, target geom.Rect, active bool, tick int) {
 	box := geom.Rect{X: math.Round(w.Beam.X - eyeWidth/2), Y: float64(r.Row*level.TileSize) + 1, W: eyeWidth, H: eyeHeight}
 	if !active {
-		drawGhostBox(dst, box, enemyColor)
+		drawDottedBox(dst, box, enemyColor)
 		return
 	}
 	fillRect(dst, box, enemyColor, 1)
