@@ -5,17 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Two Realities</title>
   <style>
-    html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      image-rendering: pixelated;
+    }
+    #status {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #e6e6e6;
+      font: 14px monospace;
+    }
   </style>
 </head>
 <body>
+  <div id="status">Loading…</div>
   <script src="wasm_exec.js"></script>
   <script>
-    const go = new Go();
-    fetch("game.wasm")
-      .then((res) => res.arrayBuffer())
-      .then((bytes) => WebAssembly.instantiate(bytes, go.importObject))
-      .then((result) => go.run(result.instance));
+    (() => {
+      const gameKeys = new Set([
+        "Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "ShiftLeft", "ShiftRight",
+      ]);
+      const status = document.getElementById("status");
+      const canvas = () => document.querySelector("canvas");
+
+      // Ebitengine skips focusing its canvas inside iframes (like itch.io's), so do it here.
+      const focusGame = () => {
+        window.focus();
+        const c = canvas();
+        if (c && document.activeElement !== c) {
+          c.focus({ preventScroll: true });
+        }
+      };
+
+      // Keys that land outside the canvas are forwarded, so the first press is never lost.
+      const forwardKey = (e) => {
+        if (gameKeys.has(e.code)) {
+          e.preventDefault();
+        }
+        const c = canvas();
+        if (c && e.target !== c) {
+          c.focus({ preventScroll: true });
+          c.dispatchEvent(new KeyboardEvent(e.type, e));
+        }
+      };
+
+      window.addEventListener("keydown", forwardKey, true);
+      window.addEventListener("keyup", forwardKey, true);
+      window.addEventListener("pointerdown", focusGame, true);
+      window.addEventListener("focus", focusGame);
+
+      const waitForCanvas = () => {
+        if (canvas()) {
+          status.remove();
+          focusGame();
+          return;
+        }
+        requestAnimationFrame(waitForCanvas);
+      };
+
+      const go = new Go();
+      fetch("game.wasm")
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`game.wasm: HTTP ${res.status}`);
+          }
+          return res.arrayBuffer();
+        })
+        .then((bytes) => WebAssembly.instantiate(bytes, go.importObject))
+        .then((result) => {
+          waitForCanvas();
+          return go.run(result.instance);
+        })
+        .catch((err) => {
+          status.textContent = `Failed to load: ${err.message}`;
+        });
+    })();
   </script>
 </body>
 </html>

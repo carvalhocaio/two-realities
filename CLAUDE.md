@@ -89,7 +89,17 @@ fragments: 0
 A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart.
 
 ## Commands
-`make run` · `make run-dev` (N/P level skip) · `make test` · `make lint` (go vet, also with `-tags dev`, + gofmt) · `make build-wasm` · `make serve` (web/ on :8080, override with `PORT=`). Go version pinned in `.tool-versions` (asdf).
+`make run` · `make run-dev` (N/P level skip) · `make test` · `make lint` (go vet, also with `-tags dev`, + gofmt) · `make build-wasm` · `make package` (itch upload folder in `dist/html5`) · `make serve` (web/ on :8080, override with `PORT=`). Go version pinned in `.tool-versions` (asdf).
+
+## Release (CI + itch.io)
+- **CI** (`.github/workflows/ci.yml`): on push to `main` and on PRs → setup Go from `go.mod` (module cache on), `make lint`, `make test`, `make build-wasm`.
+- **Deploy** (`.github/workflows/deploy.yml`): on tags `v*` or manual `workflow_dispatch` → `make test`, `make package`, install butler from `broth.itch.zone`, `butler push dist/html5 carvalhocaio/two-realities:html5 --userversion <tag | dev-<short sha>>`.
+  - Auth: repository secret `BUTLER_API_KEY`, passed only as env to the push step (butler reads it). Never echo it or write it to disk.
+  - The itch target lives in `ITCH_TARGET` at the top of `deploy.yml`; change it there if the itch user or project slug differs.
+- **Local package**: `make package` builds `dist/html5/` (`index.html` at the root, `game.wasm`, `wasm_exec.js`), the exact folder uploaded, and prints raw/gzip `.wasm` size (≈13.5 MB / 3.2 MB at v0.1.0).
+- **Cutting a release**: push `main`, then `git tag -a vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. The build lands in the `html5` channel of the itch project (draft until the page is published).
+- **Prerequisites**: itch project `two-realities` of kind HTML (draft is fine) and the `BUTLER_API_KEY` secret (`gh secret set BUTLER_API_KEY`).
+- `web/index.html` is itch-friendly: full-iframe canvas, no scrollbars, grabs focus on load/click/window focus (Ebitengine does not focus its canvas inside iframes), forwards keys that land outside the canvas so the first press counts, and blocks Space/arrows/Shift from scrolling the parent page. Verified in headless Chrome with a cross-origin iframe: Shift starts the game with zero clicks and the parent page does not scroll. Pixel scaling stays sharp because Ebitengine's default final screen uses nearest (integer) or `FilterPixelated` (fractional) filtering.
 
 ## Roadmap
 1. Core loop: movement, two worlds, shift, ghost — **done**
