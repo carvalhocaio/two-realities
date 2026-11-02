@@ -48,7 +48,6 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	lvl := s.Level()
 	pal := palettes[active]
 
-	dst.Fill(pal.background)
 	dst.DrawImage(ghost, nil)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)

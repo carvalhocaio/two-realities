@@ -19,6 +19,7 @@ type worldView struct {
 	ghosts  [world.Count]*ebiten.Image
 	level   int
 	wipe    *wipe
+	towers  []towerLayer
 }
 
 func newWorldView() *worldView {
@@ -43,6 +44,7 @@ func (v *worldView) prepare(s *game.Session) {
 	b := s.Level().Bounds()
 	v.canvas = ebiten.NewImage(int(b.W), int(b.H))
 	v.ghosts = [world.Count]*ebiten.Image{}
+	v.towers = newBackdrop(v.level, b.W, b.H)
 }
 
 func (v *worldView) ghost(s *game.Session) *ebiten.Image {
@@ -57,6 +59,11 @@ func (v *worldView) ghost(s *game.Session) *ebiten.Image {
 
 func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
 	v.prepare(s)
+	v.canvas.Fill(palettes[s.Active()].background)
+	if s.Active() == world.Grey {
+		drawBackdrop(v.canvas, v.towers, v.cam.X)
+		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
+	}
 	drawScene(v.canvas, s, v.ghost(s), tick)
 	drawCountdown(v.canvas, s)
 
