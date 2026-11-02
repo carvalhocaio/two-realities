@@ -62,6 +62,18 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - The game name stays "TWO REALITIES" in both languages. Code, identifiers, commits and docs stay in English.
 - `internal/font` (pure) holds the 3x5 glyphs, including Á À Â Ã É Ê Í Ó Ô Õ Ú Ç with a one-row accent above (cedilla below); it is the single authority on drawable text (`font.Missing`).
 
+### Boss: The Warden (O Carcereiro)
+- Level header `boss: warden` (then `shift`/`auto_every` are rejected: each phase sets its own mode). Single-screen 32x17 arena, `09_warden`, the last level.
+- **Eye** rides the `O` rail under the ceiling (grey layer, one unbroken row). Its **beam** drops straight down and stops at the first grey solid tile under either edge of the beam (`BeamWidth` 6px): grey platforms are cover, the yellow world is immune. Instant death (`DeathBeam`) while grey is active and the player overlaps it.
+- **3 lamps** (`L`, on yellow ground, open in grey), lit in order bottom to top (then left to right) by touching the current one **while grey is active**. Each lit lamp ends a phase, opens that phase's gate, acts as a checkpoint (death keeps lit lamps; R restarts the fight) and gives `RestBeats` (2) without beam. The exit stays locked (drawn dim) until the third lamp.
+- **Gates** `1`/`2` (either layer): solid in both worlds until lamp 1/2 is lit. The session keeps its own copy of the layers with closed gates (`Session.layer`).
+- Phases (`WardenPhases` in `game/warden.go`), each one taking more control of the shift:
+  1. free shift; searchlight **sweeps** continuously at 80 px/beat, ping-pong along the rail, starting at the end farthest from the player.
+  2. quantized shift; sweep at 100 px/beat (queue the yellow before the light arrives: queued shifts resolve before the beam on the same beat).
+  3. auto shift every 2 beats; the beam **tracks**: aims at the player's column, dotted telegraph for 2 beats, fires for half a beat.
+- Assist: sweep ×0.6, track telegraph +1 beat. Music adds a layer per phase (bass, double hats, snare) by swapping the looped bar only at the loop boundary, so the beat clock never jumps.
+- `warden_level_test.go` solves the fight on all 36 beat phases with a planner that predicts the light and only crosses open stretches it can clear; rushing the bridge and standing still in phase 3 die to the beam.
+
 ### Checkpoints
 - `C` marker, either layer, activated by touching it in any world (lit yellow flag). Activation snapshots fragment count and which fragments were collected.
 - Death respawns there in yellow with the snapshot restored; spending fragments after the checkpoint is refunded on death. R discards the checkpoint.
@@ -87,6 +99,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 | 6 | `06_finale` | everything + checkpoints: corridor on top, drop, spikes walking left at the bottom | 3 fragments, 2 checkpoints |
 | 7 | `07_on_the_beat` | quantized shift: queue the hide on the yellow pocket before the watcher turns back; reacting on sight gets caught when the beat is far | 1 fragment |
 | 8 | `08_metronome` | auto shift every 4 beats: wait on shared ground, cross single-world floors within one phase, don't stand under the grey block | no fragments |
+| 9 | `09_warden` | boss: light 3 lamps in grey while the eye's beam sweeps (free, then quantized) and finally tracks you under auto shift | 1 fragment (2 available) |
 
 `internal/game/levels_test.go` scripts a solution for every level (under 90s), checks naive attempts fail for the intended reason, and enforces the teaching order (each level adds at most one new mechanic; a shift mode counts as one). `rhythm_levels_test.go` drives L7/L8 with a manual clock: L7's solution works on every beat phase, reacting on sight fails on some. `internal/level/invariants_test.go` checks every embedded level (spawn/checkpoints stand on yellow ground, grey-only markers in open grey space, etc.).
 
@@ -109,8 +122,8 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `internal/level` — grid, `TileSize` (10px), header + ASCII parser, embedded levels in `levels/*.txt`.
 - `internal/physics` — axis-separated AABB vs tile grid. Sides/top of the map are solid, bottom is open (falling out restarts).
 - `internal/player` — movement, gravity, coyote time and jump buffer (`tuning.go`).
-- `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression.
-- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
+- `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression, the Warden boss (`warden.go`, `beam.go`).
+- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), Warden eye/beam/lamps/gates and HUD pips (`warden.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
 - Level tests in `internal/game/levels_test.go` script a full solution for each level and prove the intended mechanic is required.
 
 ## Level format
@@ -130,7 +143,8 @@ shift: free
 - Both layers must be the same size.
 - `C` checkpoint: either layer; must stand on yellow ground (respawn is in yellow).
 - `T` transmission: either layer, paired with `[transmissions]` lines.
-- `S` secret: either layer, at most one per level, allowed in auto levels.
+- `S` secret: either layer, at most one per level, allowed in auto levels. Boss levels have none.
+- Boss levels (`boss: warden`): `L` lamp ×3, `O` rail (grey only), `1`/`2` gate tiles; these markers are errors in other levels.
 - Spawn must stand on yellow ground. 17 rows fit the view exactly; taller/wider levels scroll.
 - Physics reference for design: run 1.4 px/tick, jump ≈ 26px high / ≈ 40px long, so 1-tile corridors block jumping and gaps of 5+ tiles can't be jumped.
 
@@ -161,6 +175,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 6.5. Atmosphere and replay: transmissions, speedrun timer + records, assist mode + pause menu, secrets — **done**
 6.6. itch iframe fixes: P/Enter pause, auto-pause on blur/hidden/fullscreen exit, prefixed keys, storage fallback + notice — **done**
 6.7. Audio offset in the pause menu and Brazilian Portuguese localization (UI + transmissions) — **done**
+6.8. The Warden boss: three-phase single-screen fight (sweep, quantized sweep, tracking beam under auto shift), lamps, gates, layered music — **done**
 7. itch.io release polish
 
 Only implement the step currently being worked on.

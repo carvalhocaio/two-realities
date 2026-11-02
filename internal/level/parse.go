@@ -97,6 +97,9 @@ func Parse(text string) (Level, error) {
 	if lvl.Shift == ShiftAuto && len(lvl.Fragments) > 0 {
 		return Level{}, ErrFragmentInAuto
 	}
+	if lvl.Boss, err = parseBoss(head.boss, markers); err != nil {
+		return Level{}, err
+	}
 	if len(secrets) > 1 {
 		return Level{}, ErrSecretCount
 	}
@@ -174,6 +177,16 @@ func checkSizes(rows [world.Count][]string) error {
 var greyOnly = map[rune]error{
 	tileFragment: ErrFragmentOutsideGrey,
 	tileWatcher:  ErrWatcherOutsideGrey,
+	tileRail:     ErrRailOutsideGrey,
+}
+
+func isMarker(ch rune) bool {
+	switch ch {
+	case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher, tileCheckpoint, tileSignal, tileSecret,
+		tileLamp, tileRail, tileGate1, tileGate2:
+		return true
+	}
+	return false
 }
 
 func parseGrid(layer world.World, rows []string) (Grid, map[rune][]Point, error) {
@@ -186,13 +199,14 @@ func parseGrid(layer world.World, rows []string) (Grid, map[rune][]Point, error)
 			case tileSolid:
 				solid[y*width+x] = true
 			case tileEmpty:
-			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher, tileCheckpoint, tileSignal, tileSecret:
+			default:
+				if !isMarker(ch) {
+					return Grid{}, nil, fmt.Errorf("%w %q at %d,%d", ErrUnknownTile, ch, x, y)
+				}
 				if err, ok := greyOnly[ch]; ok && layer != world.Grey {
 					return Grid{}, nil, fmt.Errorf("%w (at %d,%d)", err, x, y)
 				}
 				markers[ch] = append(markers[ch], Point{X: x, Y: y})
-			default:
-				return Grid{}, nil, fmt.Errorf("%w %q at %d,%d", ErrUnknownTile, ch, x, y)
 			}
 		}
 	}

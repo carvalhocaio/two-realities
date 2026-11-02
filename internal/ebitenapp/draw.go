@@ -15,6 +15,7 @@ const (
 	blockedFlashAlpha = 0.35
 	deathFlashAlpha   = 0.6
 	deathBlinkTicks   = 4
+	lockedExitAlpha   = 0.25
 )
 
 var pixel = func() *ebiten.Image {
@@ -51,8 +52,9 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	dst.DrawImage(ghost, nil)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
-	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, 1)
+	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, exitAlpha(s))
 	drawCheckpoints(dst, s, pal)
+	drawWardenBack(dst, s, pal, tick)
 	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
 	drawSignals(dst, s, pal)
 	drawSecret(dst, s, tick)
@@ -60,6 +62,14 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	if playerVisible(s, tick) {
 		fillRect(dst, s.PlayerBox(), pal.player, 1)
 	}
+	drawWardenFront(dst, s, tick)
+}
+
+func exitAlpha(s *game.Session) float32 {
+	if s.ExitOpen() {
+		return 1
+	}
+	return lockedExitAlpha
 }
 
 func playerVisible(s *game.Session, tick int) bool {

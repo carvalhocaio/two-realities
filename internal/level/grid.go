@@ -26,5 +26,15 @@ func (g Grid) Solid(x, y int) bool {
 	return g.InBounds(x, y) && g.solid[y*g.width+x]
 }
 
+func (g Grid) WithSolid(points []Point) Grid {
+	solid := append([]bool(nil), g.solid...)
+	for _, p := range points {
+		if g.InBounds(p.X, p.Y) {
+			solid[p.Y*g.width+p.X] = true
+		}
+	}
+	return Grid{width: g.width, height: g.height, solid: solid}
+}
+
 func (g Grid) PixelWidth() float64  { return float64(g.width * TileSize) }
 func (g Grid) PixelHeight() float64 { return float64(g.height * TileSize) }

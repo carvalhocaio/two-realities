@@ -44,6 +44,18 @@ func TestEmbeddedLevelInvariants(t *testing.T) {
 					ok   bool
 				}{"grey-only marker sits in open grey space", !grey.Solid(p.X, p.Y)})
 			}
+			if b := lvl.Boss; b != nil {
+				for _, p := range b.Lamps {
+					checks = append(checks, struct {
+						what string
+						ok   bool
+					}{"lamp stands on yellow ground and is open in grey", standsOnYellow(lvl, p) && !grey.Solid(p.X, p.Y)})
+				}
+				checks = append(checks, struct {
+					what string
+					ok   bool
+				}{"rail sits right under the ceiling", grey.Solid(b.Rail.From, b.Rail.Row-1) && !grey.Solid(b.Rail.From, b.Rail.Row)})
+			}
 			for _, c := range checks {
 				if !c.ok {
 					t.Errorf("%s", c.what)

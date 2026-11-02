@@ -18,6 +18,7 @@ type Level struct {
 	AutoEvery      int
 	Transmissions  []Transmission
 	Secret         *Marker
+	Boss           *Boss
 	Name           string
 }
 

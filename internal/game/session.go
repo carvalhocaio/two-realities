@@ -45,6 +45,8 @@ type Session struct {
 	resultTimer      int
 	records          *Records
 	assist           bool
+	layers           [world.Count]level.Grid
+	warden           wardenState
 }
 
 func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {
@@ -78,6 +80,12 @@ func (s *Session) respawn() {
 	s.death = Alive
 	s.deathTimer = 0
 	s.beats = newBeatState(s.clock.Beat())
+	s.warden = wardenState{lit: start.lit}
+	if s.level.Boss != nil {
+		s.resetWarden(start.lit)
+		return
+	}
+	s.closeGates()
 }
 
 func (s *Session) Update(in input.Intent) {
@@ -103,12 +111,13 @@ func (s *Session) Update(in input.Intent) {
 		return
 	}
 
-	s.player.Update(in, s.level.Layer(s.active))
+	s.player.Update(in, s.layer(s.active))
 	s.collectFragments()
 	s.collectSecret()
 	s.activateCheckpoints()
 	s.updateTransmissions()
 	s.updateWatchers()
+	s.updateWarden()
 
 	switch {
 	case s.touchingSpikes():
@@ -116,7 +125,7 @@ func (s *Session) Update(in input.Intent) {
 	case s.fellOut():
 		s.die(DeathFall)
 	}
-	if s.death == Alive && s.reachedExit() {
+	if s.death == Alive && s.ExitOpen() && s.reachedExit() {
 		s.completeLevel()
 		s.nextLevel()
 	}
@@ -141,10 +150,12 @@ func (s *Session) Feedback() Feedback {
 	}
 }
 
+func (s *Session) layer(w world.World) level.Grid { return s.layers[w] }
+
 func (s *Session) reachedExit() bool {
 	return s.player.Box.Overlaps(level.TileRect(s.level.Exit))
 }
 
 func (s *Session) fellOut() bool {
-	return s.player.Box.Y > s.level.Layer(s.active).PixelHeight()
+	return s.player.Box.Y > s.layer(s.active).PixelHeight()
 }

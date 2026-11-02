@@ -11,6 +11,8 @@ const (
 	fragmentsKey = "fragments"
 	shiftKey     = "shift"
 	autoEveryKey = "auto_every"
+	bossKey      = "boss"
+	wardenBoss   = "warden"
 )
 
 var (
@@ -45,6 +47,7 @@ type header struct {
 	fragments int
 	shift     ShiftMode
 	autoEvery int
+	boss      bool
 }
 
 func splitHeader(lines []string) (header, []string, error) {
@@ -92,6 +95,11 @@ func parseHeader(fields map[string]string) (header, error) {
 			if err == nil && h.autoEvery == 0 {
 				err = fmt.Errorf("%w: %s must be positive", ErrInvalidHeader, key)
 			}
+		case bossKey:
+			h.boss = value == wardenBoss
+			if !h.boss {
+				err = fmt.Errorf("%w: unknown boss %q", ErrInvalidHeader, value)
+			}
 		default:
 			err = fmt.Errorf("%w: unknown key %q", ErrInvalidHeader, key)
 		}
@@ -101,6 +109,10 @@ func parseHeader(fields map[string]string) (header, error) {
 	}
 	if _, ok := fields[fragmentsKey]; !ok {
 		return header{}, fmt.Errorf("%w: %s is required", ErrInvalidHeader, fragmentsKey)
+	}
+	_, hasShift := fields[shiftKey]
+	if h.boss && hasShift {
+		return header{}, ErrBossShiftOverride
 	}
 	if (h.shift == ShiftAuto) != (h.autoEvery > 0) {
 		return header{}, fmt.Errorf("%w: %s is required in auto mode and only there", ErrInvalidHeader, autoEveryKey)

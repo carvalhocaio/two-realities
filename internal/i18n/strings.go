@@ -15,6 +15,7 @@ const (
 	HudLevel
 	HudRestart
 	HudMuted
+	HudWarden
 	ResultTime
 	ResultTimeBest
 	ResultNewBest
@@ -55,6 +56,7 @@ var tables = [LangCount]map[Key]string{
 		HudLevel:           "LV %d/%d",
 		HudRestart:         "R TO RESTART",
 		HudMuted:           "MUTE",
+		HudWarden:          "THE WARDEN",
 		ResultTime:         "TIME %s",
 		ResultTimeBest:     "TIME %s  BEST %s",
 		ResultNewBest:      "NEW BEST %s",
@@ -92,6 +94,7 @@ var tables = [LangCount]map[Key]string{
 		HudLevel:           "FASE %d/%d",
 		HudRestart:         "R PARA REINICIAR",
 		HudMuted:           "MUDO",
+		HudWarden:          "O CARCEREIRO",
 		ResultTime:         "TEMPO %s",
 		ResultTimeBest:     "TEMPO %s  RECORDE %s",
 		ResultNewBest:      "NOVO RECORDE %s",

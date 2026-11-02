@@ -18,7 +18,7 @@ func newBeatState(beat int) beatState {
 }
 
 func (s *Session) requestShift() {
-	switch s.level.Shift {
+	switch s.shiftMode() {
 	case level.ShiftFree:
 		s.TryShift()
 	case level.ShiftQuantized:
@@ -32,7 +32,7 @@ func (s *Session) onBeats() {
 		return
 	}
 	s.beats.last = to
-	switch s.level.Shift {
+	switch s.shiftMode() {
 	case level.ShiftQuantized:
 		if s.beats.queued {
 			s.beats.queued = false
@@ -46,13 +46,13 @@ func (s *Session) onBeats() {
 }
 
 func (s *Session) nextAutoBeat(after int) int {
-	every := s.level.AutoEvery
+	every := s.autoEvery()
 	return s.beats.start + ((after-s.beats.start)/every+1)*every
 }
 
 func (s *Session) autoShift() {
 	s.active = s.active.Other()
-	layer := s.level.Layer(s.active)
+	layer := s.layer(s.active)
 	if !physics.OverlapsSolid(s.player.Box, layer) {
 		return
 	}
@@ -68,7 +68,7 @@ func (s *Session) autoShift() {
 func (s *Session) ShiftQueued() bool { return s.beats.queued }
 
 func (s *Session) AutoCountdown() int {
-	if s.level.Shift != level.ShiftAuto || s.death != Alive {
+	if s.shiftMode() != level.ShiftAuto || s.death != Alive {
 		return 0
 	}
 	left := s.nextAutoBeat(s.beats.last) - s.beats.last

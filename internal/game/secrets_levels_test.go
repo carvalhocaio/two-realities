@@ -86,8 +86,8 @@ func TestSecretsCanBeFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(tests) != len(levels) {
-		t.Fatalf("%d secret scripts for %d levels", len(tests), len(levels))
+	if want := len(levels) - bossLevels(levels); len(tests) != want {
+		t.Fatalf("%d secret scripts for %d levels with secrets", len(tests), want)
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -111,6 +111,9 @@ func TestSecretsNeedTheShift(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, lvl := range levels {
+		if lvl.Boss != nil {
+			continue
+		}
 		sec := *lvl.Secret
 		g := lvl.Layer(sec.Layer)
 		other := lvl.Layer(sec.Layer.Other())
@@ -125,4 +128,14 @@ func TestSecretsNeedTheShift(t *testing.T) {
 			}
 		}
 	}
+}
+
+func bossLevels(levels []level.Level) int {
+	n := 0
+	for _, l := range levels {
+		if l.Boss != nil {
+			n++
+		}
+	}
+	return n
 }

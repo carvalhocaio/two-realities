@@ -8,6 +8,7 @@ const (
 	DeathCaught
 	DeathFall
 	DeathCrushed
+	DeathBeam
 )
 
 const DeathFreezeTicks = 30

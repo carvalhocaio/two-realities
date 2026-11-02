@@ -185,6 +185,7 @@ func TestLevelSolutions(t *testing.T) {
 		{"06_finale", solveFinale},
 		{"07_on_the_beat", solveOnTheBeat},
 		{"08_metronome", solveMetronome},
+		{wardenLevel, solveWarden},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -259,7 +260,7 @@ func TestFragmentsLevelBlocksStayingGrey(t *testing.T) {
 }
 
 type mechanics struct {
-	fragments, spikes, watchers, checkpoints, quantized, auto bool
+	fragments, spikes, watchers, checkpoints, quantized, auto, boss bool
 }
 
 func mechanicsOf(l level.Level) mechanics {
@@ -270,6 +271,7 @@ func mechanicsOf(l level.Level) mechanics {
 		checkpoints: len(l.Checkpoints) > 0,
 		quantized:   l.Shift == level.ShiftQuantized,
 		auto:        l.Shift == level.ShiftAuto,
+		boss:        l.Boss != nil,
 	}
 }
 
@@ -287,6 +289,7 @@ func TestTeachingOrder(t *testing.T) {
 		{fragments: true, spikes: true, watchers: true, checkpoints: true},
 		{fragments: true, watchers: true, quantized: true},
 		{auto: true},
+		{fragments: true, boss: true},
 	}
 	if len(levels) != len(want) {
 		t.Fatalf("got %d levels, want %d", len(levels), len(want))
@@ -305,6 +308,7 @@ func TestTeachingOrder(t *testing.T) {
 			{got.checkpoints, seen.checkpoints},
 			{got.quantized, seen.quantized},
 			{got.auto, seen.auto},
+			{got.boss, seen.boss},
 		} {
 			if pair[0] && !pair[1] {
 				introduced++
@@ -320,6 +324,7 @@ func TestTeachingOrder(t *testing.T) {
 			checkpoints: seen.checkpoints || got.checkpoints,
 			quantized:   seen.quantized || got.quantized,
 			auto:        seen.auto || got.auto,
+			boss:        seen.boss || got.boss,
 		}
 	}
 }

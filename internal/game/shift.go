@@ -29,7 +29,7 @@ func (s *Session) TryShift() ShiftOutcome {
 		s.restartHint = true
 		return ShiftBlockedNoFragments
 	}
-	if physics.OverlapsSolid(s.player.Box, s.level.Layer(target)) {
+	if physics.OverlapsSolid(s.player.Box, s.layer(target)) {
 		s.solidFeedback = BlockedFeedbackTicks
 		return ShiftBlockedSolid
 	}

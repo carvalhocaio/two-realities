@@ -3,6 +3,7 @@ package ebitenapp
 import (
 	"encoding/binary"
 	"math"
+	"sync/atomic"
 	"time"
 
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
@@ -22,6 +23,13 @@ const (
 	hatLength    = 0.06
 	hatDecay     = 70.0
 	hatGain      = 0.18
+	bassHz       = 55.0
+	bassLength   = 0.18
+	bassDecay    = 14.0
+	bassGain     = 0.35
+	snareLength  = 0.14
+	snareDecay   = 28.0
+	snareGain    = 0.3
 	noiseSeed    = 0x2545F491
 	noiseMul     = 1664525
 	noiseInc     = 1013904223
@@ -32,14 +40,46 @@ func beatFrames() int {
 	return int(int64(rhythm.BeatDuration(rhythm.BPM)) * sampleRate / int64(time.Second))
 }
 
-func synthBar() []byte {
+const intensityLevels = 4
+
+func synthBars() [][]byte {
+	bars := make([][]byte, intensityLevels)
+	for i := range bars {
+		bars[i] = synthBar(i)
+	}
+	return bars
+}
+
+func synthBar(intensity int) []byte {
 	beat := beatFrames()
 	mix := make([]float64, beat*beatsPerBar)
 	for b := range beatsPerBar {
-		addKick(mix[b*beat:])
-		addHat(mix[b*beat+beat/2:])
+		start := b * beat
+		addKick(mix[start:])
+		addHat(mix[start+beat/2:], hatGain)
+		if intensity >= 1 {
+			addBass(mix[start+beat/2:])
+		}
+		if intensity >= 2 {
+			addHat(mix[start+beat/4:], hatGain/2)
+			addHat(mix[start+3*beat/4:], hatGain/2)
+		}
+		if intensity >= 3 && b%2 == 1 {
+			addSnare(mix[start:])
+		}
 	}
 	return encodeStereoF32(mix)
+}
+
+func addBass(dst []float64) {
+	for i := range min(len(dst), int(bassLength*sampleRate)) {
+		t := float64(i) / sampleRate
+		dst[i] += bassGain * math.Exp(-t*bassDecay) * math.Sin(2*math.Pi*bassHz*t)
+	}
+}
+
+func addSnare(dst []float64) {
+	addNoise(dst, snareLength, snareDecay, snareGain)
 }
 
 func addKick(dst []float64) {
@@ -52,15 +92,25 @@ func addKick(dst []float64) {
 	}
 }
 
-func addHat(dst []float64) {
+func addHat(dst []float64, gain float64) {
 	seed := uint32(noiseSeed)
 	prev := 0.0
 	for i := range min(len(dst), int(hatLength*sampleRate)) {
 		seed = seed*noiseMul + noiseInc
 		noise := float64(seed)/noiseDivisor - 1
 		t := float64(i) / sampleRate
-		dst[i] += hatGain * math.Exp(-t*hatDecay) * (noise - prev)
+		dst[i] += gain * math.Exp(-t*hatDecay) * (noise - prev)
 		prev = noise
+	}
+}
+
+func addNoise(dst []float64, length, decay, gain float64) {
+	seed := uint32(noiseSeed)
+	for i := range min(len(dst), int(length*sampleRate)) {
+		seed = seed*noiseMul + noiseInc
+		noise := float64(seed)/noiseDivisor - 1
+		t := float64(i) / sampleRate
+		dst[i] += gain * math.Exp(-t*decay) * noise
 	}
 }
 
@@ -75,16 +125,23 @@ func encodeStereoF32(mono []float64) []byte {
 }
 
 type loopReader struct {
-	data []byte
+	bars [][]byte
+	cur  int
+	next atomic.Int32
 	pos  int
 }
 
 func (l *loopReader) Read(p []byte) (int, error) {
 	n := 0
 	for n < len(p) {
-		c := copy(p[n:], l.data[l.pos:])
+		data := l.bars[l.cur]
+		c := copy(p[n:], data[l.pos:])
 		n += c
-		l.pos = (l.pos + c) % len(l.data)
+		l.pos += c
+		if l.pos == len(data) {
+			l.pos = 0
+			l.cur = int(l.next.Load())
+		}
 	}
 	return n, nil
 }

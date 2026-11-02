@@ -53,6 +53,7 @@ func (a *App) Update() error {
 	}
 	a.music.setMuted(a.flow.Muted())
 	a.music.setOffset(a.flow.AudioOffsetMs())
+	a.music.setIntensity(musicIntensity(a.flow))
 	if anyJustPressed(timerKeys) {
 		a.showTimer = !a.showTimer
 	}
@@ -102,6 +103,17 @@ func (a *App) setTitle(title string) {
 		a.title = title
 		ebiten.SetWindowTitle(title)
 	}
+}
+
+func musicIntensity(f *game.Flow) int {
+	if f.Screen() != game.ScreenPlaying && f.Screen() != game.ScreenPaused {
+		return 0
+	}
+	w, ok := f.Session().Warden()
+	if !ok || w.Lit >= level.LampCount {
+		return 0
+	}
+	return w.Lit + 1
 }
 
 func windowTitle(f *game.Flow) string {

@@ -31,7 +31,7 @@ func (s *Session) touchingSpikes() bool {
 }
 
 func (s *Session) updateWatchers() {
-	grey := s.level.Layer(world.Grey)
+	grey := s.layer(world.Grey)
 	for i := range s.watchers {
 		w := &s.watchers[i]
 		w.Patrol(grey)

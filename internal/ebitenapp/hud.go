@@ -3,6 +3,7 @@ package ebitenapp
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -59,8 +60,24 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	case s.RestartHint():
 		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, warningColor)
 	default:
-		drawCentered(dst, levelLabel(s, h.timer, h.lang), pal, pal.text)
+		drawLevelLabel(dst, s, h, pal)
 	}
+}
+
+func drawLevelLabel(dst *ebiten.Image, s *game.Session, h hudState, pal palette) {
+	w, ok := s.Warden()
+	if !ok {
+		drawCentered(dst, levelLabel(s, h.timer, h.lang), pal, pal.text)
+		return
+	}
+	label := h.lang.T(i18n.HudWarden) + strings.Repeat(" ", pipSpaces)
+	if h.timer {
+		label += "  " + formatTicks(s.LevelTicks())
+	}
+	x := (float64(dst.Bounds().Dx())-textWidth(label))/2 - hudPadding
+	drawPanelText(dst, label, x, pal, pal.text)
+	name := textWidth(h.lang.T(i18n.HudWarden) + " ")
+	drawWardenPips(dst, x+hudPadding+name, hudTop+hudPadding, w.Lit)
 }
 
 func levelLabel(s *game.Session, timer bool, lang i18n.Lang) string {

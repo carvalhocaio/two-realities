@@ -8,6 +8,7 @@ type snapshot struct {
 	fragments int
 	collected []bool
 	secret    bool
+	lit       int
 }
 
 func (s *Session) startState() snapshot {
@@ -40,7 +41,7 @@ func (s *Session) activateCheckpoints() {
 }
 
 func (s *Session) ActiveCheckpoint() (int, bool) {
-	if s.checkpoint == nil {
+	if s.checkpoint == nil || s.checkpoint.index < 0 {
 		return 0, false
 	}
 	return s.checkpoint.index, true

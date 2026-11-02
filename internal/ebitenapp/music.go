@@ -12,18 +12,24 @@ const musicVolume = 0.6
 
 type music struct {
 	player  *audio.Player
+	loop    *loopReader
 	muted   bool
 	latency time.Duration
 }
 
 func newMusic() (*music, error) {
 	ctx := audio.NewContext(sampleRate)
-	player, err := ctx.NewPlayerF32(&loopReader{data: synthBar()})
+	loop := &loopReader{bars: synthBars()}
+	player, err := ctx.NewPlayerF32(loop)
 	if err != nil {
 		return nil, err
 	}
 	player.SetVolume(musicVolume)
-	return &music{player: player, latency: defaultAudioLatency}, nil
+	return &music{player: player, loop: loop, latency: defaultAudioLatency}, nil
+}
+
+func (m *music) setIntensity(level int) {
+	m.loop.next.Store(int32(min(max(level, 0), intensityLevels-1)))
 }
 
 func (m *music) start() {
