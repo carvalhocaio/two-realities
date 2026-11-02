@@ -66,7 +66,7 @@ func solveMetronome(r *runner) {
 
 func TestQueuingEarlyWorksOnAnyBeatPhase(t *testing.T) {
 	for offset := range beatTicks {
-		r := newRunnerAt(t, "07_on_the_beat", tickDuration*time.Duration(offset))
+		r := newRunnerAt(t, "09_on_the_beat", tickDuration*time.Duration(offset))
 		solveOnTheBeat(r)
 	}
 }
@@ -74,7 +74,7 @@ func TestQueuingEarlyWorksOnAnyBeatPhase(t *testing.T) {
 func TestReactingOnSightIsTooLateOnSomePhases(t *testing.T) {
 	caught := 0
 	for offset := range beatTicks {
-		r := newRunnerAt(t, "07_on_the_beat", tickDuration*time.Duration(offset))
+		r := newRunnerAt(t, "09_on_the_beat", tickDuration*time.Duration(offset))
 		r.reachPocketBehindWatcher()
 		for range maxTicks {
 			if r.watcher().Alert > 0 {
@@ -113,7 +113,7 @@ func TestMetronomeMistakes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := newRunner(t, "08_metronome")
+			r := newRunner(t, "10_metronome")
 			tt.play(r)
 			in := right
 			if r.ticks > 0 {

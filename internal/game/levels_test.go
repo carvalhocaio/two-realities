@@ -183,8 +183,12 @@ func TestLevelSolutions(t *testing.T) {
 		{"04_watcher", solveWatcher},
 		{"05_planning", solvePlanning},
 		{"06_finale", solveFinale},
-		{"07_on_the_beat", solveOnTheBeat},
-		{"08_metronome", solveMetronome},
+		{"07_crossfire", solveCrossfire},
+		{"08_descent", solveDescent},
+		{"09_on_the_beat", solveOnTheBeat},
+		{"10_metronome", solveMetronome},
+		{"11_offbeat", solveOffbeat},
+		{"12_clockwork", solveClockwork},
 		{wardenLevel, solveWarden},
 	}
 	for _, tt := range tests {
@@ -287,8 +291,12 @@ func TestTeachingOrder(t *testing.T) {
 		{fragments: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true, checkpoints: true},
+		{fragments: true, watchers: true, checkpoints: true},
+		{fragments: true, spikes: true, watchers: true, checkpoints: true},
 		{fragments: true, watchers: true, quantized: true},
 		{auto: true},
+		{fragments: true, spikes: true, watchers: true, quantized: true},
+		{spikes: true, watchers: true, auto: true},
 		{fragments: true, boss: true},
 	}
 	if len(levels) != len(want) {

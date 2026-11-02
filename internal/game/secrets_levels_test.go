@@ -79,8 +79,12 @@ func TestSecretsCanBeFound(t *testing.T) {
 		{"04_watcher", toLeftWall},
 		{"05_planning", toLeftWall},
 		{"06_finale", toLeftWall},
-		{"07_on_the_beat", toLeftWall},
-		{"08_metronome", func(*runner) {}},
+		{"07_crossfire", toLeftWall},
+		{"08_descent", toLeftWall},
+		{"09_on_the_beat", toLeftWall},
+		{"10_metronome", func(*runner) {}},
+		{"11_offbeat", toLeftWall},
+		{"12_clockwork", toLeftWall},
 	}
 	levels, err := level.LoadAll()
 	if err != nil {

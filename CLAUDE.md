@@ -24,7 +24,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - **Death** (spikes, caught, falling out): `DeathFreezeTicks` (0.5s) freeze with white flash, shake and blinking player, input ignored, then restart from spawn.
 
 ### Shift modes and rhythm
-- Per-level header `shift: free|quantized|auto` (default `free`). Levels 1-6 are free.
+- Per-level header `shift: free|quantized|auto` (default `free`). Levels 1-8 are free.
   - **free**: Shift resolves immediately (rules above).
   - **quantized**: Shift toggles a queued request (pressing again cancels) that resolves on the next beat through `TryShift`, so cost and both blocked outcomes apply at resolution. The HUD world chip blinks the target world while queued.
   - **auto**: the world swaps by itself every `auto_every: N` beats (required in auto, rejected elsewhere), counted from spawn/respawn. Player Shift is ignored, swaps are free, `Y` is a parse error. A swap that leaves the player inside a solid tile kills (`DeathCrushed`). A 3-2-1 countdown is drawn above the player.
@@ -63,7 +63,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - `internal/font` (pure) holds the 3x5 glyphs, including Á À Â Ã É Ê Í Ó Ô Õ Ú Ç with a one-row accent above (cedilla below); it is the single authority on drawable text (`font.Missing`).
 
 ### Boss: The Warden (O Carcereiro)
-- Level header `boss: warden` (then `shift`/`auto_every` are rejected: each phase sets its own mode). Single-screen 32x17 arena, `09_warden`, the last level.
+- Level header `boss: warden` (then `shift`/`auto_every` are rejected: each phase sets its own mode). Single-screen 32x17 arena, `13_warden`, the last level.
 - **Eye** rides the `O` rail under the ceiling (grey layer, one unbroken row). Its **beam** drops straight down and stops at the first grey solid tile under either edge of the beam (`BeamWidth` 6px): grey platforms are cover, the yellow world is immune. Instant death (`DeathBeam`) while grey is active and the player overlaps it.
 - **3 lamps** (`L`, on yellow ground, open in grey), lit in order bottom to top (then left to right) by touching the current one **while grey is active**. Each lit lamp ends a phase, opens that phase's gate, acts as a checkpoint (death keeps lit lamps; R restarts the fight) and gives `RestBeats` (2) without beam. The exit stays locked (drawn dim) until the third lamp.
 - **Gates** `1`/`2` (either layer): solid in both worlds until lamp 1/2 is lit. The session keeps its own copy of the layers with closed gates (`Session.layer`).
@@ -97,11 +97,17 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 | 4 | `04_watcher` | first watcher: hide on the yellow pocket while it passes, return behind it | 1 fragment |
 | 5 | `05_planning` | watcher + spikes with exactly 2 fragments: wasting one means R | 2 fragments, exactly |
 | 6 | `06_finale` | everything + checkpoints: corridor on top, drop, spikes walking left at the bottom | 3 fragments, 2 checkpoints |
-| 7 | `07_on_the_beat` | quantized shift: queue the hide on the yellow pocket before the watcher turns back; reacting on sight gets caught when the beat is far | 1 fragment |
-| 8 | `08_metronome` | auto shift every 4 beats: wait on shared ground, cross single-world floors within one phase, don't stand under the grey block | no fragments |
-| 9 | `09_warden` | boss: light 3 lamps in grey while the eye's beam sweeps (free, then quantized) and finally tracks you under auto shift | 1 fragment (2 available) |
+| 7 | `07_crossfire` | mastery (Act II): two watchers split by a grey-only pillar crossed through yellow; three hiding places, three fragments | 3 fragments, exactly; 1 checkpoint |
+| 8 | `08_descent` | mastery (Act II): vertical drop; shift to grey before landing on the watcher's floor, follow it and jump over it when it turns, shift mid-fall, alternate spikes at the bottom | 2 fragments |
+| 9 | `09_on_the_beat` | quantized shift: queue the hide on the yellow pocket before the watcher turns back; reacting on sight gets caught when the beat is far | 1 fragment |
+| 10 | `10_metronome` | auto shift every 4 beats: wait on shared ground, cross single-world floors within one phase, don't stand under the grey block | no fragments |
+| 11 | `11_offbeat` | mastery (Act III): alternating spike run in quantized mode (queue on the safe tiles), then the corridor watcher with an early queue | 3 fragments |
+| 12 | `12_clockwork` | mastery (Act III): auto every 2 beats (the boss's final rhythm); wait on crates above the watcher's sight, cross the yellow spikes in a grey window behind its back, mind the grey blocks | no fragments |
+| 13 | `13_warden` | boss: light 3 lamps in grey while the eye's beam sweeps (free, then quantized) and finally tracks you under auto shift | 1 fragment (2 available) |
 
-`internal/game/levels_test.go` scripts a solution for every level (under 90s), checks naive attempts fail for the intended reason, and enforces the teaching order (each level adds at most one new mechanic; a shift mode counts as one). `rhythm_levels_test.go` drives L7/L8 with a manual clock: L7's solution works on every beat phase, reacting on sight fails on some. `internal/level/invariants_test.go` checks every embedded level (spawn/checkpoints stand on yellow ground, grey-only markers in open grey space, etc.).
+Acts: I = 1-4 (one mechanic each), II = 5-8 (combining, ends with two mastery levels), III = 9-13 (rhythm modes, two mastery levels, the Warden). Mastery levels add no new mechanic; `mastery_levels_test.go` solves 11/12 on every beat phase and checks their naive attempts.
+
+`internal/game/levels_test.go` scripts a solution for every level (under 90s), checks naive attempts fail for the intended reason, and enforces the teaching order (each level adds at most one new mechanic; a shift mode counts as one). `rhythm_levels_test.go` drives L9/L10 with a manual clock: L9's solution works on every beat phase, reacting on sight fails on some. `internal/level/invariants_test.go` checks every embedded level (spawn/checkpoints stand on yellow ground, grey-only markers in open grey space, etc.).
 
 Original characters and names only — no band names, logos, or lyrics anywhere.
 
@@ -176,6 +182,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 6.6. itch iframe fixes: P/Enter pause, auto-pause on blur/hidden/fullscreen exit, prefixed keys, storage fallback + notice — **done**
 6.7. Audio offset in the pause menu and Brazilian Portuguese localization (UI + transmissions) — **done**
 6.8. The Warden boss: three-phase single-screen fight (sweep, quantized sweep, tracking beam under auto shift), lamps, gates, layered music — **done**
+6.9. Four mastery levels (07, 08, 11, 12) and the three-act order — **done**
 7. itch.io release polish
 
 Only implement the step currently being worked on.

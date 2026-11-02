@@ -12,7 +12,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
-const wardenLevel = "09_warden"
+const wardenLevel = "13_warden"
 
 func (r *runner) lit() int { return r.s.warden.lit }
 
