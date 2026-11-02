@@ -12,6 +12,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 ### Art direction (step 5, option B)
 - 320x180 and 10px tiles stay; art never changes geometry or logic timing (the shift wipe is visual only).
 - Four colors per world (`palette.go`): yellow = cream background, amber tiles, dark brown ink (player/text), orange exit; grey = graphite background, slate tiles, light ink, exit in fragment yellow.
+- Shift wipe (`wipe.go`): when the active world changes (not on respawn or level change), the previous frame slides off to the right behind a yellow/black hazard band for `wipeTicks` (9 ticks). Purely visual; logic already switched. Shifts land on the beat in quantized/auto, so the wipe does too.
 - Shared accents: fragment yellow (in grey it only appears on fragments, exit, lamps, secret and lit checkpoints), `dangerColor` red only for danger (active spikes, watcher visor and sight, the Warden's beam/rail, blocked flash), `enemyColor` near-black for watcher and Warden bodies.
 - The inactive world is a ghost: dotted outlines for tiles, watchers and the eye, outlined spikes, all in that world's tile color (or `enemyColor` for enemies), so it never reads as solid or as active danger.
 

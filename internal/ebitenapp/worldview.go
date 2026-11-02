@@ -18,10 +18,11 @@ type worldView struct {
 	canvas  *ebiten.Image
 	ghosts  [world.Count]*ebiten.Image
 	level   int
+	wipe    *wipe
 }
 
 func newWorldView() *worldView {
-	return &worldView{cam: camera.New(ScreenWidth, ViewHeight), level: -1}
+	return &worldView{cam: camera.New(ScreenWidth, ViewHeight), level: -1, wipe: newWipe()}
 }
 
 func (v *worldView) follow(s *game.Session) {
@@ -71,6 +72,10 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
 	viewport := geom.Rect{Y: HUDHeight, W: ScreenWidth, H: ViewHeight}
 	drawFlash(screen, viewport, dangerColor, blocked*dangerColorAlpha)
 	drawFlash(screen, viewport, deathFlash, dying*deathFlashAlpha)
+
+	v.wipe.begin(s.Active(), s.Epoch(), tick)
+	v.wipe.remember(screen)
+	v.wipe.draw(screen, tick)
 }
 
 func deathStrength(s *game.Session) float64 {
