@@ -8,11 +8,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
 )
 
-const (
-	musicVolume  = 0.6
-	latencyStep  = 10 * time.Millisecond
-	latencyLimit = 500 * time.Millisecond
-)
+const musicVolume = 0.6
 
 type music struct {
 	player  *audio.Player
@@ -48,8 +44,8 @@ func (m *music) setMuted(muted bool) {
 	m.player.SetVolume(musicVolume)
 }
 
-func (m *music) nudgeLatency(steps int) {
-	m.latency = max(-latencyLimit, min(latencyLimit, m.latency+time.Duration(steps)*latencyStep))
+func (m *music) setOffset(ms int) {
+	m.latency = defaultAudioLatency + time.Duration(ms)*time.Millisecond
 }
 
 func (m *music) position() rhythm.Position {

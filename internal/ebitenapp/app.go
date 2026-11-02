@@ -49,6 +49,7 @@ func (a *App) Update() error {
 		a.music.start()
 	}
 	a.music.setMuted(a.flow.Muted())
+	a.music.setOffset(a.flow.AudioOffsetMs())
 	if anyJustPressed(timerKeys) {
 		a.showTimer = !a.showTimer
 	}
@@ -72,7 +73,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 		drawHUD(screen, s, a.tick, a.hudState())
 		drawTransmission(screen, s)
 		if a.flow.Screen() == game.ScreenPaused {
-			drawPauseMenu(screen, a.flow)
+			drawPauseMenu(screen, a.flow, a.music.Phase())
 		}
 	}
 }

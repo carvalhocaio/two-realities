@@ -44,6 +44,16 @@ func (r *Records) SecretsFound(levels []level.Level) (found, total int) {
 	return found, total
 }
 
+func (r *Records) AudioOffset() int { return r.data.AudioOffsetMs }
+
+func (r *Records) setAudioOffset(ms int) {
+	if r.data.AudioOffsetMs == ms {
+		return
+	}
+	r.data.AudioOffsetMs = ms
+	r.persist()
+}
+
 func (r *Records) recordLevel(name string, ticks int) (best int, improved bool) {
 	if old, ok := r.data.BestLevel[name]; ok && old <= ticks {
 		return old, false

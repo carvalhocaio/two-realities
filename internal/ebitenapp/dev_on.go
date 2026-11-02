@@ -3,8 +3,6 @@
 package ebitenapp
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
@@ -12,14 +10,6 @@ import (
 )
 
 func handleDevKeys(a *App) {
-	switch {
-	case inpututil.IsKeyJustPressed(ebiten.KeyMinus):
-		a.music.nudgeLatency(-1)
-		a.showNotice(fmt.Sprintf("LAT %dMS", a.music.latency.Milliseconds()))
-	case inpututil.IsKeyJustPressed(ebiten.KeyEqual):
-		a.music.nudgeLatency(1)
-		a.showNotice(fmt.Sprintf("LAT %dMS", a.music.latency.Milliseconds()))
-	}
 	if a.flow.Screen() != game.ScreenPlaying {
 		return
 	}

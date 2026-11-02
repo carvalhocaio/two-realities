@@ -22,8 +22,14 @@ const (
 	MenuResume MenuItem = iota
 	MenuAssist
 	MenuMute
+	MenuAudioOffset
 	MenuTitle
 	MenuCount
+)
+
+const (
+	AudioOffsetStep  = 10
+	AudioOffsetLimit = 500
 )
 
 type Flow struct {
@@ -36,19 +42,22 @@ type Flow struct {
 	assist  bool
 	muted   bool
 	started bool
+	offset  int
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
-	return &Flow{clock: clock, levels: levels, records: NewRecords(store), screen: ScreenTitle}
+	records := NewRecords(store)
+	return &Flow{clock: clock, levels: levels, records: records, screen: ScreenTitle, offset: clampOffset(records.AudioOffset())}
 }
 
-func (f *Flow) Screen() Screen    { return f.screen }
-func (f *Flow) Session() *Session { return f.session }
-func (f *Flow) LevelCount() int   { return len(f.levels) }
-func (f *Flow) Menu() MenuItem    { return f.menu }
-func (f *Flow) Assist() bool      { return f.assist }
-func (f *Flow) Muted() bool       { return f.muted }
-func (f *Flow) Records() *Records { return f.records }
+func (f *Flow) Screen() Screen     { return f.screen }
+func (f *Flow) Session() *Session  { return f.session }
+func (f *Flow) LevelCount() int    { return len(f.levels) }
+func (f *Flow) Menu() MenuItem     { return f.menu }
+func (f *Flow) Assist() bool       { return f.assist }
+func (f *Flow) Muted() bool        { return f.muted }
+func (f *Flow) AudioOffsetMs() int { return f.offset }
+func (f *Flow) Records() *Records  { return f.records }
 
 func (f *Flow) Update(in input.Intent) {
 	if in.MutePressed {
@@ -100,7 +109,20 @@ func (f *Flow) updateMenu(in input.Intent) {
 		f.menu = (f.menu + MenuCount - 1) % MenuCount
 	case in.DownPressed:
 		f.menu = (f.menu + 1) % MenuCount
+	case f.menu == MenuAudioOffset && in.DecreasePressed:
+		f.setOffset(f.offset - AudioOffsetStep)
+	case f.menu == MenuAudioOffset && in.IncreasePressed:
+		f.setOffset(f.offset + AudioOffsetStep)
 	}
+}
+
+func (f *Flow) setOffset(ms int) {
+	f.offset = clampOffset(ms)
+	f.records.setAudioOffset(f.offset)
+}
+
+func clampOffset(ms int) int {
+	return max(-AudioOffsetLimit, min(AudioOffsetLimit, ms))
 }
 
 func (f *Flow) confirm() {

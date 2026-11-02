@@ -20,6 +20,8 @@ var (
 	confirmKeys = []ebiten.Key{ebiten.KeyEnter, ebiten.KeySpace, ebiten.KeyShiftLeft, ebiten.KeyShiftRight}
 	muteKeys    = []ebiten.Key{ebiten.KeyM}
 	timerKeys   = []ebiten.Key{ebiten.KeyT}
+	lessKeys    = []ebiten.Key{ebiten.KeyMinus, ebiten.KeyNumpadSubtract, ebiten.KeyArrowLeft, ebiten.KeyA}
+	moreKeys    = []ebiten.Key{ebiten.KeyEqual, ebiten.KeyNumpadAdd, ebiten.KeyArrowRight, ebiten.KeyD}
 )
 
 type Keyboard struct {
@@ -37,17 +39,19 @@ func NewKeyboard() Keyboard {
 func (k Keyboard) Read() input.Intent {
 	k.signals.SetFocused(ebiten.IsFocused())
 	return input.Intent{
-		Left:           anyPressed(leftKeys),
-		Right:          anyPressed(rightKeys),
-		JumpPressed:    anyJustPressed(jumpKeys),
-		ShiftPressed:   anyJustPressed(shiftKeys),
-		RestartPressed: anyJustPressed(restartKeys),
-		PausePressed:   anyJustPressed(pauseKeys),
-		UpPressed:      anyJustPressed(upKeys),
-		DownPressed:    anyJustPressed(downKeys),
-		ConfirmPressed: anyJustPressed(confirmKeys),
-		MutePressed:    anyJustPressed(muteKeys),
-		FocusLost:      k.signals.Poll(),
+		Left:            anyPressed(leftKeys),
+		Right:           anyPressed(rightKeys),
+		JumpPressed:     anyJustPressed(jumpKeys),
+		ShiftPressed:    anyJustPressed(shiftKeys),
+		RestartPressed:  anyJustPressed(restartKeys),
+		PausePressed:    anyJustPressed(pauseKeys),
+		UpPressed:       anyJustPressed(upKeys),
+		DownPressed:     anyJustPressed(downKeys),
+		ConfirmPressed:  anyJustPressed(confirmKeys),
+		MutePressed:     anyJustPressed(muteKeys),
+		FocusLost:       k.signals.Poll(),
+		DecreasePressed: anyJustPressed(lessKeys),
+		IncreasePressed: anyJustPressed(moreKeys),
 	}
 }
 

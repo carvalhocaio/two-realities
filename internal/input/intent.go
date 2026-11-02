@@ -1,16 +1,18 @@
 package input
 
 type Intent struct {
-	Left, Right    bool
-	JumpPressed    bool
-	ShiftPressed   bool
-	RestartPressed bool
-	PausePressed   bool
-	UpPressed      bool
-	DownPressed    bool
-	ConfirmPressed bool
-	MutePressed    bool
-	FocusLost      bool
+	Left, Right     bool
+	JumpPressed     bool
+	ShiftPressed    bool
+	RestartPressed  bool
+	PausePressed    bool
+	UpPressed       bool
+	DownPressed     bool
+	ConfirmPressed  bool
+	MutePressed     bool
+	FocusLost       bool
+	DecreasePressed bool
+	IncreasePressed bool
 }
 
 func (i Intent) Acts() bool {
