@@ -20,11 +20,11 @@ const (
 func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, active bool, limit int) {
 	for _, w := range watchers {
 		if !active {
-			drawGhostBox(dst, w.Box, watcherColor)
+			drawGhostBox(dst, w.Box, enemyColor)
 			continue
 		}
 		drawSight(dst, w, grey)
-		fillRect(dst, w.Box, watcherColor, 1)
+		fillRect(dst, w.Box, enemyColor, 1)
 		drawEye(dst, w)
 		drawAlert(dst, w, limit)
 	}
@@ -46,7 +46,7 @@ func drawSight(dst *ebiten.Image, w game.Watcher, grey level.Grid) {
 	origin := w.SightOrigin()
 	end := w.SightEnd(grey)
 	x0, x1 := min(origin.X, end), max(origin.X, end)
-	fillRect(dst, geom.Rect{X: x0, Y: origin.Y, W: x1 - x0, H: 1}, watcherColor, sightAlpha)
+	fillRect(dst, geom.Rect{X: x0, Y: origin.Y, W: x1 - x0, H: 1}, dangerColor, sightAlpha)
 }
 
 func drawEye(dst *ebiten.Image, w game.Watcher) {
@@ -54,7 +54,7 @@ func drawEye(dst *ebiten.Image, w game.Watcher) {
 	if w.Dir < 0 {
 		x = w.Box.X + 1
 	}
-	fillRect(dst, geom.Rect{X: x, Y: w.EyeY() - 1, W: eyeSize, H: eyeSize}, watcherEyeColor, 1)
+	fillRect(dst, geom.Rect{X: x, Y: w.EyeY() - 1, W: eyeSize, H: eyeSize}, dangerColor, 1)
 }
 
 func drawAlert(dst *ebiten.Image, w game.Watcher, limit int) {
@@ -64,10 +64,10 @@ func drawAlert(dst *ebiten.Image, w game.Watcher, limit int) {
 	fill := w.AlertLevel(limit)
 	markX := w.Box.X + (w.Box.W-glyphWidth)/2
 	markY := w.Box.Y - markGap - glyphHeight - meterHeight - 1
-	drawText(dst, "!", markX, markY, warningColor, float32(0.4+0.6*fill))
+	drawText(dst, "!", markX, markY, dangerColor, float32(0.4+0.6*fill))
 
 	meter := geom.Rect{X: w.Box.X, Y: w.Box.Y - markGap - meterHeight, W: w.Box.W, H: meterHeight}
-	fillRect(dst, meter, watcherColor, 0.5)
+	fillRect(dst, meter, enemyColor, 0.5)
 	meter.W *= fill
-	fillRect(dst, meter, warningColor, 1)
+	fillRect(dst, meter, dangerColor, 1)
 }

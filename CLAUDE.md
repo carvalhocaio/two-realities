@@ -9,6 +9,12 @@ Entry for GitHub Game Off 2026 (theme: **SHIFT**, deadline **Dec 1, 2026**). Go 
 
 Shift swaps the active reality. Only the active world's tiles collide. The inactive world is drawn as a ghost (hatched outlines, clearly "not solid here") so the player can plan.
 
+### Art direction (step 5, option B)
+- 320x180 and 10px tiles stay; art never changes geometry or logic timing (the shift wipe is visual only).
+- Four colors per world (`palette.go`): yellow = cream background, amber tiles, dark brown ink (player/text), orange exit; grey = graphite background, slate tiles, light ink, exit in fragment yellow.
+- Shared accents: fragment yellow (in grey it only appears on fragments, exit, lamps, secret and lit checkpoints), `dangerColor` red only for danger (active spikes, watcher visor and sight, the Warden's beam/rail, blocked flash), `enemyColor` near-black for watcher and Warden bodies.
+- The inactive world (tiles and spikes) is drawn in that world's tile color as a ghost, so its spikes never read as active danger.
+
 ### Fragments and asymmetric shift
 - Yellow fragments (`Y`) exist only in the grey layer and are collected only while grey is active. Each is collected once per attempt.
 - **Yellow → Grey is free. Grey → Yellow costs one fragment.**

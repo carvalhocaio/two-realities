@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	blockedFlashAlpha = 0.35
-	deathFlashAlpha   = 0.6
-	deathBlinkTicks   = 4
-	lockedExitAlpha   = 0.25
+	dangerColorAlpha = 0.35
+	deathFlashAlpha  = 0.6
+	deathBlinkTicks  = 4
+	lockedExitAlpha  = 0.25
 )
 
 var pixel = func() *ebiten.Image {

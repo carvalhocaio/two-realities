@@ -49,7 +49,7 @@ func (v *worldView) ghost(s *game.Session) *ebiten.Image {
 	if v.ghosts[active] == nil {
 		inactive := active.Other()
 		lvl := s.Level()
-		v.ghosts[active] = newGhostImage(lvl.Layer(inactive), lvl.Spikes[inactive], palettes[inactive].tile, palettes[inactive].spike)
+		v.ghosts[active] = newGhostImage(lvl.Layer(inactive), lvl.Spikes[inactive], palettes[inactive].tile, palettes[inactive].tile)
 	}
 	return v.ghosts[active]
 }
@@ -69,7 +69,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
 	screen.DrawImage(v.canvas, op)
 
 	viewport := geom.Rect{Y: HUDHeight, W: ScreenWidth, H: ViewHeight}
-	drawFlash(screen, viewport, blockedFlash, blocked*blockedFlashAlpha)
+	drawFlash(screen, viewport, dangerColor, blocked*dangerColorAlpha)
 	drawFlash(screen, viewport, deathFlash, dying*deathFlashAlpha)
 }
 

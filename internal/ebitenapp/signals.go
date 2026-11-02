@@ -27,7 +27,7 @@ func drawSignals(dst *ebiten.Image, s *game.Session, pal palette) {
 		tile := level.TileRect(tr.Point)
 		mast := geom.Rect{X: tile.X + (tile.W-signalMastWidth)/2, Y: tile.Bottom() - signalMastHeight, W: signalMastWidth, H: signalMastHeight}
 		head := geom.Rect{X: tile.X + (tile.W-signalHeadWidth)/2, Y: mast.Y - 2, W: signalHeadWidth, H: 2}
-		fillRect(dst, mast, pal.text, alpha)
-		fillRect(dst, head, pal.exit, alpha)
+		fillRect(dst, mast, pal.tile, alpha)
+		fillRect(dst, head, pal.text, alpha)
 	}
 }

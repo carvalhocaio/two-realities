@@ -58,7 +58,7 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	case showResult:
 		drawCentered(dst, resultText(result, h.lang), pal, pal.text)
 	case s.RestartHint():
-		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, warningColor)
+		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, dangerColor)
 	default:
 		drawLevelLabel(dst, s, h, pal)
 	}
@@ -142,7 +142,7 @@ func drawCentered(dst *ebiten.Image, msg string, pal palette, c color.Color) {
 
 func counterColor(flash float64, pal palette, tick int) color.Color {
 	if flash > 0 && (tick/blinkTicks)%2 == 0 {
-		return warningColor
+		return dangerColor
 	}
 	return pal.text
 }

@@ -46,7 +46,7 @@ func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, tick
 		{text: lang.T(i18n.TitleControlsExtra), y: 150, scale: 1, c: yellow.text},
 	}
 	if storageNotice {
-		lines = append(lines, line{text: lang.T(i18n.StorageNotice), y: 168, scale: 1, c: warningColor})
+		lines = append(lines, line{text: lang.T(i18n.StorageNotice), y: 168, scale: 1, c: dangerColor})
 	}
 	drawLines(dst, yellow.background, lines, tick)
 }
