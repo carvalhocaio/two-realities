@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
@@ -23,6 +24,7 @@ const (
 	MenuAssist
 	MenuMute
 	MenuAudioOffset
+	MenuLanguage
 	MenuTitle
 	MenuCount
 )
@@ -43,6 +45,7 @@ type Flow struct {
 	muted   bool
 	started bool
 	offset  int
+	lang    i18n.Lang
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
@@ -50,14 +53,28 @@ func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flo
 	return &Flow{clock: clock, levels: levels, records: records, screen: ScreenTitle, offset: clampOffset(records.AudioOffset())}
 }
 
-func (f *Flow) Screen() Screen     { return f.screen }
-func (f *Flow) Session() *Session  { return f.session }
-func (f *Flow) LevelCount() int    { return len(f.levels) }
-func (f *Flow) Menu() MenuItem     { return f.menu }
-func (f *Flow) Assist() bool       { return f.assist }
-func (f *Flow) Muted() bool        { return f.muted }
-func (f *Flow) AudioOffsetMs() int { return f.offset }
-func (f *Flow) Records() *Records  { return f.records }
+func (f *Flow) Screen() Screen      { return f.screen }
+func (f *Flow) Session() *Session   { return f.session }
+func (f *Flow) LevelCount() int     { return len(f.levels) }
+func (f *Flow) Menu() MenuItem      { return f.menu }
+func (f *Flow) Assist() bool        { return f.assist }
+func (f *Flow) Muted() bool         { return f.muted }
+func (f *Flow) AudioOffsetMs() int  { return f.offset }
+func (f *Flow) Language() i18n.Lang { return f.lang }
+
+func (f *Flow) UseLocale(locale string) {
+	if saved, ok := f.records.Language(); ok {
+		f.lang = saved
+		return
+	}
+	f.lang = i18n.Detect(locale)
+}
+
+func (f *Flow) switchLanguage() {
+	f.lang = f.lang.Next()
+	f.records.setLanguage(f.lang)
+}
+func (f *Flow) Records() *Records { return f.records }
 
 func (f *Flow) Update(in input.Intent) {
 	if in.MutePressed {
@@ -65,6 +82,9 @@ func (f *Flow) Update(in input.Intent) {
 	}
 	switch f.screen {
 	case ScreenTitle:
+		if in.LanguagePressed {
+			f.switchLanguage()
+		}
 		if in.ShiftPressed {
 			f.start()
 		}
@@ -113,6 +133,8 @@ func (f *Flow) updateMenu(in input.Intent) {
 		f.setOffset(f.offset - AudioOffsetStep)
 	case f.menu == MenuAudioOffset && in.IncreasePressed:
 		f.setOffset(f.offset + AudioOffsetStep)
+	case f.menu == MenuLanguage && (in.DecreasePressed || in.IncreasePressed):
+		f.switchLanguage()
 	}
 }
 
@@ -134,6 +156,8 @@ func (f *Flow) confirm() {
 		f.session.SetAssist(f.assist)
 	case MenuMute:
 		f.muted = !f.muted
+	case MenuLanguage:
+		f.switchLanguage()
 	case MenuTitle:
 		f.session = nil
 		f.screen = ScreenTitle

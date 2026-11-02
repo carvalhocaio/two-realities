@@ -42,3 +42,7 @@ shift: quantized
 [transmissions]
 Here the switch only moves on the pulse. Ask before you need it.
 If it sees you first, the next beat may be too late.
+
+[transmissions.pt]
+Aqui a chave só se move no pulso. Peça antes de precisar.
+Se ele te vir primeiro, a próxima batida pode chegar tarde.

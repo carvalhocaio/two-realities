@@ -43,3 +43,7 @@ auto_every: 4
 [transmissions]
 Nobody touches the switch here. It swaps on its own, on the count.
 Stand where both floors agree and wait for the three.
+
+[transmissions.pt]
+Ninguém toca na chave aqui. Ela troca sozinha, na contagem.
+Fique onde os dois chãos concordam e espere o três.

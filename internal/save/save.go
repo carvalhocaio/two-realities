@@ -7,6 +7,7 @@ type Data struct {
 	BestRun       int             `json:"best_run,omitempty"`
 	Secrets       map[string]bool `json:"secrets"`
 	AudioOffsetMs int             `json:"audio_offset_ms,omitempty"`
+	Language      string          `json:"language,omitempty"`
 }
 
 type Storage interface {

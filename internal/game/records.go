@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/save"
 )
@@ -42,6 +43,16 @@ func (r *Records) SecretsFound(levels []level.Level) (found, total int) {
 		}
 	}
 	return found, total
+}
+
+func (r *Records) Language() (i18n.Lang, bool) { return i18n.Parse(r.data.Language) }
+
+func (r *Records) setLanguage(l i18n.Lang) {
+	if r.data.Language == l.Code() {
+		return
+	}
+	r.data.Language = l.Code()
+	r.persist()
 }
 
 func (r *Records) AudioOffset() int { return r.data.AudioOffsetMs }

@@ -3,6 +3,7 @@ package game
 import (
 	"math"
 
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/level"
 )
 
@@ -13,10 +14,12 @@ const (
 )
 
 type TransmissionView struct {
-	Text string
-	Age  int
-	Fade float64
+	Source level.Transmission
+	Age    int
+	Fade   float64
 }
+
+func (v TransmissionView) TextIn(l i18n.Lang) string { return v.Source.TextIn(l) }
 
 type transmissionState struct {
 	heard   []bool
@@ -66,9 +69,9 @@ func (s *Session) Transmission() (TransmissionView, bool) {
 		return TransmissionView{}, false
 	}
 	return TransmissionView{
-		Text: s.level.Transmissions[t.current].Text,
-		Age:  t.age,
-		Fade: float64(max(t.fading-1, 0)) / TransmissionFadeTicks,
+		Source: s.level.Transmissions[t.current],
+		Age:    t.age,
+		Fade:   float64(max(t.fading-1, 0)) / TransmissionFadeTicks,
 	}, true
 }
 

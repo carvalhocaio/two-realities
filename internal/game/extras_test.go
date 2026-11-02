@@ -3,6 +3,7 @@ package game
 import (
 	"testing"
 
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
@@ -54,8 +55,8 @@ func TestTransmissions(t *testing.T) {
 			s := newSession(t, signalLevel)
 			play(s, tt.play)
 			view, open := s.Transmission()
-			if open != tt.open || view.Text != tt.text {
-				t.Fatalf("open %v text %q, want %v %q", open, view.Text, tt.open, tt.text)
+			if open != tt.open || view.TextIn(i18n.EN) != tt.text {
+				t.Fatalf("open %v text %q, want %v %q", open, view.TextIn(i18n.EN), tt.open, tt.text)
 			}
 			for i, want := range tt.heard {
 				if s.Heard(i) != want {
@@ -74,8 +75,8 @@ func TestTransmissionRetriggersAfterDeath(t *testing.T) {
 		t.Fatal("death should start a new attempt")
 	}
 	play(s, ticks(right, 12))
-	if view, open := s.Transmission(); !open || view.Text != "WARM WORDS" {
-		t.Fatalf("want the transmission again, got %v %q", open, view.Text)
+	if view, open := s.Transmission(); !open || view.TextIn(i18n.EN) != "WARM WORDS" {
+		t.Fatalf("want the transmission again, got %v %q", open, view.TextIn(i18n.EN))
 	}
 }
 

@@ -13,6 +13,7 @@ type Intent struct {
 	FocusLost       bool
 	DecreasePressed bool
 	IncreasePressed bool
+	LanguagePressed bool
 }
 
 func (i Intent) Acts() bool {

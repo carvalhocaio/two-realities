@@ -33,13 +33,13 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - Placeholder music is synthesized in `synth.go`: one 4-beat bar (pitch-swept sine kick on beats, noise hi-hat on off-beats) looped by an endless reader into a float32 player. It starts on the title Shift press (browser autoplay rule). **M** mutes (volume 0, the clock keeps running). The HUD bottom border pulses on every beat.
 
 ### Transmissions
-- `T` marker (either layer) + an optional `[transmissions]` section (must be the last section) with one text line per `T`, in reading order (yellow layer first, then grey, row by row). Count mismatch is a parse error; text is uppercased and limited to the bitmap font charset (`level.TextCharset`, max `MaxTransmissionLength`).
+- `T` marker (either layer) + text sections after the layers: `[transmissions]` (English, required when there are `T` markers) and optional `[transmissions.pt]`, each with one line per `T` in reading order (yellow layer first, then grey, row by row). Count mismatch in any language is a parse error; a missing Portuguese section falls back to English. Text is uppercased and must be drawable by `internal/font` (max `MaxTransmissionLength` runes).
 - Touching a `T` while its layer is active opens it (once per attempt: death and R reset it). Typewriter box at the bottom of the screen; it fades after `TransmissionTicks` (4s) or when the player is farther than `TransmissionRange` (12 tiles). Heard markers are drawn dimmed.
 - Tone: notes left by someone who tried to escape before. Placeholder lines, to be rewritten.
 
 ### Speedrun timer and records
 - Level timer starts on the first acting input (move, jump, shift) and stops at the exit; deaths and R do not reset it. The run timer starts on the first input of level 1 and stops at the last exit. All timing is in ticks (60 TPS), shown as `M:SS.CC`.
-- `internal/save`: `Storage` interface (`Load() (Data, error)`, `Save(Data) error`), `Data` = best ticks per level name, best run, secrets found per level, audio offset. Adapters: `LocalStorage` (wasm), `File` (desktop, `os.UserConfigDir()/two-realities/save.json`), `Memory` (tests). `save.Default()` picks per platform; load errors fall back to empty data.
+- `internal/save`: `Storage` interface (`Load() (Data, error)`, `Save(Data) error`), `Data` = best ticks per level name, best run, secrets found per level, audio offset, language. Adapters: `LocalStorage` (wasm), `File` (desktop, `os.UserConfigDir()/two-realities/save.json`), `Memory` (tests). `save.Default()` picks per platform; load errors fall back to empty data.
 - Every browser storage key goes through `save.Key(name)` (prefix `two-realities:`; the save lives in `two-realities:save`). The pre-0.3.1 key `two-realities/save` is migrated on load.
 - On wasm, `Default()` wraps `LocalStorage` in `save.Fallback`: a probe write on load detects blocked/full storage; `ErrUnavailable` on load or any failed write switches to in-memory storage for the session (`Degraded()`), and no error or panic ever reaches the game. Corrupt JSON starts empty but keeps localStorage. The title screen shows "PROGRESS WON'T BE SAVED IN THIS BROWSER" until the first run starts (`Flow.StorageNotice`).
 - JS access to `localStorage` uses `Reflect.get` through `Value.Call`: `wasm_exec.js` wraps `Call` in try/catch but not `Get`, so a throwing getter (blocked third-party storage) would freeze the Go runtime.
@@ -47,7 +47,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - **T** toggles the HUD timer (hidden by default). The level-complete banner (`TIME ... BEST ...` / `NEW BEST`) always shows for 2.5s.
 
 ### Assist mode and pause
-- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, assist on/off, mute on/off, audio offset (left/right or -/= while selected), back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
+- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, assist on/off, mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
 - Auto-pause: `internal/platform.Signals` turns window blur, `visibilitychange` to hidden, fullscreen exit (`fullscreenchange`, or a resize from screen size, since an iframe made fullscreen by the parent page may not get the event) and desktop focus loss (`ebiten.IsFocused` edge) into one `Intent.FocusLost`. `Flow` pauses only from `ScreenPlaying` and never resumes by itself. Listeners live in `platform/browser_js.go`; the keyboard adapter polls the signals.
 - Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
 - Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
@@ -55,6 +55,12 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 ### Secrets
 - `S` marker, at most one per level, either layer; drawn only while its layer is active (never in the ghost). Collecting it adds a fragment and marks the secret; it is saved when the level is finished with it (checkpoints snapshot it). The end screen shows secrets found out of the total.
 - Every level uses the same hidden shape: a 2-tile ledge in yellow 2 tiles above the floor, and a 2-tile ledge in the secret's layer 2 tiles higher and 1 tile to the right, with the secret on top. Reaching it needs a mid-air shift at the top of the jump (queued on the beat in L7, timed to the auto flip in L8). `secrets_levels_test.go` grabs every secret.
+
+### Languages
+- English and Brazilian Portuguese. `internal/i18n` (pure): `Lang` (`EN`, `PT`), typed `Key`s, one table per language, `lang.T(key, args...)`; a test checks every key exists in both and every string is drawable by the font.
+- `Flow` owns the language: a saved choice (`language` in save data) wins, otherwise `UseLocale(platform.Locale())` detects it (`navigator.language` on wasm, `LC_ALL`/`LC_MESSAGES`/`LANG` on desktop; anything starting with `pt` is Portuguese). **L** on the title screen or the pause menu "LANGUAGE" item switches and saves.
+- The game name stays "TWO REALITIES" in both languages. Code, identifiers, commits and docs stay in English.
+- `internal/font` (pure) holds the 3x5 glyphs, including Á À Â Ã É Ê Í Ó Ô Õ Ú Ç with a one-row accent above (cedilla below); it is the single authority on drawable text (`font.Missing`).
 
 ### Checkpoints
 - `C` marker, either layer, activated by touching it in any world (lit yellow flag). Activation snapshots fragment count and which fragments were collected.
@@ -87,7 +93,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 Original characters and names only — no band names, logos, or lyrics anywhere.
 
 ## Architecture rules
-- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
+- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
 - Input is abstracted as `input.Intent` + `input.Source`; logic tests feed `Intent` values directly.
 - Package-by-feature under `internal/`. Idiomatic Go, SOLID, DRY, small files, clear names, no long comments or doc blocks. All code and identifiers in English.
 - Table-driven tests for parsing, collision, jump timing, shift rules.
@@ -96,13 +102,15 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `cmd/game` — entry point (desktop and wasm).
 - `internal/camera` — camera follow/clamp math.
 - `internal/rhythm` — beat clock interface, BPM, beat/phase math.
+- `internal/i18n` — languages, string tables, locale detection.
+- `internal/font` — 3x5 glyph table with accents, drawable-text check.
 - `internal/save` — `Storage` interface, save `Data`, key prefix, `Fallback`, localStorage/file/memory adapters.
 - `internal/platform` — focus/visibility/fullscreen signals turned into a pause request; browser listeners via `syscall/js`.
 - `internal/level` — grid, `TileSize` (10px), header + ASCII parser, embedded levels in `levels/*.txt`.
 - `internal/physics` — axis-separated AABB vs tile grid. Sides/top of the map are solid, bottom is open (falling out restarts).
 - `internal/player` — movement, gravity, coyote time and jump buffer (`tuning.go`).
 - `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression.
-- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), pause menu (`pause.go`), signals, built-in 3x5 bitmap font with integer scaling (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
+- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
 - Level tests in `internal/game/levels_test.go` script a full solution for each level and prove the intended mechanic is required.
 
 ## Level format
@@ -127,7 +135,7 @@ shift: free
 - Physics reference for design: run 1.4 px/tick, jump ≈ 26px high / ≈ 40px long, so 1-tile corridors block jumping and gaps of 5+ tiles can't be jumped.
 
 ## Controls
-A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute · T timer · P/Enter/Esc pause (arrows/W/S + Enter/Space/Shift in the menu).
+A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute · T timer · L language (title) · P/Enter/Esc pause (arrows/W/S + Enter/Space/Shift in the menu).
 
 ## Commands
 `make run` · `make run-dev` (`]`/`[` level skip) · `make test` · `make lint` (go vet, also with `-tags dev`, + gofmt) · `make build-wasm` · `make package` (itch upload folder in `dist/html5`) · `make serve` (web/ on :8080, override with `PORT=`). Go version pinned in `.tool-versions` (asdf).
@@ -152,6 +160,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 6. Beat-synced shifting: rhythm clock, quantized/auto modes, placeholder synth, L7-L8 — **done**
 6.5. Atmosphere and replay: transmissions, speedrun timer + records, assist mode + pause menu, secrets — **done**
 6.6. itch iframe fixes: P/Enter pause, auto-pause on blur/hidden/fullscreen exit, prefixed keys, storage fallback + notice — **done**
+6.7. Audio offset in the pause menu and Brazilian Portuguese localization (UI + transmissions) — **done**
 7. itch.io release polish
 
 Only implement the step currently being worked on.

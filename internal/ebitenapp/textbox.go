@@ -7,6 +7,7 @@ import (
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	typewriterRate = 1
 )
 
-func drawTransmission(dst *ebiten.Image, s *game.Session) {
+func drawTransmission(dst *ebiten.Image, s *game.Session, lang i18n.Lang) {
 	view, ok := s.Transmission()
 	if !ok {
 		return
@@ -25,7 +26,7 @@ func drawTransmission(dst *ebiten.Image, s *game.Session) {
 	pal := palettes[s.Active()]
 	alpha := float32(1 - view.Fade)
 	width := float64(ScreenWidth - 2*boxMargin)
-	lines := wrapText(view.Text, width-2*boxPadding)
+	lines := wrapText(view.TextIn(lang), width-2*boxPadding)
 	height := float64(len(lines))*(glyphHeight+boxLineGap) - boxLineGap + 2*boxPadding
 	box := geom.Rect{X: boxMargin, Y: ScreenHeight - boxMargin - height, W: width, H: height}
 
@@ -34,9 +35,10 @@ func drawTransmission(dst *ebiten.Image, s *game.Session) {
 	shown := view.Age / typewriterRate
 	y := box.Y + boxPadding
 	for _, line := range lines {
-		n := min(len(line), max(shown, 0))
-		drawText(dst, line[:n], box.X+boxPadding, y, pal.text, alpha)
-		shown -= len(line) + 1
+		runes := []rune(line)
+		n := min(len(runes), max(shown, 0))
+		drawText(dst, string(runes[:n]), box.X+boxPadding, y, pal.text, alpha)
+		shown -= len(runes) + 1
 		y += glyphHeight + boxLineGap
 	}
 }

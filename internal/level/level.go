@@ -26,11 +26,6 @@ type Marker struct {
 	Layer world.World
 }
 
-type Transmission struct {
-	Marker
-	Text string
-}
-
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }
 
 func (l Level) Bounds() geom.Rect {

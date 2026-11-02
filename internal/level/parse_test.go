@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -55,7 +56,13 @@ func TestParse(t *testing.T) {
 		{"transmission without text", head + "[yellow]\n#PTE#\n[grey]\n#####\n", ErrTransmissionCount},
 		{"text without transmission", head + "[yellow]\n#PE#\n[grey]\n####\n[transmissions]\nlost words\n", ErrTransmissionCount},
 		{"more texts than markers", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\ntwo\n", ErrTransmissionCount},
-		{"duplicate transmissions section", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions]\n", ErrTransmissionCount},
+		{"duplicate transmissions section", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions]\n", ErrDuplicateSection},
+		{"portuguese transmissions", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions.pt]\nação à vista\n", nil},
+		{"portuguese before english", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions.pt]\num\n[transmissions]\none\n", nil},
+		{"portuguese count mismatch", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions.pt]\num\ndois\n", ErrTransmissionCount},
+		{"portuguese without english", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions.pt]\num\n", ErrTransmissionCount},
+		{"unknown text language", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions.fr]\nun\n", ErrUnknownSection},
+		{"unsupported accent", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions.pt]\nümlaut\n", ErrTransmissionText},
 		{"transmission with unsupported character", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\nsmile ;)\n", ErrTransmissionText},
 		{"transmission too long", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\n" + strings.Repeat("a", MaxTransmissionLength+1) + "\n", ErrTransmissionText},
 		{"secret in yellow", head + "[yellow]\n#PSE#\n[grey]\n#####\n", nil},
@@ -111,8 +118,8 @@ func TestParseTransmissionsAndSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []Transmission{
-		{Marker{Point{X: 3, Y: 0}, world.Yellow}, "WARM SIDE FIRST"},
-		{Marker{Point{X: 1, Y: 0}, world.Grey}, "THEN THE COLD ONE, IT'S LATE?"},
+		{Marker{Point{X: 3, Y: 0}, world.Yellow}, [i18n.LangCount]string{i18n.EN: "WARM SIDE FIRST"}},
+		{Marker{Point{X: 1, Y: 0}, world.Grey}, [i18n.LangCount]string{i18n.EN: "THEN THE COLD ONE, IT'S LATE?"}},
 	}
 	if len(lvl.Transmissions) != len(want) {
 		t.Fatalf("got %d transmissions, want %d", len(lvl.Transmissions), len(want))
@@ -127,6 +134,24 @@ func TestParseTransmissionsAndSecret(t *testing.T) {
 	}
 	if lvl.Layer(world.Grey).Solid(4, 0) || lvl.Layer(world.Yellow).Solid(3, 0) {
 		t.Fatal("marker tiles must be empty")
+	}
+}
+
+func TestTransmissionLanguages(t *testing.T) {
+	lvl, err := Parse(head + "[yellow]\n#PTTE#\n[grey]\n######\n[transmissions]\nfirst\nsecond\n[transmissions.pt]\nprimeira\nsegunda ação\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := lvl.Transmissions[1]
+	if tr.TextIn(i18n.EN) != "SECOND" || tr.TextIn(i18n.PT) != "SEGUNDA AÇÃO" {
+		t.Fatalf("texts %q", tr.Text)
+	}
+	only, err := Parse(head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\nlonely\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := only.Transmissions[0].TextIn(i18n.PT); got != "LONELY" {
+		t.Fatalf("missing portuguese should fall back to english, got %q", got)
 	}
 }
 

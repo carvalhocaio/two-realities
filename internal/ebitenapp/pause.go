@@ -9,6 +9,7 @@ import (
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 )
 
 const (
@@ -19,23 +20,24 @@ const (
 	pauseHintGap  = 6
 	beatDotSize   = 3
 	beatDotGap    = 6
-	offsetHint    = "LEFT/RIGHT OR -/= TO ADJUST, MATCH THE DOT TO THE KICK"
 )
 
-func onOff(on bool) string {
+func onOff(on bool, lang i18n.Lang) string {
 	if on {
-		return "ON"
+		return lang.T(i18n.On)
 	}
-	return "OFF"
+	return lang.T(i18n.Off)
 }
 
 func menuLabels(f *game.Flow) [game.MenuCount]string {
+	lang := f.Language()
 	return [game.MenuCount]string{
-		game.MenuResume:      "RESUME",
-		game.MenuAssist:      "ASSIST MODE: " + onOff(f.Assist()),
-		game.MenuMute:        "MUTE: " + onOff(f.Muted()),
-		game.MenuAudioOffset: "AUDIO OFFSET: " + offsetLabel(f.AudioOffsetMs()),
-		game.MenuTitle:       "BACK TO TITLE",
+		game.MenuResume:      lang.T(i18n.MenuResume),
+		game.MenuAssist:      lang.T(i18n.MenuAssist, onOff(f.Assist(), lang)),
+		game.MenuMute:        lang.T(i18n.MenuMute, onOff(f.Muted(), lang)),
+		game.MenuAudioOffset: lang.T(i18n.MenuAudioOffset, offsetLabel(f.AudioOffsetMs())),
+		game.MenuLanguage:    lang.T(i18n.MenuLanguage),
+		game.MenuTitle:       lang.T(i18n.MenuTitle),
 	}
 }
 
@@ -49,7 +51,7 @@ func offsetLabel(ms int) string {
 func drawPauseMenu(dst *ebiten.Image, f *game.Flow, phase float64) {
 	pal := palettes[f.Session().Active()]
 	fillRect(dst, geom.Rect{W: ScreenWidth, H: ScreenHeight}, pal.background, pauseDimAlpha)
-	drawCenteredLine(dst, "PAUSED", pauseTitleY, subtitleScale, pal.text)
+	drawCenteredLine(dst, f.Language().T(i18n.Paused), pauseTitleY, subtitleScale, pal.text)
 	for i, label := range menuLabels(f) {
 		c := color.Color(pal.text)
 		if game.MenuItem(i) == f.Menu() {
@@ -63,7 +65,7 @@ func drawPauseMenu(dst *ebiten.Image, f *game.Flow, phase float64) {
 		}
 	}
 	if f.Menu() == game.MenuAudioOffset {
-		drawCenteredLine(dst, offsetHint, float64(pauseFirstY+int(game.MenuCount)*pauseStep+pauseHintGap), 1, pal.text)
+		drawCenteredLine(dst, f.Language().T(i18n.OffsetHint), float64(pauseFirstY+int(game.MenuCount)*pauseStep+pauseHintGap), 1, pal.text)
 	}
 }
 

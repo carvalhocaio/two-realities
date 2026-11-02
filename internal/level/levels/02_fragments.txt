@@ -41,3 +41,7 @@ fragments: 0
 [transmissions]
 Grey keeps the little lights. Warm needs them to let you back.
 I spent mine too early. Count before you cross.
+
+[transmissions.pt]
+O cinza guarda as luzinhas. O quente precisa delas para te deixar voltar.
+Gastei a minha cedo demais. Conte antes de atravessar.

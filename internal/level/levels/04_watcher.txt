@@ -41,3 +41,7 @@ fragments: 0
 [transmissions]
 The tall one only sees in grey. In the warm side I am nobody.
 Wait for its back. It always turns at the edge.
+
+[transmissions.pt]
+O alto só enxerga no cinza. No lado quente eu não sou ninguém.
+Espere ele virar as costas. Ele sempre vira na beirada.

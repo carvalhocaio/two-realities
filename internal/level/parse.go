@@ -3,8 +3,10 @@ package level
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -20,8 +22,7 @@ const (
 	tileSignal     = 'T'
 	tileSecret     = 'S'
 
-	transmissionsSection = "[transmissions]"
-	textSection          = world.World(-2)
+	noLayer = world.World(-1)
 )
 
 var (
@@ -44,6 +45,15 @@ var sectionNames = map[string]world.World{
 	"[yellow]": world.Yellow,
 	"[grey]":   world.Grey,
 }
+
+var textSections = map[string]i18n.Lang{
+	"[transmissions]":    i18n.EN,
+	"[transmissions.pt]": i18n.PT,
+}
+
+type textBlocks map[i18n.Lang][]string
+
+var sectionHeader = regexp.MustCompile(`^\[[a-z][a-z.]*\]$`)
 
 func Parse(text string) (Level, error) {
 	head, body, err := splitHeader(strings.Split(text, "\n"))
@@ -100,37 +110,39 @@ func Parse(text string) (Level, error) {
 	return lvl, nil
 }
 
-func splitSections(lines []string) ([world.Count][]string, []string, error) {
+func splitSections(lines []string) ([world.Count][]string, textBlocks, error) {
 	var rows [world.Count][]string
-	var texts []string
-	seen := map[world.World]bool{}
-	current := world.World(-1)
+	texts := textBlocks{}
+	seen := map[string]bool{}
+	current := noLayer
+	inText, textLang := false, i18n.EN
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		if current == textSection {
-			texts = append(texts, line)
-			continue
-		}
-		if strings.HasPrefix(line, "[") {
-			w, ok := sectionNames[line]
-			if line == transmissionsSection {
-				w, ok = textSection, true
-			}
-			if !ok {
+		lang, isText := textSections[line]
+		_, isLayer := sectionNames[line]
+		if isText || isLayer || sectionHeader.MatchString(line) || (!inText && strings.HasPrefix(line, "[")) {
+			if !isText && !isLayer {
 				return rows, nil, fmt.Errorf("%w: %s", ErrUnknownSection, line)
 			}
-			if seen[w] {
+			if seen[line] {
 				return rows, nil, fmt.Errorf("%w: %s", ErrDuplicateSection, line)
 			}
-			seen[w] = true
-			current = w
+			seen[line] = true
+			inText, textLang, current = isText, lang, sectionNames[line]
+			if isText {
+				texts[lang] = []string{}
+			}
 			continue
 		}
-		if current < 0 {
+		if inText {
+			texts[textLang] = append(texts[textLang], line)
+			continue
+		}
+		if current == noLayer {
 			return rows, nil, ErrRowOutsideLayer
 		}
 		rows[current] = append(rows[current], line)

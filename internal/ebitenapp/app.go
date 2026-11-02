@@ -8,6 +8,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
+	"github.com/carvalhocaio/two-realities/internal/platform"
 	"github.com/carvalhocaio/two-realities/internal/save"
 )
 
@@ -38,7 +39,9 @@ func New(levels []level.Level, store save.Storage, source input.Source) (*App, e
 	if err != nil {
 		return nil, err
 	}
-	return &App{flow: game.NewFlow(m, store, levels...), music: m, input: source, view: newWorldView()}, nil
+	flow := game.NewFlow(m, store, levels...)
+	flow.UseLocale(platform.Locale())
+	return &App{flow: flow, music: m, input: source, view: newWorldView()}, nil
 }
 
 func (a *App) Update() error {
@@ -64,14 +67,14 @@ func (a *App) Update() error {
 func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
-		drawTitleScreen(screen, a.flow.StorageNotice(), a.tick)
+		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), a.tick)
 	case game.ScreenEnd:
-		drawEndScreen(screen, a.flow.Session().Summary(), a.tick)
+		drawEndScreen(screen, a.flow.Session().Summary(), a.flow.Language(), a.tick)
 	default:
 		s := a.flow.Session()
 		a.view.draw(screen, s, a.tick)
 		drawHUD(screen, s, a.tick, a.hudState())
-		drawTransmission(screen, s)
+		drawTransmission(screen, s, a.flow.Language())
 		if a.flow.Screen() == game.ScreenPaused {
 			drawPauseMenu(screen, a.flow, a.music.Phase())
 		}
@@ -79,7 +82,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 }
 
 func (a *App) hudState() hudState {
-	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer}
+	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer, lang: a.flow.Language()}
 	if a.noticeTimer > 0 {
 		h.notice = a.notice
 	}

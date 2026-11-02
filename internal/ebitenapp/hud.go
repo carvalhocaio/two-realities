@@ -3,24 +3,23 @@ package ebitenapp
 import (
 	"fmt"
 	"image/color"
-	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
+	"github.com/carvalhocaio/two-realities/internal/i18n"
+	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
 const (
-	hudMargin      = 3
-	hudTop         = 1
-	hudPadding     = 1
-	panelHeight    = glyphHeight + 2*hudPadding
-	swatchSize     = glyphHeight
-	panelAlpha     = 0.9
-	blinkTicks     = 3
-	restartHintMsg = "R TO RESTART"
-	mutedMsg       = "MUTE"
+	hudMargin   = 3
+	hudTop      = 1
+	hudPadding  = 1
+	panelHeight = glyphHeight + 2*hudPadding
+	swatchSize  = glyphHeight
+	panelAlpha  = 0.9
+	blinkTicks  = 3
 )
 
 type hudState struct {
@@ -28,6 +27,7 @@ type hudState struct {
 	muted  bool
 	timer  bool
 	notice string
+	lang   i18n.Lang
 }
 
 var hudDiamondRows = []int{1, 3, 5, 3, 1}
@@ -44,46 +44,54 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	pal := palettes[s.Active()]
 	fillRect(dst, geom.Rect{W: ScreenWidth, H: HUDHeight}, pal.tile, 1)
 	drawBeatPulse(dst, h.phase, pal)
-	drawWorldIndicator(dst, s, pal, tick)
+	drawWorldIndicator(dst, s, pal, tick, h.lang)
 	right := drawFragmentCounter(dst, s, pal, tick)
 	if h.muted {
-		drawPanelText(dst, mutedMsg, right-hudMargin-textWidth(mutedMsg)-2*hudPadding, pal, pal.text)
+		muted := h.lang.T(i18n.HudMuted)
+		drawPanelText(dst, muted, right-hudMargin-textWidth(muted)-2*hudPadding, pal, pal.text)
 	}
 	result, showResult := s.LevelResult()
 	switch {
 	case h.notice != "":
 		drawCentered(dst, h.notice, pal, pal.text)
 	case showResult:
-		drawCentered(dst, resultText(result), pal, pal.text)
+		drawCentered(dst, resultText(result, h.lang), pal, pal.text)
 	case s.RestartHint():
-		drawCentered(dst, restartHintMsg, pal, warningColor)
+		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, warningColor)
 	default:
-		drawCentered(dst, levelLabel(s, h.timer), pal, pal.text)
+		drawCentered(dst, levelLabel(s, h.timer, h.lang), pal, pal.text)
 	}
 }
 
-func levelLabel(s *game.Session, timer bool) string {
-	label := fmt.Sprintf("LV %d/%d", s.LevelIndex()+1, s.LevelCount())
+func levelLabel(s *game.Session, timer bool, lang i18n.Lang) string {
+	label := lang.T(i18n.HudLevel, s.LevelIndex()+1, s.LevelCount())
 	if timer {
 		label += "  " + formatTicks(s.LevelTicks())
 	}
 	return label
 }
 
-func resultText(r game.LevelResult) string {
+func resultText(r game.LevelResult, lang i18n.Lang) string {
 	switch {
 	case r.NewBest:
-		return "NEW BEST " + formatTicks(r.Ticks)
+		return lang.T(i18n.ResultNewBest, formatTicks(r.Ticks))
 	case r.HasBest:
-		return "TIME " + formatTicks(r.Ticks) + "  BEST " + formatTicks(r.Best)
+		return lang.T(i18n.ResultTimeBest, formatTicks(r.Ticks), formatTicks(r.Best))
 	default:
-		return "TIME " + formatTicks(r.Ticks)
+		return lang.T(i18n.ResultTime, formatTicks(r.Ticks))
 	}
 }
 
-func drawWorldIndicator(dst *ebiten.Image, s *game.Session, pal palette, tick int) {
+func worldName(w world.World, lang i18n.Lang) string {
+	if w == world.Yellow {
+		return lang.T(i18n.WorldYellow)
+	}
+	return lang.T(i18n.WorldGrey)
+}
+
+func drawWorldIndicator(dst *ebiten.Image, s *game.Session, pal palette, tick int, lang i18n.Lang) {
 	shown := shownWorld(s, tick)
-	label := strings.ToUpper(shown.String())
+	label := worldName(shown, lang)
 	panel := panelAt(hudMargin, swatchSize+hudPadding+textWidth(label))
 	drawPanel(dst, panel, pal)
 

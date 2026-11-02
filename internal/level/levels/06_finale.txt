@@ -75,3 +75,7 @@ fragments: 0
 [transmissions]
 Almost out. The warm door is down here, past the teeth.
 Mark the flags. Falling twice is cheaper than starting over.
+
+[transmissions.pt]
+Quase lá. A porta quente fica aqui embaixo, depois dos dentes.
+Marque as bandeiras. Cair duas vezes custa menos que recomeçar.

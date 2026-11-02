@@ -41,3 +41,7 @@ fragments: 0
 [transmissions]
 Each side hides its own teeth. Step where the other side is soft.
 Two lights, four crossings. I did the math on the wall.
+
+[transmissions.pt]
+Cada lado esconde os próprios dentes. Pise onde o outro lado é macio.
+Duas luzes, quatro travessias. Fiz a conta na parede.

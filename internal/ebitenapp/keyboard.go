@@ -20,6 +20,7 @@ var (
 	confirmKeys = []ebiten.Key{ebiten.KeyEnter, ebiten.KeySpace, ebiten.KeyShiftLeft, ebiten.KeyShiftRight}
 	muteKeys    = []ebiten.Key{ebiten.KeyM}
 	timerKeys   = []ebiten.Key{ebiten.KeyT}
+	langKeys    = []ebiten.Key{ebiten.KeyL}
 	lessKeys    = []ebiten.Key{ebiten.KeyMinus, ebiten.KeyNumpadSubtract, ebiten.KeyArrowLeft, ebiten.KeyA}
 	moreKeys    = []ebiten.Key{ebiten.KeyEqual, ebiten.KeyNumpadAdd, ebiten.KeyArrowRight, ebiten.KeyD}
 )
@@ -52,6 +53,7 @@ func (k Keyboard) Read() input.Intent {
 		FocusLost:       k.signals.Poll(),
 		DecreasePressed: anyJustPressed(lessKeys),
 		IncreasePressed: anyJustPressed(moreKeys),
+		LanguagePressed: anyJustPressed(langKeys),
 	}
 }
 

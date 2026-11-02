@@ -41,3 +41,7 @@ fragments: 0
 [transmissions]
 Lost one here once. Pressed R and breathed.
 It watches, the floor bites, and I have two lights. Plan it first.
+
+[transmissions.pt]
+Perdi uma aqui uma vez. Apertei R e respirei.
+Ele vigia, o chão morde e eu tenho duas luzes. Planeje antes.

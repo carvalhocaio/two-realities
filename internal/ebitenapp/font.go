@@ -5,64 +5,15 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/carvalhocaio/two-realities/internal/font"
 	"github.com/carvalhocaio/two-realities/internal/geom"
 )
 
 const (
-	glyphWidth   = 3
-	glyphHeight  = 5
-	glyphSpacing = 1
+	glyphWidth   = font.Width
+	glyphHeight  = font.Height
+	glyphSpacing = font.Spacing
 )
-
-var glyphs = map[rune][glyphHeight]string{
-	'A':  {".#.", "#.#", "###", "#.#", "#.#"},
-	'B':  {"##.", "#.#", "##.", "#.#", "##."},
-	'C':  {".##", "#..", "#..", "#..", ".##"},
-	'D':  {"##.", "#.#", "#.#", "#.#", "##."},
-	'E':  {"###", "#..", "##.", "#..", "###"},
-	'F':  {"###", "#..", "##.", "#..", "#.."},
-	'G':  {".##", "#..", "#.#", "#.#", ".##"},
-	'H':  {"#.#", "#.#", "###", "#.#", "#.#"},
-	'I':  {"###", ".#.", ".#.", ".#.", "###"},
-	'J':  {"..#", "..#", "..#", "#.#", ".#."},
-	'K':  {"#.#", "#.#", "##.", "#.#", "#.#"},
-	'L':  {"#..", "#..", "#..", "#..", "###"},
-	'M':  {"#.#", "###", "###", "#.#", "#.#"},
-	'N':  {"##.", "#.#", "#.#", "#.#", "#.#"},
-	'O':  {".#.", "#.#", "#.#", "#.#", ".#."},
-	'P':  {"##.", "#.#", "##.", "#..", "#.."},
-	'Q':  {".#.", "#.#", "#.#", "##.", ".##"},
-	'R':  {"##.", "#.#", "##.", "#.#", "#.#"},
-	'S':  {".##", "#..", ".#.", "..#", "##."},
-	'T':  {"###", ".#.", ".#.", ".#.", ".#."},
-	'U':  {"#.#", "#.#", "#.#", "#.#", "###"},
-	'V':  {"#.#", "#.#", "#.#", "#.#", ".#."},
-	'W':  {"#.#", "#.#", "#.#", "###", "#.#"},
-	'X':  {"#.#", "#.#", ".#.", "#.#", "#.#"},
-	'Y':  {"#.#", "#.#", ".#.", ".#.", ".#."},
-	'Z':  {"###", "..#", ".#.", "#..", "###"},
-	'.':  {"...", "...", "...", "...", ".#."},
-	',':  {"...", "...", "...", ".#.", "#.."},
-	'-':  {"...", "...", "###", "...", "..."},
-	':':  {"...", ".#.", "...", ".#.", "..."},
-	'0':  {"###", "#.#", "#.#", "#.#", "###"},
-	'1':  {".#.", "##.", ".#.", ".#.", "###"},
-	'2':  {"##.", "..#", ".#.", "#..", "###"},
-	'3':  {"##.", "..#", ".#.", "..#", "##."},
-	'4':  {"#.#", "#.#", "###", "..#", "..#"},
-	'5':  {"###", "#..", "##.", "..#", "##."},
-	'6':  {".##", "#..", "###", "#.#", "###"},
-	'7':  {"###", "..#", ".#.", ".#.", ".#."},
-	'8':  {"###", "#.#", "###", "#.#", "###"},
-	'9':  {"###", "#.#", "###", "..#", "##."},
-	'x':  {"...", "#.#", ".#.", "#.#", "..."},
-	'/':  {"..#", "..#", ".#.", "#..", "#.."},
-	'\'': {".#.", ".#.", "...", "...", "..."},
-	'=':  {"...", "###", "...", "###", "..."},
-	'+':  {"...", ".#.", "###", ".#.", "..."},
-	'?':  {"##.", "..#", ".#.", "...", ".#."},
-	'!':  {".#.", ".#.", ".#.", "...", ".#."},
-}
 
 func textWidth(msg string) float64 { return scaledTextWidth(msg, 1) }
 
@@ -81,16 +32,24 @@ func drawText(dst *ebiten.Image, msg string, x, y float64, c color.Color, alpha 
 func drawScaledText(dst *ebiten.Image, msg string, x, y, scale float64, c color.Color, alpha float32) {
 	for i, ch := range []rune(msg) {
 		ox := x + float64(i*(glyphWidth+glyphSpacing))*scale
-		drawGlyph(dst, glyphs[ch], ox, y, scale, c, alpha)
+		if g, ok := font.Lookup(ch); ok {
+			drawGlyph(dst, g, ox, y, scale, c, alpha)
+		}
 	}
 }
 
-func drawGlyph(dst *ebiten.Image, g [glyphHeight]string, x, y, scale float64, c color.Color, alpha float32) {
-	for row, line := range g {
-		for col, px := range line {
-			if px == '#' {
-				fillRect(dst, geom.Rect{X: x + float64(col)*scale, Y: y + float64(row)*scale, W: scale, H: scale}, c, alpha)
-			}
+func drawGlyph(dst *ebiten.Image, g font.Glyph, x, y, scale float64, c color.Color, alpha float32) {
+	drawGlyphRow(dst, g.Above, x, y-scale, scale, c, alpha)
+	for row, line := range g.Rows {
+		drawGlyphRow(dst, line, x, y+float64(row)*scale, scale, c, alpha)
+	}
+	drawGlyphRow(dst, g.Below, x, y+glyphHeight*scale, scale, c, alpha)
+}
+
+func drawGlyphRow(dst *ebiten.Image, line string, x, y, scale float64, c color.Color, alpha float32) {
+	for col, px := range line {
+		if px == '#' {
+			fillRect(dst, geom.Rect{X: x + float64(col)*scale, Y: y, W: scale, H: scale}, c, alpha)
 		}
 	}
 }

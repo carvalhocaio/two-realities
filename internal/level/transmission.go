@@ -5,15 +5,26 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/carvalhocaio/two-realities/internal/font"
+	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
-const (
-	MaxTransmissionLength = 110
-	TextCharset           = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,-:/!?'"
-)
+const MaxTransmissionLength = 110
 
 var ErrTransmissionText = errors.New("invalid transmission text")
+
+type Transmission struct {
+	Marker
+	Text [i18n.LangCount]string
+}
+
+func (t Transmission) TextIn(l i18n.Lang) string {
+	if t.Text[l] != "" {
+		return t.Text[l]
+	}
+	return t.Text[i18n.EN]
+}
 
 func markersIn(layer world.World, points []Point) []Marker {
 	out := make([]Marker, len(points))
@@ -23,29 +34,35 @@ func markersIn(layer world.World, points []Point) []Marker {
 	return out
 }
 
-func pairTransmissions(signals []Marker, texts []string) ([]Transmission, error) {
-	if len(signals) != len(texts) {
-		return nil, fmt.Errorf("%w: %d markers, %d lines", ErrTransmissionCount, len(signals), len(texts))
+func pairTransmissions(signals []Marker, texts textBlocks) ([]Transmission, error) {
+	if len(texts[i18n.EN]) != len(signals) {
+		return nil, fmt.Errorf("%w: %d markers, %d lines", ErrTransmissionCount, len(signals), len(texts[i18n.EN]))
 	}
 	out := make([]Transmission, len(signals))
 	for i, m := range signals {
-		text := strings.ToUpper(texts[i])
-		if err := checkText(text); err != nil {
-			return nil, err
+		out[i].Marker = m
+	}
+	for lang, lines := range texts {
+		if len(lines) != len(signals) {
+			return nil, fmt.Errorf("%w: %s has %d lines for %d markers", ErrTransmissionCount, lang.Code(), len(lines), len(signals))
 		}
-		out[i] = Transmission{Marker: m, Text: text}
+		for i, line := range lines {
+			text := strings.ToUpper(line)
+			if err := checkText(text); err != nil {
+				return nil, err
+			}
+			out[i].Text[lang] = text
+		}
 	}
 	return out, nil
 }
 
 func checkText(text string) error {
-	if len(text) > MaxTransmissionLength {
+	if len([]rune(text)) > MaxTransmissionLength {
 		return fmt.Errorf("%w: longer than %d characters", ErrTransmissionText, MaxTransmissionLength)
 	}
-	for _, ch := range text {
-		if !strings.ContainsRune(TextCharset, ch) {
-			return fmt.Errorf("%w: unsupported character %q", ErrTransmissionText, ch)
-		}
+	if missing := font.Missing(text); len(missing) > 0 {
+		return fmt.Errorf("%w: unsupported characters %q", ErrTransmissionText, string(missing))
 	}
 	return nil
 }
