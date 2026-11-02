@@ -20,7 +20,7 @@ const (
 
 func drawBeatPulse(dst *ebiten.Image, phase float64, pal palette) {
 	strength := math.Pow(1-phase, pulseSharpness)
-	fillRect(dst, geom.Rect{Y: HUDHeight - 1, W: ScreenWidth, H: 1}, pal.text, float32(strength*pulseAlpha))
+	fillRect(dst, geom.Rect{Y: HUDHeight - 1, W: ScreenWidth, H: 1}, pal.tile, float32(strength*pulseAlpha))
 }
 
 func queuedBlink(s *game.Session, tick int) bool {

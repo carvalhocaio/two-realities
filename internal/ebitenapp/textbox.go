@@ -59,14 +59,14 @@ func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lan
 	height := float64(len(lines))*(glyphHeight+boxLineGap) - boxLineGap + 2*boxPadding
 	box := t.place(player, height)
 
-	fillRect(dst, box, pal.background, boxAlpha*alpha)
-	drawOutline(dst, box, pal.text)
+	fillRect(dst, box, pal.panel, boxAlpha*alpha)
+	drawOutline(dst, box, pal.tile)
 	shown := view.Age / typewriterRate
 	y := box.Y + boxPadding
 	for _, line := range lines {
 		runes := []rune(line)
 		n := min(len(runes), max(shown, 0))
-		drawText(dst, string(runes[:n]), box.X+boxPadding, y, pal.text, alpha)
+		drawText(dst, string(runes[:n]), box.X+boxPadding, y, pal.panelInk, alpha)
 		shown -= len(runes) + 1
 		y += glyphHeight + boxLineGap
 	}

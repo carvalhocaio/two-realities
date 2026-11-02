@@ -16,6 +16,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - Glow (`glow.go`): additive radial glow (one pre-rendered gradient drawn with `BlendLighter`, no shader) on the warm things while grey is active: fragments, secret, open exit, active checkpoint flag, lit and current Warden lamps; a slow pulse. Skipped in yellow, where it would be invisible on cream.
 - Grey-only backdrop (`backdrop.go`): two layers of tower silhouettes (parallax 0.25 and 0.5, seeded per level, anchored to the level bottom) and a screen-locked vignette, both drawn into the canvas before the tiles, so they shade the background only and never dim tiles, the player or hazards.
 - Player feel (`playerfx.go`, visual only): a 2px eye on the facing side (from horizontal movement), and on landings faster than `landingSpeed` a short squash (wider and lower, feet fixed) plus three dust specks in the tile color. No trail, no rounded corners. Resets on respawn and level change.
+- Pieces and HUD: watchers are `enemyColor` blocks with a 4px red visor on the facing side; the exit is a portal (frame in the world's exit color, light door, 4px taller than its tile, dim while locked); the HUD bar takes the world's background and its panels are dark (`panel`/`panelInk`) with a 1px frame in the tile color (the world chip framed in the shown world's tile color); the transmission box uses the same panel colors.
 - Shared accents: fragment yellow (in grey it only appears on fragments, exit, lamps, secret and lit checkpoints), `dangerColor` red only for danger (active spikes, watcher visor and sight, the Warden's beam/rail, blocked flash), `enemyColor` near-black for watcher and Warden bodies.
 - The inactive world is a ghost: dotted outlines for tiles, watchers and the eye, outlined spikes, all in that world's tile color (or `enemyColor` for enemies), so it never reads as solid or as active danger.
 
@@ -186,7 +187,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 3. Hazards: spikes, grey-world watchers, death/respawn, 2-level progression, compact HUD — **done**
 4. Camera, checkpoints, six-level sequence, title and end screens, dev level skip — **done**
 4.5. CI + itch.io html5 deploy via butler, v0.1.0 live as draft — **done**
-5. Art and audio pass
+5. Art and audio pass — 5a art (option B: palettes, dotted ghost, shift wipe, glow, grey backdrop, player feel, pieces/HUD) **done**; 5b music pending
 6. Beat-synced shifting: rhythm clock, quantized/auto modes, placeholder synth, L7-L8 — **done**
 6.5. Atmosphere and replay: transmissions, speedrun timer + records, assist mode + pause menu, secrets — **done**
 6.6. itch iframe fixes: P/Enter pause, auto-pause on blur/hidden/fullscreen exit, prefixed keys, storage fallback + notice — **done**

@@ -15,6 +15,8 @@ type palette struct {
 	exit       color.RGBA
 	text       color.RGBA
 	spike      color.RGBA
+	panel      color.RGBA
+	panelInk   color.RGBA
 }
 
 var palettes = [world.Count]palette{
@@ -25,6 +27,8 @@ var palettes = [world.Count]palette{
 		exit:       color.RGBA{0xFF, 0x8A, 0x1E, 0xFF},
 		text:       color.RGBA{0x3B, 0x2A, 0x16, 0xFF},
 		spike:      dangerColor,
+		panel:      color.RGBA{0x3B, 0x2A, 0x16, 0xFF},
+		panelInk:   color.RGBA{0xFF, 0xF3, 0xD6, 0xFF},
 	},
 	world.Grey: {
 		background: color.RGBA{0x2B, 0x2D, 0x33, 0xFF},
@@ -33,6 +37,8 @@ var palettes = [world.Count]palette{
 		exit:       fragmentColor,
 		text:       color.RGBA{0xE4, 0xE2, 0xDC, 0xFF},
 		spike:      dangerColor,
+		panel:      enemyColor,
+		panelInk:   color.RGBA{0xE4, 0xE2, 0xDC, 0xFF},
 	},
 }
 

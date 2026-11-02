@@ -19,7 +19,7 @@ const (
 	hudPadding  = 1
 	panelHeight = glyphHeight + 2*hudPadding
 	swatchSize  = glyphHeight
-	panelAlpha  = 0.9
+	panelAlpha  = 1
 	blinkTicks  = 3
 )
 
@@ -38,25 +38,30 @@ func panelAt(x, w float64) geom.Rect {
 }
 
 func drawPanel(dst *ebiten.Image, r geom.Rect, pal palette) {
-	fillRect(dst, r, pal.background, panelAlpha)
+	drawFramedPanel(dst, r, pal, pal.tile)
+}
+
+func drawFramedPanel(dst *ebiten.Image, r geom.Rect, pal palette, border color.Color) {
+	fillRect(dst, geom.Rect{X: r.X - 1, Y: r.Y - 1, W: r.W + 2, H: r.H + 2}, border, 1)
+	fillRect(dst, r, pal.panel, panelAlpha)
 }
 
 func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	pal := palettes[s.Active()]
-	fillRect(dst, geom.Rect{W: ScreenWidth, H: HUDHeight}, pal.tile, 1)
+	fillRect(dst, geom.Rect{W: ScreenWidth, H: HUDHeight}, pal.background, 1)
 	drawBeatPulse(dst, h.phase, pal)
 	drawWorldIndicator(dst, s, pal, tick, h.lang)
 	right := drawFragmentCounter(dst, s, pal, tick)
 	if h.muted {
 		muted := h.lang.T(i18n.HudMuted)
-		drawPanelText(dst, muted, right-hudMargin-textWidth(muted)-2*hudPadding, pal, pal.text)
+		drawPanelText(dst, muted, right-hudMargin-textWidth(muted)-2*hudPadding, pal, pal.panelInk)
 	}
 	result, showResult := s.LevelResult()
 	switch {
 	case h.notice != "":
-		drawCentered(dst, h.notice, pal, pal.text)
+		drawCentered(dst, h.notice, pal, pal.panelInk)
 	case showResult:
-		drawCentered(dst, resultText(result, h.lang), pal, pal.text)
+		drawCentered(dst, resultText(result, h.lang), pal, pal.panelInk)
 	case s.RestartHint():
 		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, dangerColor)
 	default:
@@ -67,7 +72,7 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 func drawLevelLabel(dst *ebiten.Image, s *game.Session, h hudState, pal palette) {
 	w, ok := s.Warden()
 	if !ok {
-		drawCentered(dst, levelLabel(s, h.timer, h.lang), pal, pal.text)
+		drawCentered(dst, levelLabel(s, h.timer, h.lang), pal, pal.panelInk)
 		return
 	}
 	label := h.lang.T(i18n.HudWarden) + strings.Repeat(" ", pipSpaces)
@@ -75,7 +80,7 @@ func drawLevelLabel(dst *ebiten.Image, s *game.Session, h hudState, pal palette)
 		label += "  " + formatTicks(s.LevelTicks())
 	}
 	x := (float64(dst.Bounds().Dx())-textWidth(label))/2 - hudPadding
-	drawPanelText(dst, label, x, pal, pal.text)
+	drawPanelText(dst, label, x, pal, pal.panelInk)
 	name := textWidth(h.lang.T(i18n.HudWarden) + " ")
 	drawWardenPips(dst, x+hudPadding+name, hudTop+hudPadding, w.Lit)
 }
@@ -110,11 +115,11 @@ func drawWorldIndicator(dst *ebiten.Image, s *game.Session, pal palette, tick in
 	shown := shownWorld(s, tick)
 	label := worldName(shown, lang)
 	panel := panelAt(hudMargin, swatchSize+hudPadding+textWidth(label))
-	drawPanel(dst, panel, pal)
+	drawFramedPanel(dst, panel, pal, palettes[shown].tile)
 
 	swatch := geom.Rect{X: panel.X + hudPadding, Y: panel.Y + hudPadding, W: swatchSize, H: swatchSize}
 	fillRect(dst, swatch, palettes[shown].tile, 1)
-	drawText(dst, label, swatch.Right()+hudPadding, panel.Y+hudPadding, pal.text, 1)
+	drawText(dst, label, swatch.Right()+hudPadding, panel.Y+hudPadding, pal.panelInk, 1)
 }
 
 func drawPanelText(dst *ebiten.Image, msg string, x float64, pal palette, c color.Color) {
@@ -144,5 +149,5 @@ func counterColor(flash float64, pal palette, tick int) color.Color {
 	if flash > 0 && (tick/blinkTicks)%2 == 0 {
 		return dangerColor
 	}
-	return pal.text
+	return pal.panelInk
 }

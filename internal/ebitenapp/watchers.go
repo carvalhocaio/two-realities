@@ -2,6 +2,7 @@ package ebitenapp
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -12,7 +13,7 @@ import (
 
 const (
 	sightAlpha  = 0.5
-	eyeSize     = 2
+	visorWidth  = 4
 	meterHeight = 1
 	markGap     = 2
 )
@@ -50,11 +51,11 @@ func drawSight(dst *ebiten.Image, w game.Watcher, grey level.Grid) {
 }
 
 func drawEye(dst *ebiten.Image, w game.Watcher) {
-	x := w.Box.Right() - eyeSize - 1
+	x := w.Box.Right() - visorWidth - 1
 	if w.Dir < 0 {
 		x = w.Box.X + 1
 	}
-	fillRect(dst, geom.Rect{X: x, Y: w.EyeY() - 1, W: eyeSize, H: eyeSize}, dangerColor, 1)
+	fillRect(dst, geom.Rect{X: math.Round(x), Y: w.EyeY(), W: visorWidth, H: 1}, dangerColor, 1)
 }
 
 func drawAlert(dst *ebiten.Image, w game.Watcher, limit int) {
