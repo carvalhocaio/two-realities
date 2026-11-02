@@ -5,6 +5,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
+	"github.com/carvalhocaio/two-realities/internal/rhythm"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -18,6 +19,7 @@ type Feedback struct {
 }
 
 type Session struct {
+	clock            rhythm.Clock
 	levels           []level.Level
 	index            int
 	level            level.Level
@@ -34,10 +36,11 @@ type Session struct {
 	checkpoint       *snapshot
 	finished         bool
 	epoch            int
+	beats            beatState
 }
 
-func NewSession(levels ...level.Level) *Session {
-	s := &Session{levels: levels}
+func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {
+	s := &Session{clock: clock, levels: levels}
 	s.enterLevel(0)
 	return s
 }
@@ -63,6 +66,7 @@ func (s *Session) respawn() {
 	s.restartHint = false
 	s.death = Alive
 	s.deathTimer = 0
+	s.beats = newBeatState(s.clock.Beat())
 }
 
 func (s *Session) Update(in input.Intent) {
@@ -80,7 +84,11 @@ func (s *Session) Update(in input.Intent) {
 	s.solidFeedback = max(s.solidFeedback-1, 0)
 	s.fragmentFeedback = max(s.fragmentFeedback-1, 0)
 	if in.ShiftPressed {
-		s.TryShift()
+		s.requestShift()
+	}
+	s.onBeats()
+	if s.death != Alive {
+		return
 	}
 
 	s.player.Update(in, s.level.Layer(s.active))

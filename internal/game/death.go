@@ -7,6 +7,7 @@ const (
 	DeathSpikes
 	DeathCaught
 	DeathFall
+	DeathCrushed
 )
 
 const DeathFreezeTicks = 30

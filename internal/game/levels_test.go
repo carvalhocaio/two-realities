@@ -2,16 +2,19 @@ package game
 
 import (
 	"testing"
+	"time"
 
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
+	"github.com/carvalhocaio/two-realities/internal/rhythm"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
 const (
 	maxTicks      = 60 * 60
 	maxLevelTicks = 90 * 60
+	tickDuration  = time.Second / 60
 )
 
 var (
@@ -22,21 +25,33 @@ var (
 type runner struct {
 	t     *testing.T
 	s     *Session
+	clock *rhythm.Manual
 	ticks int
 }
 
 func newRunner(t *testing.T, name string) *runner {
 	t.Helper()
+	return newRunnerAt(t, name, 0)
+}
+
+func newRunnerAt(t *testing.T, name string, offset time.Duration) *runner {
+	t.Helper()
 	lvl, err := level.Load(name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return &runner{t: t, s: NewSession(lvl, lvl)}
+	clock := &rhythm.Manual{Elapsed: offset}
+	return &runner{t: t, s: NewSession(clock, lvl, lvl), clock: clock}
+}
+
+func (r *runner) update(in input.Intent) {
+	r.clock.Advance(tickDuration)
+	r.s.Update(in)
 }
 
 func (r *runner) step(in input.Intent) {
 	r.t.Helper()
-	r.s.Update(in)
+	r.update(in)
 	r.ticks++
 	if r.s.Death() != Alive {
 		r.t.Fatalf("died (%v) at %+v after %d ticks", r.s.Death(), r.s.PlayerBox(), r.ticks)
@@ -168,6 +183,8 @@ func TestLevelSolutions(t *testing.T) {
 		{"04_watcher", solveWatcher},
 		{"05_planning", solvePlanning},
 		{"06_finale", solveFinale},
+		{"07_on_the_beat", solveOnTheBeat},
+		{"08_metronome", solveMetronome},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -242,7 +259,7 @@ func TestFragmentsLevelBlocksStayingGrey(t *testing.T) {
 }
 
 type mechanics struct {
-	fragments, spikes, watchers, checkpoints bool
+	fragments, spikes, watchers, checkpoints, quantized, auto bool
 }
 
 func mechanicsOf(l level.Level) mechanics {
@@ -251,6 +268,8 @@ func mechanicsOf(l level.Level) mechanics {
 		spikes:      len(l.Spikes[world.Yellow])+len(l.Spikes[world.Grey]) > 0,
 		watchers:    len(l.Watchers) > 0,
 		checkpoints: len(l.Checkpoints) > 0,
+		quantized:   l.Shift == level.ShiftQuantized,
+		auto:        l.Shift == level.ShiftAuto,
 	}
 }
 
@@ -266,6 +285,8 @@ func TestTeachingOrder(t *testing.T) {
 		{fragments: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true, checkpoints: true},
+		{fragments: true, watchers: true, quantized: true},
+		{auto: true},
 	}
 	if len(levels) != len(want) {
 		t.Fatalf("got %d levels, want %d", len(levels), len(want))
@@ -282,6 +303,8 @@ func TestTeachingOrder(t *testing.T) {
 			{got.spikes, seen.spikes},
 			{got.watchers, seen.watchers},
 			{got.checkpoints, seen.checkpoints},
+			{got.quantized, seen.quantized},
+			{got.auto, seen.auto},
 		} {
 			if pair[0] && !pair[1] {
 				introduced++
@@ -295,6 +318,8 @@ func TestTeachingOrder(t *testing.T) {
 			spikes:      seen.spikes || got.spikes,
 			watchers:    seen.watchers || got.watchers,
 			checkpoints: seen.checkpoints || got.checkpoints,
+			quantized:   seen.quantized || got.quantized,
+			auto:        seen.auto || got.auto,
 		}
 	}
 }

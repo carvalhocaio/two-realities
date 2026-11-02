@@ -57,6 +57,7 @@ func (v *worldView) ghost(s *game.Session) *ebiten.Image {
 func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
 	v.prepare(s)
 	drawScene(v.canvas, s, v.ghost(s), tick)
+	drawCountdown(v.canvas, s)
 
 	blocked := s.Feedback().Shake
 	dying := deathStrength(s)

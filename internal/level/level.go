@@ -14,6 +14,8 @@ type Level struct {
 	Fragments      []Point
 	Watchers       []Point
 	Checkpoints    []Point
+	Shift          ShiftMode
+	AutoEvery      int
 }
 
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }

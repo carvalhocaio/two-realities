@@ -6,6 +6,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
+	"github.com/carvalhocaio/two-realities/internal/rhythm"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -81,7 +82,7 @@ func TestCheckpoints(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewSession(mustParse(t, tt.level))
+			s := NewSession(&rhythm.Manual{}, mustParse(t, tt.level))
 			tt.play(s)
 			_, active := s.ActiveCheckpoint()
 			if active != tt.want.active {
@@ -103,7 +104,7 @@ func TestCheckpoints(t *testing.T) {
 
 func TestEpochChangesOnRespawnAndLevelChange(t *testing.T) {
 	lvl := mustParse(t, exitLevel)
-	s := NewSession(lvl, lvl, lvl)
+	s := NewSession(&rhythm.Manual{}, lvl, lvl, lvl)
 	steps := []struct {
 		name    string
 		act     func()
@@ -147,7 +148,7 @@ func TestLevelProgression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewSession(tt.levels...)
+			s := NewSession(&rhythm.Manual{}, tt.levels...)
 			tt.act(s)
 			if s.LevelIndex() != tt.wantIndex || s.Fragments() != tt.wantFragments || s.Finished() != tt.wantFinished {
 				t.Fatalf("index=%d fragments=%d finished=%v, want %d %d %v",
@@ -176,7 +177,7 @@ func TestFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(lvl, lvl)
+			f := NewFlow(&rhythm.Manual{}, lvl, lvl)
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}

@@ -6,6 +6,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
+	"github.com/carvalhocaio/two-realities/internal/rhythm"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -53,7 +54,7 @@ func newSession(t *testing.T, text string) *Session {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewSession(lvl, lvl)
+	return NewSession(&rhythm.Manual{}, lvl, lvl)
 }
 
 func play(s *Session, inputs []input.Intent) {

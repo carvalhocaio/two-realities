@@ -30,6 +30,7 @@ var (
 	ErrSizeMismatch        = errors.New("layers have different sizes")
 	ErrUnknownTile         = errors.New("unknown tile")
 	ErrMarkerCount         = errors.New("level needs exactly one spawn and one exit")
+	ErrFragmentInAuto      = errors.New("fragments are not allowed in auto shift mode")
 )
 
 var sectionNames = map[string]world.World{
@@ -50,7 +51,7 @@ func Parse(text string) (Level, error) {
 		return Level{}, err
 	}
 
-	lvl := Level{StartFragments: head.fragments}
+	lvl := Level{StartFragments: head.fragments, Shift: head.shift, AutoEvery: head.autoEvery}
 	markers := map[rune][]Point{}
 	for w := range world.Count {
 		layer := world.World(w)
@@ -73,6 +74,9 @@ func Parse(text string) (Level, error) {
 	lvl.Fragments = markers[tileFragment]
 	lvl.Watchers = markers[tileWatcher]
 	lvl.Checkpoints = markers[tileCheckpoint]
+	if lvl.Shift == ShiftAuto && len(lvl.Fragments) > 0 {
+		return Level{}, ErrFragmentInAuto
+	}
 	return lvl, nil
 }
 

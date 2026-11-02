@@ -34,7 +34,21 @@ func TestParse(t *testing.T) {
 		{"empty section", head + "[yellow]\n#PE#\n[grey]\n", ErrMissingSection},
 		{"unknown section", head + "[yellow]\n#PE#\n[blue]\n####\n", ErrUnknownSection},
 		{"duplicate section", head + "[yellow]\n#PE#\n[yellow]\n####\n", ErrDuplicateSection},
-		{"row before section", head + "####\n[yellow]\n#PE#\n[grey]\n####\n", ErrRowOutsideLayer},
+		{"row before section reads as header", head + "####\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"shift free", head + "shift: free\n[yellow]\n#PE#\n[grey]\n####\n", nil},
+		{"shift quantized", head + "shift: quantized\n[yellow]\n#PE#\n[grey]\n####\n", nil},
+		{"shift auto", head + "shift: auto\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", nil},
+		{"shift before fragments", "shift: quantized\n" + head + "[yellow]\n#PE#\n[grey]\n####\n", nil},
+		{"shift unknown mode", head + "shift: sometimes\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"shift without fragments", "shift: free\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"duplicate key", head + head + "[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"auto without auto_every", head + "shift: auto\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"auto_every zero", head + "shift: auto\nauto_every: 0\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"auto_every not a number", head + "shift: auto\nauto_every: soon\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"auto_every outside auto", head + "shift: quantized\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"auto_every without shift", head + "auto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
+		{"fragment in auto", head + "shift: auto\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n#Y.#\n", ErrFragmentInAuto},
+		{"start fragments in auto", "fragments: 1\nshift: auto\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", nil},
 		{"ragged rows", head + "[yellow]\n#PE#\n###\n[grey]\n####\n####\n", ErrRaggedRows},
 		{"different widths", head + "[yellow]\n#PE#\n[grey]\n#####\n", ErrRaggedRows},
 		{"different heights", head + "[yellow]\n#PE#\n[grey]\n####\n####\n", ErrSizeMismatch},
@@ -48,6 +62,31 @@ func TestParse(t *testing.T) {
 			_, err := Parse(tt.text)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("Parse() error = %v, want %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestParseShiftHeader(t *testing.T) {
+	tests := []struct {
+		name      string
+		header    string
+		mode      ShiftMode
+		autoEvery int
+	}{
+		{"defaults to free", head, ShiftFree, 0},
+		{"free", head + "shift: free\n", ShiftFree, 0},
+		{"quantized", head + "shift: quantized\n", ShiftQuantized, 0},
+		{"auto", head + "shift:auto\nauto_every: 3\n", ShiftAuto, 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lvl, err := Parse(tt.header + "[yellow]\n#PE#\n[grey]\n####\n")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if lvl.Shift != tt.mode || lvl.AutoEvery != tt.autoEvery {
+				t.Fatalf("shift = %v every %d, want %v every %d", lvl.Shift, lvl.AutoEvery, tt.mode, tt.autoEvery)
 			}
 		})
 	}

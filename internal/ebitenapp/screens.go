@@ -40,6 +40,7 @@ func drawTitleScreen(dst *ebiten.Image, tick int) {
 		{text: "PRESS SHIFT TO START", y: 90, scale: 1, c: grey.background, blink: true},
 		{text: "ARROWS OR A D: MOVE    SPACE: JUMP", y: 130, scale: 1, c: yellow.text},
 		{text: "SHIFT: SWAP WORLDS    R: RESTART", y: 140, scale: 1, c: yellow.text},
+		{text: "M: MUTE", y: 150, scale: 1, c: yellow.text},
 	}, tick)
 }
 

@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
+	"github.com/carvalhocaio/two-realities/internal/rhythm"
 )
 
 type Screen int
@@ -14,13 +15,14 @@ const (
 )
 
 type Flow struct {
+	clock   rhythm.Clock
 	levels  []level.Level
 	screen  Screen
 	session *Session
 }
 
-func NewFlow(levels ...level.Level) *Flow {
-	return &Flow{levels: levels, screen: ScreenTitle}
+func NewFlow(clock rhythm.Clock, levels ...level.Level) *Flow {
+	return &Flow{clock: clock, levels: levels, screen: ScreenTitle}
 }
 
 func (f *Flow) Screen() Screen    { return f.screen }
@@ -31,7 +33,7 @@ func (f *Flow) Update(in input.Intent) {
 	switch f.screen {
 	case ScreenTitle:
 		if in.ShiftPressed {
-			f.session = NewSession(f.levels...)
+			f.session = NewSession(f.clock, f.levels...)
 			f.screen = ScreenPlaying
 		}
 	case ScreenPlaying:
