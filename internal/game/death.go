@@ -33,6 +33,6 @@ func (s *Session) DeathProgress() float64 {
 func (s *Session) tickDeath() {
 	s.deathTimer--
 	if s.deathTimer <= 0 {
-		s.respawn()
+		s.afterDeath()
 	}
 }

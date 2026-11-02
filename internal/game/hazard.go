@@ -34,7 +34,7 @@ func (s *Session) updateWatchers() {
 	grey := s.layer(world.Grey)
 	for i := range s.watchers {
 		w := &s.watchers[i]
-		w.Patrol(grey)
+		w.Patrol(grey, s.watcherSpeed())
 		if s.active == world.Grey && w.Sees(s.player.Box, grey) {
 			w.Alert++
 		} else {

@@ -18,6 +18,7 @@ const (
 	lockedExitAlpha  = 0.25
 	exitRise         = 4
 	exitFrame        = 2
+	beatGhostFade    = 2.5
 )
 
 var pixel = func() *ebiten.Image {
@@ -45,12 +46,14 @@ func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
 	}
 }
 
-func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, fx *playerFX, tick int) {
+func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, fx *playerFX, tick int) {
 	active := s.Active()
 	lvl := s.Level()
 	pal := palettes[active]
 
-	dst.DrawImage(ghost, nil)
+	op := &ebiten.DrawImageOptions{}
+	op.ColorScale.ScaleAlpha(ghostAlpha)
+	dst.DrawImage(ghost, op)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
 	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s))

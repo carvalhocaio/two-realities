@@ -59,14 +59,14 @@ func (v *worldView) ghost(s *game.Session) *ebiten.Image {
 	return v.ghosts[active]
 }
 
-func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
+func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, tick int) {
 	v.prepare(s)
 	v.canvas.Fill(palettes[s.Active()].background)
 	if s.Active() == world.Grey {
 		drawBackdrop(v.canvas, v.towers, v.cam.X)
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
-	drawScene(v.canvas, s, v.ghost(s), &v.fx, tick)
+	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), &v.fx, tick)
 	drawCountdown(v.canvas, s)
 
 	blocked := s.Feedback().Shake
@@ -98,4 +98,11 @@ func (v *worldView) onScreen(r geom.Rect) geom.Rect {
 	r.X -= math.Round(v.cam.X)
 	r.Y += HUDHeight - math.Round(v.cam.Y)
 	return r
+}
+
+func ghostAlpha(s *game.Session, phase float64) float32 {
+	if !s.Has(game.BeatGhost) {
+		return 1
+	}
+	return float32(max(0, 1-phase*beatGhostFade))
 }

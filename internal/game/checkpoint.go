@@ -24,6 +24,9 @@ func (s *Session) startState() snapshot {
 }
 
 func (s *Session) activateCheckpoints() {
+	if !s.CheckpointsActive() {
+		return
+	}
 	for i, p := range s.level.Checkpoints {
 		if s.checkpoint != nil && s.checkpoint.index == i {
 			continue

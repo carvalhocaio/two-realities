@@ -3,11 +3,13 @@ package save
 import "encoding/json"
 
 type Data struct {
-	BestLevel     map[string]int  `json:"best_level"`
-	BestRun       int             `json:"best_run,omitempty"`
-	Secrets       map[string]bool `json:"secrets"`
-	AudioOffsetMs int             `json:"audio_offset_ms,omitempty"`
-	Language      string          `json:"language,omitempty"`
+	BestLevel        map[string]int  `json:"best_level"`
+	BestRun          int             `json:"best_run,omitempty"`
+	Secrets          map[string]bool `json:"secrets"`
+	AudioOffsetMs    int             `json:"audio_offset_ms,omitempty"`
+	Language         string          `json:"language,omitempty"`
+	PressureUnlocked bool            `json:"pressure_unlocked,omitempty"`
+	PressureCleared  int             `json:"pressure_cleared,omitempty"`
 }
 
 type Storage interface {

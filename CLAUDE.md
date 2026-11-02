@@ -85,6 +85,16 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - Assist: sweep ×0.6, track telegraph +1 beat. Each phase plays its own Warden track (more layers per phase), switched on a bar line.
 - `warden_level_test.go` solves the fight on all 36 beat phases with a planner that predicts the light and only crosses open stretches it can clear; rushing the bridge and standing still in phase 3 die to the beam.
 
+### Pressure (opt-in difficulty, Boss Cells style)
+- Unlocked by finishing the campaign from level 1 without dev skips (or by an older save with a best run). Chosen on the title screen with Left/Right (`Flow.Pressure`), 0-5, cumulative (`game/pressure.go`):
+  1. faster watchers (×1.5) and shorter alert (16 ticks);
+  2. checkpoints disabled (hidden; Warden lamps still hold phase progress);
+  3. the inactive world's ghost only flashes on the beat (render only);
+  4. death restarts the level (checkpoint and lamps discarded);
+  5. death restarts the act (first level with the same `act`).
+- Pressure runs never set level or run bests; finishing one without assist records the highest cleared tier (`pressure_cleared`). HUD shows `P<n>`, the end screen shows the tier or "CLEARED!".
+- `pressure_test.go` replays every level solution at pressure 5 (rhythm levels and the Warden on all 36 beat phases): no tier makes a level unsolvable.
+
 ### Checkpoints
 - `C` marker, either layer, activated by touching it in any world (lit yellow flag). Activation snapshots fragment count and which fragments were collected.
 - Death respawns there in yellow with the snapshot restored; spending fragments after the checkpoint is refunded on death. R discards the checkpoint.
@@ -195,6 +205,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 6.7. Audio offset in the pause menu and Brazilian Portuguese localization (UI + transmissions) — **done**
 6.8. The Warden boss: three-phase single-screen fight (sweep, quantized sweep, tracking beam under auto shift), lamps, gates, layered music — **done**
 6.9. Four mastery levels (07, 08, 11, 12) and the three-act order — **done**
+6.10. Pressure 1-5 opt-in difficulty — **done**
 7. itch.io release polish
 
 Only implement the step currently being worked on.

@@ -35,7 +35,7 @@ func (r *runner) reachPocketBehindWatcher() {
 	r.t.Helper()
 	r.queueShift(world.Grey)
 	r.until(r.hasFragments(1), right)
-	r.until(func() bool { return r.watcher().Dir > 0 && r.watcher().Box.X > 200 }, idle)
+	r.until(func() bool { w := r.watcher(); return w.Dir > 0 && w.Box.X > 200 && w.Box.X < 250 }, idle)
 	r.until(r.reachX(beatWallJump), right)
 	r.step(jumpRight)
 	r.until(r.reachX(beatPocketX), right)

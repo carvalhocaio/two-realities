@@ -18,19 +18,22 @@ type RunSummary struct {
 	NewBest      bool
 	Assisted     bool
 	Eligible     bool
+	Pressure     int
+	NewPressure  bool
 	Secrets      int
 	SecretsTotal int
 }
 
 type runTimer struct {
-	level         int
-	levelStarted  bool
-	levelAssisted bool
-	run           int
-	runStarted    bool
-	runEligible   bool
-	assisted      bool
-	newBestRun    bool
+	level           int
+	levelStarted    bool
+	levelAssisted   bool
+	run             int
+	runStarted      bool
+	runEligible     bool
+	assisted        bool
+	newBestRun      bool
+	pressureCleared bool
 }
 
 func (s *Session) tickTimer(in input.Intent) {
@@ -59,7 +62,7 @@ func (s *Session) resetLevelTimer() {
 func (s *Session) completeLevel() {
 	name := s.level.Name
 	res := LevelResult{Ticks: s.timer.level}
-	if s.timer.levelAssisted {
+	if !s.ranked() {
 		res.Best, res.HasBest = s.records.BestLevel(name)
 	} else {
 		res.Best, res.NewBest = s.records.recordLevel(name, res.Ticks)
@@ -69,14 +72,28 @@ func (s *Session) completeLevel() {
 		s.records.markSecret(name)
 	}
 	s.result, s.resultTimer = res, ResultShowTicks
-	if s.index == len(s.levels)-1 && s.runCounts() {
-		s.timer.newBestRun = s.records.recordRun(s.timer.run)
+	if s.index == len(s.levels)-1 {
+		s.finishRun()
 	}
 }
 
 func (s *Session) runCounts() bool {
 	t := s.timer
-	return t.runStarted && t.runEligible && !t.assisted
+	return t.runStarted && t.runEligible && !t.assisted && s.pressure == 0
+}
+
+func (s *Session) finishRun() {
+	t := &s.timer
+	if !t.runStarted || !t.runEligible {
+		return
+	}
+	s.records.unlockPressure()
+	if !t.assisted && s.pressure > 0 {
+		t.pressureCleared = s.records.clearPressure(s.pressure)
+	}
+	if s.runCounts() {
+		t.newBestRun = s.records.recordRun(t.run)
+	}
 }
 
 func (s *Session) LevelTicks() int { return s.timer.level }
@@ -96,6 +113,8 @@ func (s *Session) Summary() RunSummary {
 		NewBest:      s.timer.newBestRun,
 		Assisted:     s.timer.assisted,
 		Eligible:     s.timer.runStarted && s.timer.runEligible,
+		Pressure:     s.pressure,
+		NewPressure:  s.timer.pressureCleared,
 		Secrets:      found,
 		SecretsTotal: total,
 	}

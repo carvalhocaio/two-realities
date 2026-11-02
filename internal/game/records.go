@@ -83,6 +83,26 @@ func (r *Records) recordRun(ticks int) bool {
 	return true
 }
 
+func (r *Records) PressureUnlocked() bool { return r.data.PressureUnlocked || r.data.BestRun > 0 }
+func (r *Records) PressureCleared() int   { return r.data.PressureCleared }
+
+func (r *Records) unlockPressure() {
+	if r.data.PressureUnlocked {
+		return
+	}
+	r.data.PressureUnlocked = true
+	r.persist()
+}
+
+func (r *Records) clearPressure(p int) bool {
+	if p <= r.data.PressureCleared {
+		return false
+	}
+	r.data.PressureCleared = p
+	r.persist()
+	return true
+}
+
 func (r *Records) markSecret(name string) {
 	if r.data.Secrets[name] {
 		return

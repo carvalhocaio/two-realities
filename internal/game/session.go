@@ -47,6 +47,7 @@ type Session struct {
 	assist           bool
 	layers           [world.Count]level.Grid
 	warden           wardenState
+	pressure         int
 }
 
 func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {

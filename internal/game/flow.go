@@ -35,17 +35,18 @@ const (
 )
 
 type Flow struct {
-	clock   rhythm.Clock
-	levels  []level.Level
-	records *Records
-	screen  Screen
-	session *Session
-	menu    MenuItem
-	assist  bool
-	muted   bool
-	started bool
-	offset  int
-	lang    i18n.Lang
+	clock    rhythm.Clock
+	levels   []level.Level
+	records  *Records
+	screen   Screen
+	session  *Session
+	menu     MenuItem
+	assist   bool
+	muted    bool
+	started  bool
+	offset   int
+	lang     i18n.Lang
+	pressure int
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
@@ -85,6 +86,7 @@ func (f *Flow) Update(in input.Intent) {
 		if in.LanguagePressed {
 			f.switchLanguage()
 		}
+		f.choosePressure(in)
 		if in.ShiftPressed {
 			f.start()
 		}
@@ -116,6 +118,7 @@ func (f *Flow) start() {
 	f.session = NewSession(f.clock, f.levels...)
 	f.session.UseRecords(f.records)
 	f.session.SetAssist(f.assist)
+	f.session.SetPressure(f.Pressure())
 	f.screen = ScreenPlaying
 }
 
@@ -161,5 +164,24 @@ func (f *Flow) confirm() {
 	case MenuTitle:
 		f.session = nil
 		f.screen = ScreenTitle
+	}
+}
+
+func (f *Flow) Pressure() int {
+	if !f.records.PressureUnlocked() {
+		return 0
+	}
+	return f.pressure
+}
+
+func (f *Flow) choosePressure(in input.Intent) {
+	if !f.records.PressureUnlocked() {
+		return
+	}
+	switch {
+	case in.DecreasePressed:
+		f.pressure = max(f.pressure-1, 0)
+	case in.IncreasePressed:
+		f.pressure = min(f.pressure+1, MaxPressure)
 	}
 }

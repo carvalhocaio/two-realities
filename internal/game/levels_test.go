@@ -172,26 +172,27 @@ func solveFinale(r *runner) {
 	r.finish(walkLeft)
 }
 
+var levelSolutions = []struct {
+	name  string
+	solve func(r *runner)
+}{
+	{"01_first_shift", solveFirstShift},
+	{"02_fragments", solveFragments},
+	{"03_spikes", solveSpikes},
+	{"04_watcher", solveWatcher},
+	{"05_planning", solvePlanning},
+	{"06_finale", solveFinale},
+	{"07_crossfire", solveCrossfire},
+	{"08_descent", solveDescent},
+	{"09_on_the_beat", solveOnTheBeat},
+	{"10_metronome", solveMetronome},
+	{"11_offbeat", solveOffbeat},
+	{"12_clockwork", solveClockwork},
+	{wardenLevel, solveWarden},
+}
+
 func TestLevelSolutions(t *testing.T) {
-	tests := []struct {
-		name  string
-		solve func(r *runner)
-	}{
-		{"01_first_shift", solveFirstShift},
-		{"02_fragments", solveFragments},
-		{"03_spikes", solveSpikes},
-		{"04_watcher", solveWatcher},
-		{"05_planning", solvePlanning},
-		{"06_finale", solveFinale},
-		{"07_crossfire", solveCrossfire},
-		{"08_descent", solveDescent},
-		{"09_on_the_beat", solveOnTheBeat},
-		{"10_metronome", solveMetronome},
-		{"11_offbeat", solveOffbeat},
-		{"12_clockwork", solveClockwork},
-		{wardenLevel, solveWarden},
-	}
-	for _, tt := range tests {
+	for _, tt := range levelSolutions {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.solve(newRunner(t, tt.name))
 		})

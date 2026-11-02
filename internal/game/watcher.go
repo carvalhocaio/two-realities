@@ -33,19 +33,19 @@ func NewWatcher(p level.Point) Watcher {
 
 func (w Watcher) AlertLevel(limit int) float64 { return float64(w.Alert) / float64(limit) }
 
-func (w *Watcher) Patrol(g level.Grid) {
-	if w.blockedAhead(g) {
+func (w *Watcher) Patrol(g level.Grid, speed float64) {
+	if w.blockedAhead(g, speed) {
 		w.Dir = -w.Dir
-		if w.blockedAhead(g) {
+		if w.blockedAhead(g, speed) {
 			return
 		}
 	}
-	w.Box.X += float64(w.Dir) * WatcherSpeed
+	w.Box.X += float64(w.Dir) * speed
 }
 
-func (w Watcher) blockedAhead(g level.Grid) bool {
+func (w Watcher) blockedAhead(g level.Grid, speed float64) bool {
 	next := w.Box
-	next.X += float64(w.Dir) * WatcherSpeed
+	next.X += float64(w.Dir) * speed
 	if physics.OverlapsSolid(next, g) {
 		return true
 	}

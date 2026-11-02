@@ -87,6 +87,9 @@ func drawLevelLabel(dst *ebiten.Image, s *game.Session, h hudState, pal palette)
 
 func levelLabel(s *game.Session, timer bool, lang i18n.Lang) string {
 	label := lang.T(i18n.HudLevel, s.LevelIndex()+1, s.LevelCount())
+	if s.Pressure() > 0 {
+		label += "  " + lang.T(i18n.HudPressure, s.Pressure())
+	}
 	if timer {
 		label += "  " + formatTicks(s.LevelTicks())
 	}

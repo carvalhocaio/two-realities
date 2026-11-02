@@ -50,7 +50,7 @@ func TestWatcherPatrol(t *testing.T) {
 			w := NewWatcher(tt.start)
 			w.Dir = tt.dir
 			for range tt.ticks {
-				w.Patrol(tt.grid)
+				w.Patrol(tt.grid, WatcherSpeed)
 			}
 			if w.Box.X != tt.wantX || w.Dir != tt.wantDir {
 				t.Fatalf("x=%v dir=%d, want x=%v dir=%d", w.Box.X, w.Dir, tt.wantX, tt.wantDir)

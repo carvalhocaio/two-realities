@@ -23,9 +23,9 @@ func (s *Session) Assist() bool { return s.assist }
 
 func (s *Session) AlertLimit() int {
 	if s.assist {
-		return AlertTicks * assistAlertFactor
+		return s.baseAlert() * assistAlertFactor
 	}
-	return AlertTicks
+	return s.baseAlert()
 }
 
 func nearestFree(box geom.Rect, g level.Grid) (geom.Rect, bool) {

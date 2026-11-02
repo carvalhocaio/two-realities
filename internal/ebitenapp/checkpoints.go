@@ -17,6 +17,9 @@ const (
 )
 
 func drawCheckpoints(dst *ebiten.Image, s *game.Session, pal palette) {
+	if !s.CheckpointsActive() {
+		return
+	}
 	active, ok := s.ActiveCheckpoint()
 	for i, p := range s.Level().Checkpoints {
 		tile := level.TileRect(p)

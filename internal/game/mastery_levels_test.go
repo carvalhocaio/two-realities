@@ -103,12 +103,12 @@ func (r *runner) hop(x float64) {
 	r.until(func() bool { return r.s.player.Grounded() }, idle)
 }
 
-func predictWatcher(x float64, dir int, ticks int, lo, hi float64) (float64, int) {
+func predictWatcher(x float64, dir int, ticks int, lo, hi, speed float64) (float64, int) {
 	for range ticks {
-		next := x + float64(dir)*WatcherSpeed
+		next := x + float64(dir)*speed
 		if next < lo || next > hi {
 			dir = -dir
-			next = x + float64(dir)*WatcherSpeed
+			next = x + float64(dir)*speed
 		}
 		x = next
 	}
@@ -126,8 +126,8 @@ func solveClockwork(r *runner) {
 	for {
 		r.freshWindow(world.Yellow)
 		w := r.w(0)
-		x72, d72 := predictWatcher(w.Box.X, w.Dir, 72, lo, hi)
-		_, d144 := predictWatcher(w.Box.X, w.Dir, 144, lo, hi)
+		x72, d72 := predictWatcher(w.Box.X, w.Dir, 72, lo, hi, r.s.watcherSpeed())
+		_, d144 := predictWatcher(w.Box.X, w.Dir, 144, lo, hi, r.s.watcherSpeed())
 		if d72 > 0 && d144 > 0 && x72 > 315 {
 			break
 		}
