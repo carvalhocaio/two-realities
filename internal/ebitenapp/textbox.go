@@ -16,11 +16,40 @@ const (
 	boxLineGap     = 3
 	boxAlpha       = 0.92
 	typewriterRate = 1
+	boxClearance   = 6
 )
 
-func drawTransmission(dst *ebiten.Image, s *game.Session, lang i18n.Lang) {
+type textbox struct {
+	open bool
+	top  bool
+}
+
+func (t *textbox) place(player geom.Rect, height float64) geom.Rect {
+	if !t.open {
+		t.open = true
+		t.top = player.Y+player.H/2 > HUDHeight+ViewHeight/2
+	}
+	near := geom.Rect{X: player.X - boxClearance, Y: player.Y - boxClearance, W: player.W + 2*boxClearance, H: player.H + 2*boxClearance}
+	box := t.rect(height)
+	if box.Overlaps(near) {
+		t.top = !t.top
+		box = t.rect(height)
+	}
+	return box
+}
+
+func (t *textbox) rect(height float64) geom.Rect {
+	y := float64(ScreenHeight - boxMargin - height)
+	if t.top {
+		y = HUDHeight + boxMargin
+	}
+	return geom.Rect{X: boxMargin, Y: y, W: ScreenWidth - 2*boxMargin, H: height}
+}
+
+func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lang i18n.Lang) {
 	view, ok := s.Transmission()
 	if !ok {
+		t.open = false
 		return
 	}
 	pal := palettes[s.Active()]
@@ -28,7 +57,7 @@ func drawTransmission(dst *ebiten.Image, s *game.Session, lang i18n.Lang) {
 	width := float64(ScreenWidth - 2*boxMargin)
 	lines := wrapText(view.TextIn(lang), width-2*boxPadding)
 	height := float64(len(lines))*(glyphHeight+boxLineGap) - boxLineGap + 2*boxPadding
-	box := geom.Rect{X: boxMargin, Y: ScreenHeight - boxMargin - height, W: width, H: height}
+	box := t.place(player, height)
 
 	fillRect(dst, box, pal.background, boxAlpha*alpha)
 	drawGhostBox(dst, box, pal.text)

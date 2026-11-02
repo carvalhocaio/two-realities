@@ -27,6 +27,7 @@ type App struct {
 	music       *music
 	input       input.Source
 	view        *worldView
+	textbox     textbox
 	title       string
 	tick        int
 	notice      string
@@ -75,7 +76,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 		s := a.flow.Session()
 		a.view.draw(screen, s, a.tick)
 		drawHUD(screen, s, a.tick, a.hudState())
-		drawTransmission(screen, s, a.flow.Language())
+		a.textbox.draw(screen, s, a.view.onScreen(s.PlayerBox()), a.flow.Language())
 		if a.flow.Screen() == game.ScreenPaused {
 			drawPauseMenu(screen, a.flow, a.music.Phase())
 		}

@@ -79,3 +79,9 @@ func deathStrength(s *game.Session) float64 {
 	}
 	return 1 - s.DeathProgress()
 }
+
+func (v *worldView) onScreen(r geom.Rect) geom.Rect {
+	r.X -= math.Round(v.cam.X)
+	r.Y += HUDHeight - math.Round(v.cam.Y)
+	return r
+}
