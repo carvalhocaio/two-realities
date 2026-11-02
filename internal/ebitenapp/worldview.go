@@ -20,6 +20,7 @@ type worldView struct {
 	level   int
 	wipe    *wipe
 	towers  []towerLayer
+	fx      playerFX
 }
 
 func newWorldView() *worldView {
@@ -27,6 +28,7 @@ func newWorldView() *worldView {
 }
 
 func (v *worldView) follow(s *game.Session) {
+	v.fx.update(s)
 	bounds := s.Level().Bounds()
 	if s != v.session || s.Epoch() != v.epoch {
 		v.session, v.epoch = s, s.Epoch()
@@ -64,7 +66,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, tick int) {
 		drawBackdrop(v.canvas, v.towers, v.cam.X)
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
-	drawScene(v.canvas, s, v.ghost(s), tick)
+	drawScene(v.canvas, s, v.ghost(s), &v.fx, tick)
 	drawCountdown(v.canvas, s)
 
 	blocked := s.Feedback().Shake

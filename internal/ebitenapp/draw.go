@@ -43,7 +43,7 @@ func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
 	}
 }
 
-func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int) {
+func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, fx *playerFX, tick int) {
 	active := s.Active()
 	lvl := s.Level()
 	pal := palettes[active]
@@ -59,9 +59,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	drawSecret(dst, s, tick)
 	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
 	drawGlows(dst, s, tick)
-	if playerVisible(s, tick) {
-		fillRect(dst, s.PlayerBox(), pal.player, 1)
-	}
+	fx.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick))
 	drawWardenFront(dst, s, tick)
 }
 

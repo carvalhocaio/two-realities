@@ -134,6 +134,7 @@ func (s *Session) Update(in input.Intent) {
 func (s *Session) Level() level.Level    { return s.level }
 func (s *Session) Active() world.World   { return s.active }
 func (s *Session) PlayerBox() geom.Rect  { return s.player.Box }
+func (s *Session) PlayerGrounded() bool  { return s.player.Grounded() }
 func (s *Session) RestartHint() bool     { return s.restartHint }
 func (s *Session) Watchers() []Watcher   { return s.watchers }
 func (s *Session) Finished() bool        { return s.finished }
