@@ -26,6 +26,7 @@ const (
 type hudState struct {
 	phase  float64
 	muted  bool
+	timer  bool
 	notice string
 }
 
@@ -48,13 +49,35 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	if h.muted {
 		drawPanelText(dst, mutedMsg, right-hudMargin-textWidth(mutedMsg)-2*hudPadding, pal, pal.text)
 	}
+	result, showResult := s.LevelResult()
 	switch {
 	case h.notice != "":
 		drawCentered(dst, h.notice, pal, pal.text)
+	case showResult:
+		drawCentered(dst, resultText(result), pal, pal.text)
 	case s.RestartHint():
 		drawCentered(dst, restartHintMsg, pal, warningColor)
 	default:
-		drawCentered(dst, fmt.Sprintf("LV %d/%d", s.LevelIndex()+1, s.LevelCount()), pal, pal.text)
+		drawCentered(dst, levelLabel(s, h.timer), pal, pal.text)
+	}
+}
+
+func levelLabel(s *game.Session, timer bool) string {
+	label := fmt.Sprintf("LV %d/%d", s.LevelIndex()+1, s.LevelCount())
+	if timer {
+		label += "  " + formatTicks(s.LevelTicks())
+	}
+	return label
+}
+
+func resultText(r game.LevelResult) string {
+	switch {
+	case r.NewBest:
+		return "NEW BEST " + formatTicks(r.Ticks)
+	case r.HasBest:
+		return "TIME " + formatTicks(r.Ticks) + "  BEST " + formatTicks(r.Best)
+	default:
+		return "TIME " + formatTicks(r.Ticks)
 	}
 }
 

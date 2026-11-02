@@ -17,6 +17,11 @@ const (
 	tileSpike      = '^'
 	tileWatcher    = 'W'
 	tileCheckpoint = 'C'
+	tileSignal     = 'T'
+	tileSecret     = 'S'
+
+	transmissionsSection = "[transmissions]"
+	textSection          = world.World(-2)
 )
 
 var (
@@ -31,6 +36,8 @@ var (
 	ErrUnknownTile         = errors.New("unknown tile")
 	ErrMarkerCount         = errors.New("level needs exactly one spawn and one exit")
 	ErrFragmentInAuto      = errors.New("fragments are not allowed in auto shift mode")
+	ErrTransmissionCount   = errors.New("each T marker needs exactly one transmission line")
+	ErrSecretCount         = errors.New("level has more than one secret")
 )
 
 var sectionNames = map[string]world.World{
@@ -43,7 +50,7 @@ func Parse(text string) (Level, error) {
 	if err != nil {
 		return Level{}, err
 	}
-	rows, err := splitSections(body)
+	rows, texts, err := splitSections(body)
 	if err != nil {
 		return Level{}, err
 	}
@@ -53,6 +60,7 @@ func Parse(text string) (Level, error) {
 
 	lvl := Level{StartFragments: head.fragments, Shift: head.shift, AutoEvery: head.autoEvery}
 	markers := map[rune][]Point{}
+	var signals, secrets []Marker
 	for w := range world.Count {
 		layer := world.World(w)
 		grid, layerMarkers, err := parseGrid(layer, rows[w])
@@ -61,6 +69,8 @@ func Parse(text string) (Level, error) {
 		}
 		lvl.Layers[w] = grid
 		lvl.Spikes[w] = layerMarkers[tileSpike]
+		signals = append(signals, markersIn(layer, layerMarkers[tileSignal])...)
+		secrets = append(secrets, markersIn(layer, layerMarkers[tileSecret])...)
 		for ch, points := range layerMarkers {
 			markers[ch] = append(markers[ch], points...)
 		}
@@ -77,11 +87,22 @@ func Parse(text string) (Level, error) {
 	if lvl.Shift == ShiftAuto && len(lvl.Fragments) > 0 {
 		return Level{}, ErrFragmentInAuto
 	}
+	if len(secrets) > 1 {
+		return Level{}, ErrSecretCount
+	}
+	if len(secrets) == 1 {
+		lvl.Secret = &secrets[0]
+	}
+	lvl.Transmissions, err = pairTransmissions(signals, texts)
+	if err != nil {
+		return Level{}, err
+	}
 	return lvl, nil
 }
 
-func splitSections(lines []string) ([world.Count][]string, error) {
+func splitSections(lines []string) ([world.Count][]string, []string, error) {
 	var rows [world.Count][]string
+	var texts []string
 	seen := map[world.World]bool{}
 	current := world.World(-1)
 
@@ -90,30 +111,37 @@ func splitSections(lines []string) ([world.Count][]string, error) {
 		if line == "" {
 			continue
 		}
+		if current == textSection {
+			texts = append(texts, line)
+			continue
+		}
 		if strings.HasPrefix(line, "[") {
 			w, ok := sectionNames[line]
+			if line == transmissionsSection {
+				w, ok = textSection, true
+			}
 			if !ok {
-				return rows, fmt.Errorf("%w: %s", ErrUnknownSection, line)
+				return rows, nil, fmt.Errorf("%w: %s", ErrUnknownSection, line)
 			}
 			if seen[w] {
-				return rows, fmt.Errorf("%w: %s", ErrDuplicateSection, line)
+				return rows, nil, fmt.Errorf("%w: %s", ErrDuplicateSection, line)
 			}
 			seen[w] = true
 			current = w
 			continue
 		}
 		if current < 0 {
-			return rows, ErrRowOutsideLayer
+			return rows, nil, ErrRowOutsideLayer
 		}
 		rows[current] = append(rows[current], line)
 	}
 
 	for w := range world.Count {
 		if len(rows[w]) == 0 {
-			return rows, fmt.Errorf("%w: %s", ErrMissingSection, world.World(w))
+			return rows, nil, fmt.Errorf("%w: %s", ErrMissingSection, world.World(w))
 		}
 	}
-	return rows, nil
+	return rows, texts, nil
 }
 
 func checkSizes(rows [world.Count][]string) error {
@@ -146,7 +174,7 @@ func parseGrid(layer world.World, rows []string) (Grid, map[rune][]Point, error)
 			case tileSolid:
 				solid[y*width+x] = true
 			case tileEmpty:
-			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher, tileCheckpoint:
+			case tileSpawn, tileExit, tileSpike, tileFragment, tileWatcher, tileCheckpoint, tileSignal, tileSecret:
 				if err, ok := greyOnly[ch]; ok && layer != world.Grey {
 					return Grid{}, nil, fmt.Errorf("%w (at %d,%d)", err, x, y)
 				}

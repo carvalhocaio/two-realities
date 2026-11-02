@@ -52,9 +52,17 @@ func (s *Session) nextAutoBeat(after int) int {
 
 func (s *Session) autoShift() {
 	s.active = s.active.Other()
-	if physics.OverlapsSolid(s.player.Box, s.level.Layer(s.active)) {
-		s.die(DeathCrushed)
+	layer := s.level.Layer(s.active)
+	if !physics.OverlapsSolid(s.player.Box, layer) {
+		return
 	}
+	if s.assist {
+		if free, ok := nearestFree(s.player.Box, layer); ok {
+			s.player.Box = free
+			return
+		}
+	}
+	s.die(DeathCrushed)
 }
 
 func (s *Session) ShiftQueued() bool { return s.beats.queued }

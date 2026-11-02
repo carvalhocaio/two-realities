@@ -4,11 +4,11 @@ import (
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
+	"github.com/carvalhocaio/two-realities/internal/save"
 )
 
 const (
@@ -30,14 +30,15 @@ type App struct {
 	tick        int
 	notice      string
 	noticeTimer int
+	showTimer   bool
 }
 
-func New(levels []level.Level, source input.Source) (*App, error) {
+func New(levels []level.Level, store save.Storage, source input.Source) (*App, error) {
 	m, err := newMusic()
 	if err != nil {
 		return nil, err
 	}
-	return &App{flow: game.NewFlow(m, levels...), music: m, input: source, view: newWorldView()}, nil
+	return &App{flow: game.NewFlow(m, store, levels...), music: m, input: source, view: newWorldView()}, nil
 }
 
 func (a *App) Update() error {
@@ -47,8 +48,9 @@ func (a *App) Update() error {
 	if a.flow.Screen() == game.ScreenPlaying {
 		a.music.start()
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyM) {
-		a.music.toggleMute()
+	a.music.setMuted(a.flow.Muted())
+	if anyJustPressed(timerKeys) {
+		a.showTimer = !a.showTimer
 	}
 	handleDevKeys(a)
 	if a.flow.Screen() == game.ScreenPlaying {
@@ -63,15 +65,20 @@ func (a *App) Draw(screen *ebiten.Image) {
 	case game.ScreenTitle:
 		drawTitleScreen(screen, a.tick)
 	case game.ScreenEnd:
-		drawEndScreen(screen, a.tick)
+		drawEndScreen(screen, a.flow.Session().Summary(), a.tick)
 	default:
-		a.view.draw(screen, a.flow.Session(), a.tick)
-		drawHUD(screen, a.flow.Session(), a.tick, a.hudState())
+		s := a.flow.Session()
+		a.view.draw(screen, s, a.tick)
+		drawHUD(screen, s, a.tick, a.hudState())
+		drawTransmission(screen, s)
+		if a.flow.Screen() == game.ScreenPaused {
+			drawPauseMenu(screen, a.flow)
+		}
 	}
 }
 
 func (a *App) hudState() hudState {
-	h := hudState{phase: a.music.Phase(), muted: a.music.muted}
+	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer}
 	if a.noticeTimer > 0 {
 		h.notice = a.notice
 	}
@@ -108,11 +115,11 @@ func shakeOffset(strength float64) (float64, float64) {
 	return (rand.Float64()*2 - 1) * amp, (rand.Float64()*2 - 1) * amp
 }
 
-func Run(levels []level.Level) error {
+func Run(levels []level.Level, store save.Storage) error {
 	ebiten.SetWindowSize(ScreenWidth*windowScale, ScreenHeight*windowScale)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetTPS(60)
-	app, err := New(levels, Keyboard{})
+	app, err := New(levels, store, Keyboard{})
 	if err != nil {
 		return err
 	}

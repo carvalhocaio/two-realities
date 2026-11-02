@@ -17,7 +17,7 @@ const (
 	markGap     = 2
 )
 
-func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, active bool) {
+func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, active bool, limit int) {
 	for _, w := range watchers {
 		if !active {
 			drawGhostBox(dst, w.Box, watcherColor)
@@ -26,7 +26,7 @@ func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, a
 		drawSight(dst, w, grey)
 		fillRect(dst, w.Box, watcherColor, 1)
 		drawEye(dst, w)
-		drawAlert(dst, w)
+		drawAlert(dst, w, limit)
 	}
 }
 
@@ -57,11 +57,11 @@ func drawEye(dst *ebiten.Image, w game.Watcher) {
 	fillRect(dst, geom.Rect{X: x, Y: w.EyeY() - 1, W: eyeSize, H: eyeSize}, watcherEyeColor, 1)
 }
 
-func drawAlert(dst *ebiten.Image, w game.Watcher) {
+func drawAlert(dst *ebiten.Image, w game.Watcher, limit int) {
 	if w.Alert == 0 {
 		return
 	}
-	fill := w.AlertLevel()
+	fill := w.AlertLevel(limit)
 	markX := w.Box.X + (w.Box.W-glyphWidth)/2
 	markY := w.Box.Y - markGap - glyphHeight - meterHeight - 1
 	drawText(dst, "!", markX, markY, warningColor, float32(0.4+0.6*fill))

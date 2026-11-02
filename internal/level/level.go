@@ -16,6 +16,19 @@ type Level struct {
 	Checkpoints    []Point
 	Shift          ShiftMode
 	AutoEvery      int
+	Transmissions  []Transmission
+	Secret         *Marker
+	Name           string
+}
+
+type Marker struct {
+	Point
+	Layer world.World
+}
+
+type Transmission struct {
+	Marker
+	Text string
 }
 
 func (l Level) Layer(w world.World) Grid { return l.Layers[w] }

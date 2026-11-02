@@ -2,6 +2,7 @@ package level
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/carvalhocaio/two-realities/internal/world"
@@ -49,6 +50,18 @@ func TestParse(t *testing.T) {
 		{"auto_every without shift", head + "auto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
 		{"fragment in auto", head + "shift: auto\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n#Y.#\n", ErrFragmentInAuto},
 		{"start fragments in auto", "fragments: 1\nshift: auto\nauto_every: 4\n[yellow]\n#PE#\n[grey]\n####\n", nil},
+		{"transmission in yellow", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\nhello there\n", nil},
+		{"transmissions in both layers", head + "[yellow]\n#PTE#\n[grey]\n#T..#\n[transmissions]\nfirst\nsecond\n", nil},
+		{"transmission without text", head + "[yellow]\n#PTE#\n[grey]\n#####\n", ErrTransmissionCount},
+		{"text without transmission", head + "[yellow]\n#PE#\n[grey]\n####\n[transmissions]\nlost words\n", ErrTransmissionCount},
+		{"more texts than markers", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\ntwo\n", ErrTransmissionCount},
+		{"duplicate transmissions section", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\none\n[transmissions]\n", ErrTransmissionCount},
+		{"transmission with unsupported character", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\nsmile ;)\n", ErrTransmissionText},
+		{"transmission too long", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\n" + strings.Repeat("a", MaxTransmissionLength+1) + "\n", ErrTransmissionText},
+		{"secret in yellow", head + "[yellow]\n#PSE#\n[grey]\n#####\n", nil},
+		{"secret in grey", head + "[yellow]\n#P.E#\n[grey]\n#.S.#\n", nil},
+		{"two secrets", head + "[yellow]\n#PSE#\n[grey]\n#S..#\n", ErrSecretCount},
+		{"secret in auto", head + "shift: auto\nauto_every: 4\n[yellow]\n#PSE#\n[grey]\n#####\n", nil},
 		{"ragged rows", head + "[yellow]\n#PE#\n###\n[grey]\n####\n####\n", ErrRaggedRows},
 		{"different widths", head + "[yellow]\n#PE#\n[grey]\n#####\n", ErrRaggedRows},
 		{"different heights", head + "[yellow]\n#PE#\n[grey]\n####\n####\n", ErrSizeMismatch},
@@ -89,6 +102,31 @@ func TestParseShiftHeader(t *testing.T) {
 				t.Fatalf("shift = %v every %d, want %v every %d", lvl.Shift, lvl.AutoEvery, tt.mode, tt.autoEvery)
 			}
 		})
+	}
+}
+
+func TestParseTransmissionsAndSecret(t *testing.T) {
+	lvl, err := Parse(head + "[yellow]\n#P.T.E#\n#######\n[grey]\n#T..S.#\n#.....#\n[transmissions]\nWarm side first\nthen the cold one, it's late?\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Transmission{
+		{Marker{Point{X: 3, Y: 0}, world.Yellow}, "WARM SIDE FIRST"},
+		{Marker{Point{X: 1, Y: 0}, world.Grey}, "THEN THE COLD ONE, IT'S LATE?"},
+	}
+	if len(lvl.Transmissions) != len(want) {
+		t.Fatalf("got %d transmissions, want %d", len(lvl.Transmissions), len(want))
+	}
+	for i, w := range want {
+		if lvl.Transmissions[i] != w {
+			t.Errorf("transmission %d = %+v, want %+v", i, lvl.Transmissions[i], w)
+		}
+	}
+	if lvl.Secret == nil || *lvl.Secret != (Marker{Point{X: 4, Y: 0}, world.Grey}) {
+		t.Fatalf("secret = %+v", lvl.Secret)
+	}
+	if lvl.Layer(world.Grey).Solid(4, 0) || lvl.Layer(world.Yellow).Solid(3, 0) {
+		t.Fatal("marker tiles must be empty")
 	}
 }
 

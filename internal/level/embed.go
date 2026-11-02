@@ -25,6 +25,7 @@ func Load(name string) (Level, error) {
 	if err != nil {
 		return Level{}, fmt.Errorf("parse level %s: %w", name, err)
 	}
+	lvl.Name = name
 	return lvl, nil
 }
 

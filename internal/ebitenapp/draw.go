@@ -54,7 +54,9 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, tick int
 	fillRect(dst, level.TileRect(lvl.Exit), pal.exit, 1)
 	drawCheckpoints(dst, s, pal)
 	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
-	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey)
+	drawSignals(dst, s, pal)
+	drawSecret(dst, s, tick)
+	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
 	if playerVisible(s, tick) {
 		fillRect(dst, s.PlayerBox(), pal.player, 1)
 	}

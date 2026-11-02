@@ -7,6 +7,7 @@ type snapshot struct {
 	point     level.Point
 	fragments int
 	collected []bool
+	secret    bool
 }
 
 func (s *Session) startState() snapshot {
@@ -32,6 +33,7 @@ func (s *Session) activateCheckpoints() {
 				point:     p,
 				fragments: s.fragments,
 				collected: append([]bool(nil), s.collected...),
+				secret:    s.secretTaken,
 			}
 		}
 	}

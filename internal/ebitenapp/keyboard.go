@@ -13,6 +13,12 @@ var (
 	jumpKeys    = []ebiten.Key{ebiten.KeySpace, ebiten.KeyW, ebiten.KeyArrowUp}
 	shiftKeys   = []ebiten.Key{ebiten.KeyShiftLeft, ebiten.KeyShiftRight}
 	restartKeys = []ebiten.Key{ebiten.KeyR}
+	pauseKeys   = []ebiten.Key{ebiten.KeyEscape}
+	upKeys      = []ebiten.Key{ebiten.KeyArrowUp, ebiten.KeyW}
+	downKeys    = []ebiten.Key{ebiten.KeyArrowDown, ebiten.KeyS}
+	confirmKeys = []ebiten.Key{ebiten.KeyEnter, ebiten.KeySpace, ebiten.KeyShiftLeft, ebiten.KeyShiftRight}
+	muteKeys    = []ebiten.Key{ebiten.KeyM}
+	timerKeys   = []ebiten.Key{ebiten.KeyT}
 )
 
 type Keyboard struct{}
@@ -26,6 +32,11 @@ func (Keyboard) Read() input.Intent {
 		JumpPressed:    anyJustPressed(jumpKeys),
 		ShiftPressed:   anyJustPressed(shiftKeys),
 		RestartPressed: anyJustPressed(restartKeys),
+		PausePressed:   anyJustPressed(pauseKeys),
+		UpPressed:      anyJustPressed(upKeys),
+		DownPressed:    anyJustPressed(downKeys),
+		ConfirmPressed: anyJustPressed(confirmKeys),
+		MutePressed:    anyJustPressed(muteKeys),
 	}
 }
 

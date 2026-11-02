@@ -31,7 +31,7 @@ func NewWatcher(p level.Point) Watcher {
 	}
 }
 
-func (w Watcher) AlertLevel() float64 { return float64(w.Alert) / AlertTicks }
+func (w Watcher) AlertLevel(limit int) float64 { return float64(w.Alert) / float64(limit) }
 
 func (w *Watcher) Patrol(g level.Grid) {
 	if w.blockedAhead(g) {

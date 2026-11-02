@@ -36,9 +36,12 @@ func (m *music) start() {
 	}
 }
 
-func (m *music) toggleMute() {
-	m.muted = !m.muted
-	if m.muted {
+func (m *music) setMuted(muted bool) {
+	if muted == m.muted {
+		return
+	}
+	m.muted = muted
+	if muted {
 		m.player.SetVolume(0)
 		return
 	}

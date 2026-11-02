@@ -118,9 +118,9 @@ func (r *runner) dodgeCorridor() {
 }
 
 func solveFirstShift(r *runner) {
-	r.until(r.reachX(40), right)
-	r.step(jumpRight)
 	r.until(r.reachX(80), right)
+	r.step(jumpRight)
+	r.until(r.reachX(120), right)
 	r.shiftTo(world.Grey)
 	r.finish(right)
 }
@@ -216,7 +216,7 @@ func stayIn(w world.World, in input.Intent) func(*Session) input.Intent {
 }
 
 func jumpOverStep(s *Session) input.Intent {
-	if x := s.PlayerBox().X; x >= 40 && x < 42 {
+	if x := s.PlayerBox().X; x >= 80 && x < 82 {
 		return jumpRight
 	}
 	return right

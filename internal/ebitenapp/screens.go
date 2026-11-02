@@ -1,10 +1,12 @@
 package ebitenapp
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -40,15 +42,38 @@ func drawTitleScreen(dst *ebiten.Image, tick int) {
 		{text: "PRESS SHIFT TO START", y: 90, scale: 1, c: grey.background, blink: true},
 		{text: "ARROWS OR A D: MOVE    SPACE: JUMP", y: 130, scale: 1, c: yellow.text},
 		{text: "SHIFT: SWAP WORLDS    R: RESTART", y: 140, scale: 1, c: yellow.text},
-		{text: "M: MUTE", y: 150, scale: 1, c: yellow.text},
+		{text: "M: MUTE    T: TIMER    ESC: PAUSE", y: 150, scale: 1, c: yellow.text},
 	}, tick)
 }
 
-func drawEndScreen(dst *ebiten.Image, tick int) {
+func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, tick int) {
 	grey := palettes[world.Grey]
 	drawLines(dst, grey.background, []line{
-		{text: "BOTH WORLDS CROSSED", y: 60, scale: subtitleScale, c: fragmentColor},
-		{text: "THANKS FOR PLAYING", y: 90, scale: 1, c: grey.text},
-		{text: "PRESS SHIFT FOR TITLE", y: 120, scale: 1, c: grey.text, blink: true},
+		{text: "BOTH WORLDS CROSSED", y: 40, scale: subtitleScale, c: fragmentColor},
+		{text: "THANKS FOR PLAYING", y: 64, scale: 1, c: grey.text},
+		{text: runTimeText(sum), y: 84, scale: 1, c: grey.text},
+		{text: bestRunText(sum), y: 96, scale: 1, c: grey.text},
+		{text: fmt.Sprintf("SECRETS %d/%d", sum.Secrets, sum.SecretsTotal), y: 108, scale: 1, c: secretColor},
+		{text: "PRESS SHIFT FOR TITLE", y: 136, scale: 1, c: grey.text, blink: true},
 	}, tick)
+}
+
+func runTimeText(sum game.RunSummary) string {
+	text := "RUN " + formatTicks(sum.Ticks)
+	switch {
+	case sum.Assisted:
+		text += "  ASSIST"
+	case !sum.Eligible:
+		text += "  PRACTICE"
+	case sum.NewBest:
+		text += "  NEW BEST!"
+	}
+	return text
+}
+
+func bestRunText(sum game.RunSummary) string {
+	if !sum.HasBest {
+		return "BEST RUN -"
+	}
+	return "BEST RUN " + formatTicks(sum.Best)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
+	"github.com/carvalhocaio/two-realities/internal/save"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -37,10 +38,18 @@ type Session struct {
 	finished         bool
 	epoch            int
 	beats            beatState
+	signals          transmissionState
+	secretTaken      bool
+	timer            runTimer
+	result           LevelResult
+	resultTimer      int
+	records          *Records
+	assist           bool
 }
 
 func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {
-	s := &Session{clock: clock, levels: levels}
+	s := &Session{clock: clock, levels: levels, records: NewRecords(&save.Memory{})}
+	s.timer.runEligible = true
 	s.enterLevel(0)
 	return s
 }
@@ -60,6 +69,8 @@ func (s *Session) respawn() {
 	}
 	s.fragments = start.fragments
 	s.collected = append([]bool(nil), start.collected...)
+	s.secretTaken = start.secret
+	s.signals = newTransmissionState(len(s.level.Transmissions))
 	s.epoch++
 	s.solidFeedback = 0
 	s.fragmentFeedback = 0
@@ -73,6 +84,7 @@ func (s *Session) Update(in input.Intent) {
 	if s.finished {
 		return
 	}
+	s.tickTimer(in)
 	if s.death != Alive {
 		s.tickDeath()
 		return
@@ -93,7 +105,9 @@ func (s *Session) Update(in input.Intent) {
 
 	s.player.Update(in, s.level.Layer(s.active))
 	s.collectFragments()
+	s.collectSecret()
 	s.activateCheckpoints()
+	s.updateTransmissions()
 	s.updateWatchers()
 
 	switch {
@@ -103,17 +117,22 @@ func (s *Session) Update(in input.Intent) {
 		s.die(DeathFall)
 	}
 	if s.death == Alive && s.reachedExit() {
+		s.completeLevel()
 		s.nextLevel()
 	}
 }
 
-func (s *Session) Level() level.Level   { return s.level }
-func (s *Session) Active() world.World  { return s.active }
-func (s *Session) PlayerBox() geom.Rect { return s.player.Box }
-func (s *Session) RestartHint() bool    { return s.restartHint }
-func (s *Session) Watchers() []Watcher  { return s.watchers }
-func (s *Session) Finished() bool       { return s.finished }
-func (s *Session) Epoch() int           { return s.epoch }
+func (s *Session) Level() level.Level    { return s.level }
+func (s *Session) Active() world.World   { return s.active }
+func (s *Session) PlayerBox() geom.Rect  { return s.player.Box }
+func (s *Session) RestartHint() bool     { return s.restartHint }
+func (s *Session) Watchers() []Watcher   { return s.watchers }
+func (s *Session) Finished() bool        { return s.finished }
+func (s *Session) Epoch() int            { return s.epoch }
+func (s *Session) Levels() []level.Level { return s.levels }
+func (s *Session) Records() *Records     { return s.records }
+
+func (s *Session) UseRecords(r *Records) { s.records = r }
 
 func (s *Session) Feedback() Feedback {
 	return Feedback{

@@ -5,6 +5,15 @@ type Intent struct {
 	JumpPressed    bool
 	ShiftPressed   bool
 	RestartPressed bool
+	PausePressed   bool
+	UpPressed      bool
+	DownPressed    bool
+	ConfirmPressed bool
+	MutePressed    bool
+}
+
+func (i Intent) Acts() bool {
+	return i.Left || i.Right || i.JumpPressed || i.ShiftPressed
 }
 
 type Source interface {

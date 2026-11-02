@@ -7,6 +7,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
+	"github.com/carvalhocaio/two-realities/internal/save"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -177,7 +178,7 @@ func TestFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(&rhythm.Manual{}, lvl, lvl)
+			f := NewFlow(&rhythm.Manual{}, &save.Memory{}, lvl, lvl)
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}

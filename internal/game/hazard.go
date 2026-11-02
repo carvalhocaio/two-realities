@@ -40,7 +40,7 @@ func (s *Session) updateWatchers() {
 		} else {
 			w.Alert = 0
 		}
-		if w.Alert >= AlertTicks {
+		if w.Alert >= s.AlertLimit() {
 			s.die(DeathCaught)
 		}
 	}

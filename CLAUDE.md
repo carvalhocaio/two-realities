@@ -32,6 +32,26 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - The ebiten adapter implements `Clock` from the audio player's position minus an audio latency offset (`defaultAudioLatency` in `latency_js.go` / `latency_other.go`), so music and gameplay never drift. Dev build: `[` / `]` nudge the offset by 10ms and show it in the HUD.
 - Placeholder music is synthesized in `synth.go`: one 4-beat bar (pitch-swept sine kick on beats, noise hi-hat on off-beats) looped by an endless reader into a float32 player. It starts on the title Shift press (browser autoplay rule). **M** mutes (volume 0, the clock keeps running). The HUD bottom border pulses on every beat.
 
+### Transmissions
+- `T` marker (either layer) + an optional `[transmissions]` section (must be the last section) with one text line per `T`, in reading order (yellow layer first, then grey, row by row). Count mismatch is a parse error; text is uppercased and limited to the bitmap font charset (`level.TextCharset`, max `MaxTransmissionLength`).
+- Touching a `T` while its layer is active opens it (once per attempt: death and R reset it). Typewriter box at the bottom of the screen; it fades after `TransmissionTicks` (4s) or when the player is farther than `TransmissionRange` (12 tiles). Heard markers are drawn dimmed.
+- Tone: notes left by someone who tried to escape before. Placeholder lines, to be rewritten.
+
+### Speedrun timer and records
+- Level timer starts on the first acting input (move, jump, shift) and stops at the exit; deaths and R do not reset it. The run timer starts on the first input of level 1 and stops at the last exit. All timing is in ticks (60 TPS), shown as `M:SS.CC`.
+- `internal/save`: `Storage` interface (`Load() (Data, error)`, `Save(Data) error`), `Data` = best ticks per level name, best run, secrets found per level. Adapters: `LocalStorage` (wasm, key `two-realities/save`), `File` (desktop, `os.UserConfigDir()/two-realities/save.json`), `Memory` (tests). `save.Default()` picks per platform; load errors fall back to empty data.
+- `game.Records` wraps the storage. Level bests save on each exit unless assist was on during that level; the run best saves only for runs started at level 1, without dev skips and without assist (end screen shows `PRACTICE` / `ASSIST`).
+- **T** toggles the HUD timer (hidden by default). The level-complete banner (`TIME ... BEST ...` / `NEW BEST`) always shows for 2.5s.
+
+### Assist mode and pause
+- **Esc** opens the pause menu (`ScreenPaused`): resume, assist on/off, mute on/off, back to title. Arrows or W/S move, Enter/Space/Shift confirm, Esc resumes. The session is frozen while paused.
+- Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
+- Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
+
+### Secrets
+- `S` marker, at most one per level, either layer; drawn only while its layer is active (never in the ghost). Collecting it adds a fragment and marks the secret; it is saved when the level is finished with it (checkpoints snapshot it). The end screen shows secrets found out of the total.
+- Every level uses the same hidden shape: a 2-tile ledge in yellow 2 tiles above the floor, and a 2-tile ledge in the secret's layer 2 tiles higher and 1 tile to the right, with the secret on top. Reaching it needs a mid-air shift at the top of the jump (queued on the beat in L7, timed to the auto flip in L8). `secrets_levels_test.go` grabs every secret.
+
 ### Checkpoints
 - `C` marker, either layer, activated by touching it in any world (lit yellow flag). Activation snapshots fragment count and which fragments were collected.
 - Death respawns there in yellow with the snapshot restored; spending fragments after the checkpoint is refunded on death. R discards the checkpoint.
@@ -63,7 +83,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 Original characters and names only — no band names, logos, or lyrics anywhere.
 
 ## Architecture rules
-- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
+- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
 - Input is abstracted as `input.Intent` + `input.Source`; logic tests feed `Intent` values directly.
 - Package-by-feature under `internal/`. Idiomatic Go, SOLID, DRY, small files, clear names, no long comments or doc blocks. All code and identifiers in English.
 - Table-driven tests for parsing, collision, jump timing, shift rules.
@@ -72,11 +92,12 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `cmd/game` — entry point (desktop and wasm).
 - `internal/camera` — camera follow/clamp math.
 - `internal/rhythm` — beat clock interface, BPM, beat/phase math.
+- `internal/save` — `Storage` interface, save `Data`, localStorage/file/memory adapters.
 - `internal/level` — grid, `TileSize` (10px), header + ASCII parser, embedded levels in `levels/*.txt`.
 - `internal/physics` — axis-separated AABB vs tile grid. Sides/top of the map are solid, bottom is open (falling out restarts).
 - `internal/player` — movement, gravity, coyote time and jump buffer (`tuning.go`).
-- `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression.
-- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), built-in 3x5 bitmap font with integer scaling (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
+- `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression.
+- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), pause menu (`pause.go`), signals, built-in 3x5 bitmap font with integer scaling (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
 - Level tests in `internal/game/levels_test.go` script a full solution for each level and prove the intended mechanic is required.
 
 ## Level format
@@ -95,11 +116,13 @@ shift: free
 - `^` spike: either layer.
 - Both layers must be the same size.
 - `C` checkpoint: either layer; must stand on yellow ground (respawn is in yellow).
+- `T` transmission: either layer, paired with `[transmissions]` lines.
+- `S` secret: either layer, at most one per level, allowed in auto levels.
 - Spawn must stand on yellow ground. 17 rows fit the view exactly; taller/wider levels scroll.
 - Physics reference for design: run 1.4 px/tick, jump ≈ 26px high / ≈ 40px long, so 1-tile corridors block jumping and gaps of 5+ tiles can't be jumped.
 
 ## Controls
-A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute.
+A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute · T timer · Esc pause (arrows/W/S + Enter/Space/Shift in the menu).
 
 ## Commands
 `make run` · `make run-dev` (N/P level skip) · `make test` · `make lint` (go vet, also with `-tags dev`, + gofmt) · `make build-wasm` · `make package` (itch upload folder in `dist/html5`) · `make serve` (web/ on :8080, override with `PORT=`). Go version pinned in `.tool-versions` (asdf).
@@ -122,6 +145,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 4.5. CI + itch.io html5 deploy via butler, v0.1.0 live as draft — **done**
 5. Art and audio pass
 6. Beat-synced shifting: rhythm clock, quantized/auto modes, placeholder synth, L7-L8 — **done**
+6.5. Atmosphere and replay: transmissions, speedrun timer + records, assist mode + pause menu, secrets — **done**
 7. itch.io release polish
 
 Only implement the step currently being worked on.

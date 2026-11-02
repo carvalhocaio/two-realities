@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	bobSpeed     = 0.08
-	bobAmplitude = 1.5
+	bobSpeed           = 0.08
+	bobAmplitude       = 1.5
+	secretTwinkleTicks = 10
 )
 
 var diamondRows = []int{2, 4, 6, 6, 4, 2}
@@ -36,4 +37,19 @@ func drawFragments(dst *ebiten.Image, fragments []level.Point, tick int, alpha f
 		box.Y += math.Round(math.Sin(float64(tick)*bobSpeed+float64(i)) * bobAmplitude)
 		drawRows(dst, box, diamondRows, fragmentColor, alpha)
 	}
+}
+
+var secretRows = []int{1, 3, 6, 6, 3, 1}
+
+func drawSecret(dst *ebiten.Image, s *game.Session, tick int) {
+	box, ok := s.SecretBox()
+	if !ok {
+		return
+	}
+	box.Y += math.Round(math.Sin(float64(tick)*bobSpeed) * bobAmplitude)
+	c := secretColor
+	if (tick/secretTwinkleTicks)%2 == 0 {
+		c = fragmentColor
+	}
+	drawRows(dst, box, secretRows, c, 1)
 }
