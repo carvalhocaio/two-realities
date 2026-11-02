@@ -12,6 +12,8 @@ const (
 	shiftKey     = "shift"
 	autoEveryKey = "auto_every"
 	bossKey      = "boss"
+	actKey       = "act"
+	maxAct       = 3
 	wardenBoss   = "warden"
 )
 
@@ -48,6 +50,7 @@ type header struct {
 	shift     ShiftMode
 	autoEvery int
 	boss      bool
+	act       int
 }
 
 func splitHeader(lines []string) (header, []string, error) {
@@ -78,7 +81,7 @@ func splitHeader(lines []string) (header, []string, error) {
 }
 
 func parseHeader(fields map[string]string) (header, error) {
-	var h header
+	h := header{act: 1}
 	for key, value := range fields {
 		var err error
 		switch key {
@@ -94,6 +97,11 @@ func parseHeader(fields map[string]string) (header, error) {
 			h.autoEvery, err = nonNegative(key, value)
 			if err == nil && h.autoEvery == 0 {
 				err = fmt.Errorf("%w: %s must be positive", ErrInvalidHeader, key)
+			}
+		case actKey:
+			h.act, err = nonNegative(key, value)
+			if err == nil && (h.act < 1 || h.act > maxAct) {
+				err = fmt.Errorf("%w: %s must be between 1 and %d", ErrInvalidHeader, key, maxAct)
 			}
 		case bossKey:
 			h.boss = value == wardenBoss

@@ -8,6 +8,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
+	tunes "github.com/carvalhocaio/two-realities/internal/music"
 	"github.com/carvalhocaio/two-realities/internal/platform"
 	"github.com/carvalhocaio/two-realities/internal/save"
 )
@@ -54,7 +55,7 @@ func (a *App) Update() error {
 	}
 	a.music.setMuted(a.flow.Muted())
 	a.music.setOffset(a.flow.AudioOffsetMs())
-	a.music.setIntensity(musicIntensity(a.flow))
+	a.music.setTrack(musicTrack(a.flow))
 	if anyJustPressed(timerKeys) {
 		a.showTimer = !a.showTimer
 	}
@@ -106,15 +107,15 @@ func (a *App) setTitle(title string) {
 	}
 }
 
-func musicIntensity(f *game.Flow) int {
+func musicTrack(f *game.Flow) tunes.Track {
 	if f.Screen() != game.ScreenPlaying && f.Screen() != game.ScreenPaused {
-		return 0
+		return tunes.ActOne
 	}
-	w, ok := f.Session().Warden()
-	if !ok || w.Lit >= level.LampCount {
-		return 0
+	s := f.Session()
+	if w, ok := s.Warden(); ok && w.Lit < level.LampCount {
+		return tunes.WardenOne + tunes.Track(w.Lit)
 	}
-	return w.Lit + 1
+	return tunes.ActOne + tunes.Track(min(max(s.Level().Act, 1), 3)-1)
 }
 
 func windowTitle(f *game.Flow) string {

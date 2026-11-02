@@ -41,7 +41,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
   - **auto**: the world swaps by itself every `auto_every: N` beats (required in auto, rejected elsewhere), counted from spawn/respawn. Player Shift is ignored, swaps are free, `Y` is a parse error. A swap that leaves the player inside a solid tile kills (`DeathCrushed`). A 3-2-1 countdown is drawn above the player.
 - `internal/rhythm` (pure): `Clock` interface (`Beat()`, `Phase()` 0..1), `BPM = 100` (600ms beats), `At(elapsed, bpm)`, and `Manual` for tests. The session only reacts to beat index changes; logic never counts frames for rhythm.
 - The ebiten adapter implements `Clock` from the audio player's position minus an audio latency offset (`defaultAudioLatency` in `latency_js.go` / `latency_other.go`), so music and gameplay never drift. The player sets the offset in the pause menu ("AUDIO OFFSET", `AudioOffsetStep` 10ms, clamped to ±`AudioOffsetLimit` 500ms, positive = beats later for laggy output such as Bluetooth); it lives in `Flow`, is saved as `audio_offset_ms`, and a dot next to the item pulses on the beat for calibration.
-- Placeholder music is synthesized in `synth.go`: one 4-beat bar (pitch-swept sine kick on beats, noise hi-hat on off-beats) looped by an endless reader into a float32 player. It starts on the title Shift press (browser autoplay rule). **M** mutes (volume 0, the clock keeps running). The HUD bottom border pulses on every beat.
+- Music is synthesized in `internal/music` (pure, tested): six 4-bar loops at `rhythm.BPM` (Act I A minor, calm; Act II D minor, four-on-the-floor; Act III E minor, snare and lead; Warden 1-3 in C minor, adding hats/arp, then snare/lead/octave bass), rendered once at startup with note tails wrapped into the loop. `ebitenapp/loop.go` streams them into one float32 player and switches track only on bar lines, so the player position (the beat clock) never jumps. The track follows the level's `act` header, or the Warden's phase. Music starts on the title Shift press (browser autoplay rule). **M** mutes (volume 0, the clock keeps running). The HUD bottom border pulses on every beat.
 
 ### Transmissions
 - `T` marker (either layer) + text sections after the layers: `[transmissions]` (English, required when there are `T` markers) and optional `[transmissions.pt]`, each with one line per `T` in reading order (yellow layer first, then grey, row by row). Count mismatch in any language is a parse error; a missing Portuguese section falls back to English. Text is uppercased and must be drawable by `internal/font` (max `MaxTransmissionLength` runes).
@@ -82,7 +82,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
   1. free shift; searchlight **sweeps** continuously at 80 px/beat, ping-pong along the rail, starting at the end farthest from the player.
   2. quantized shift; sweep at 100 px/beat (queue the yellow before the light arrives: queued shifts resolve before the beam on the same beat).
   3. auto shift every 2 beats; the beam **tracks**: aims at the player's column, dotted telegraph for 2 beats, fires for half a beat.
-- Assist: sweep ×0.6, track telegraph +1 beat. Music adds a layer per phase (bass, double hats, snare) by swapping the looped bar only at the loop boundary, so the beat clock never jumps.
+- Assist: sweep ×0.6, track telegraph +1 beat. Each phase plays its own Warden track (more layers per phase), switched on a bar line.
 - `warden_level_test.go` solves the fight on all 36 beat phases with a planner that predicts the light and only crosses open stretches it can clear; rushing the bridge and standing still in phase 3 die to the beam.
 
 ### Checkpoints
@@ -123,7 +123,7 @@ Acts: I = 1-4 (one mechanic each), II = 5-8 (combining, ends with two mastery le
 Original characters and names only — no band names, logos, or lyrics anywhere.
 
 ## Architecture rules
-- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
+- Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`, `music`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
 - Input is abstracted as `input.Intent` + `input.Source`; logic tests feed `Intent` values directly.
 - Package-by-feature under `internal/`. Idiomatic Go, SOLID, DRY, small files, clear names, no long comments or doc blocks. All code and identifiers in English.
 - Table-driven tests for parsing, collision, jump timing, shift rules.
@@ -132,6 +132,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `cmd/game` — entry point (desktop and wasm).
 - `internal/camera` — camera follow/clamp math.
 - `internal/rhythm` — beat clock interface, BPM, beat/phase math.
+- `internal/music` — synth voices, drums and the six songs rendered to loop buffers.
 - `internal/i18n` — languages, string tables, locale detection.
 - `internal/font` — 3x5 glyph table with accents, drawable-text check.
 - `internal/save` — `Storage` interface, save `Data`, key prefix, `Fallback`, localStorage/file/memory adapters.
@@ -140,7 +141,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `internal/physics` — axis-separated AABB vs tile grid. Sides/top of the map are solid, bottom is open (falling out restarts).
 - `internal/player` — movement, gravity, coyote time and jump buffer (`tuning.go`).
 - `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression, the Warden boss (`warden.go`, `beam.go`).
-- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), synthesized music + audio beat clock (`synth.go`, `music.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), Warden eye/beam/lamps/gates and HUD pips (`warden.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
+- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), music player, bar-aligned track switching and audio beat clock (`music.go`, `loop.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), Warden eye/beam/lamps/gates and HUD pips (`warden.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
 - Level tests in `internal/game/levels_test.go` script a full solution for each level and prove the intended mechanic is required.
 
 ## Level format
@@ -153,7 +154,7 @@ shift: free
 [grey]
 #..Y.E#
 ```
-- Header: `key: value` lines before the first section. `fragments: N` (non-negative, starting count) is required; `shift: free|quantized|auto` is optional; `auto_every: N` (positive) is required in auto and rejected otherwise. Unknown or duplicate keys are errors.
+- Header: `key: value` lines before the first section. `fragments: N` (non-negative, starting count) is required; `shift: free|quantized|auto` is optional; `auto_every: N` (positive) is required in auto and rejected otherwise; `act: 1|2|3` (default 1) picks the music; `boss: warden` makes a boss level. Unknown or duplicate keys are errors.
 - `#` solid, `.` empty, `P` spawn and `E` exit exactly once each across both layers.
 - `Y` fragment and `W` watcher: grey layer only (in yellow they are parse errors).
 - `^` spike: either layer.
@@ -187,7 +188,7 @@ A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R resta
 3. Hazards: spikes, grey-world watchers, death/respawn, 2-level progression, compact HUD — **done**
 4. Camera, checkpoints, six-level sequence, title and end screens, dev level skip — **done**
 4.5. CI + itch.io html5 deploy via butler, v0.1.0 live as draft — **done**
-5. Art and audio pass — 5a art (option B: palettes, dotted ghost, shift wipe, glow, grey backdrop, player feel, pieces/HUD) **done**; 5b music pending
+5. Art and audio pass — 5a art (option B: palettes, dotted ghost, shift wipe, glow, grey backdrop, player feel, pieces/HUD) **done**; 5b music (per-act songs and Warden phases) **done**
 6. Beat-synced shifting: rhythm clock, quantized/auto modes, placeholder synth, L7-L8 — **done**
 6.5. Atmosphere and replay: transmissions, speedrun timer + records, assist mode + pause menu, secrets — **done**
 6.6. itch iframe fixes: P/Enter pause, auto-pause on blur/hidden/fullscreen exit, prefixed keys, storage fallback + notice — **done**

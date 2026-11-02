@@ -68,7 +68,7 @@ func Parse(text string) (Level, error) {
 		return Level{}, err
 	}
 
-	lvl := Level{StartFragments: head.fragments, Shift: head.shift, AutoEvery: head.autoEvery}
+	lvl := Level{StartFragments: head.fragments, Shift: head.shift, AutoEvery: head.autoEvery, Act: head.act}
 	markers := map[rune][]Point{}
 	var signals, secrets []Marker
 	for w := range world.Count {

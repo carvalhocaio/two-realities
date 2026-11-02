@@ -16,6 +16,7 @@ type Level struct {
 	Checkpoints    []Point
 	Shift          ShiftMode
 	AutoEvery      int
+	Act            int
 	Transmissions  []Transmission
 	Secret         *Marker
 	Boss           *Boss

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 
+	tunes "github.com/carvalhocaio/two-realities/internal/music"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
 )
 
@@ -18,8 +19,12 @@ type music struct {
 }
 
 func newMusic() (*music, error) {
-	ctx := audio.NewContext(sampleRate)
-	loop := &loopReader{bars: synthBars()}
+	ctx := audio.NewContext(tunes.SampleRate)
+	tracks := make([][]float32, tunes.TrackCount)
+	for i := range tracks {
+		tracks[i] = tunes.Render(tunes.Track(i), rhythm.BPM)
+	}
+	loop := newLoopReader(tracks, tunes.BarFrames(rhythm.BPM))
 	player, err := ctx.NewPlayerF32(loop)
 	if err != nil {
 		return nil, err
@@ -28,8 +33,8 @@ func newMusic() (*music, error) {
 	return &music{player: player, loop: loop, latency: defaultAudioLatency}, nil
 }
 
-func (m *music) setIntensity(level int) {
-	m.loop.next.Store(int32(min(max(level, 0), intensityLevels-1)))
+func (m *music) setTrack(t tunes.Track) {
+	m.loop.next.Store(int32(t))
 }
 
 func (m *music) start() {
