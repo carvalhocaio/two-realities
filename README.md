@@ -1,0 +1,55 @@
+# Two Realities
+
+![Two Realities](docs/itch/shift.gif)
+
+A puzzle-platformer about living in two overlapping worlds, made for **GitHub Game Off 2026** (theme: **SHIFT**).
+
+**Play in the browser:** https://carvalhocaio.itch.io/two-realities
+
+The **yellow** world is warm and open. The **grey** world is cold, and it is watching. Only the active world is solid; the other stays on screen as a dotted ghost. Shifting into grey is free, but coming back costs a yellow fragment, and fragments only exist in grey. Later the shift locks to the beat of the music, then swaps on its own, up to a three-phase fight with the Warden.
+
+- 13 handmade levels in three acts, one new idea per level
+- Rhythm-locked shifting with music synthesized in code
+- 12 secrets, speedrun timer and personal bests, Pressure 1-5 challenge mode
+- Assist mode, audio offset, English and Brazilian Portuguese
+
+| Yellow | Grey |
+|---|---|
+| ![Yellow world](docs/itch/screenshot-3-yellow.png) | ![Grey world](docs/itch/screenshot-4-grey.png) |
+
+## Controls
+
+| Key | Action |
+|---|---|
+| A/D or arrows | move |
+| Space, W or Up | jump |
+| Shift | swap worlds |
+| R | restart the level |
+| M / T | mute / timer |
+| P, Enter or Esc | pause (assist, audio offset, language) |
+| L | language (title screen) |
+
+## Build and run
+
+Requires Go (version in `.tool-versions`).
+
+```sh
+make run         # desktop
+make run-dev     # desktop with ] / [ level skip
+make test        # all tests
+make lint        # go vet (also with -tags dev) + gofmt
+make build-wasm  # web/game.wasm + wasm_exec.js
+make serve       # serve web/ on :8080 (PORT= to change)
+make package     # dist/html5, the folder uploaded to itch.io
+make shots OUT=dir  # scripted screenshots for the itch page
+```
+
+Pushing a `v*` tag deploys the build to itch.io through GitHub Actions and butler.
+
+## Code
+
+Go with [Ebitengine](https://ebitengine.org/). Game logic lives in pure packages under `internal/` (level parser, physics, session, rhythm clock, music synth, save, i18n) and is tested without a window; Ebitengine is only used in `internal/ebitenapp`. Levels are plain-text files in `internal/level/levels/`, and every level has a scripted solution in the tests. Design notes and architecture rules are in [CLAUDE.md](CLAUDE.md).
+
+## AI use
+
+This game was made with an AI coding assistant (Claude Code, by Anthropic), as disclosed on the itch.io page. No AI image, audio or voice generators were used: graphics are drawn by code and the music is synthesized by the game at startup.

@@ -140,6 +140,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 
 ## Layout
 - `cmd/game` — entry point (desktop and wasm).
+- `cmd/shots` (dev tag) — scripted runs that save 320x180 frames for the itch page (`make shots OUT=dir`; scenes in `main.go`, runner in `ebitenapp/shots.go`).
 - `internal/camera` — camera follow/clamp math.
 - `internal/rhythm` — beat clock interface, BPM, beat/phase math.
 - `internal/music` — synth voices, drums and the six songs rendered to loop buffers.

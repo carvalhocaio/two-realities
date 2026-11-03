@@ -2,7 +2,7 @@ GOROOT := $(shell go env GOROOT)
 PORT ?= 8080
 DIST := dist/html5
 
-.PHONY: run run-dev test lint build-wasm package serve
+.PHONY: run run-dev test lint build-wasm package serve shots
 
 run:
 	go run ./cmd/game
@@ -29,6 +29,9 @@ package: build-wasm
 	cp web/index.html web/game.wasm web/wasm_exec.js $(DIST)/
 	@raw=$$(wc -c < $(DIST)/game.wasm); gz=$$(gzip -9 -c $(DIST)/game.wasm | wc -c); \
 	echo "packaged $(DIST): game.wasm $$((raw / 1048576)).$$((raw % 1048576 * 10 / 1048576)) MB (gzip $$((gz / 1048576)).$$((gz % 1048576 * 10 / 1048576)) MB)"
+
+shots:
+	go run -tags dev ./cmd/shots -out $(or $(OUT),shots)
 
 serve:
 	python3 -m http.server $(PORT) -d web
