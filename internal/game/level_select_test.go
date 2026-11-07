@@ -40,7 +40,7 @@ func TestTitleStartsAtTheFurthestReachedLevel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			store := &save.Memory{}
 			_ = store.Save(tt.data)
-			f := NewFlow(&rhythm.Manual{}, store, threeLevels(t)...)
+			f := seenFlow(&rhythm.Manual{}, store, threeLevels(t)...)
 			if f.StartLevel() != tt.start || f.StartChoices() != tt.choices {
 				t.Fatalf("start %d of %d, want %d of %d", f.StartLevel(), f.StartChoices(), tt.start, tt.choices)
 			}
@@ -51,7 +51,7 @@ func TestTitleStartsAtTheFurthestReachedLevel(t *testing.T) {
 func TestChoosingAStartLevel(t *testing.T) {
 	store := &save.Memory{}
 	_ = store.Save(save.Data{Reached: map[string]bool{"c": true}})
-	f := NewFlow(&rhythm.Manual{}, store, threeLevels(t)...)
+	f := seenFlow(&rhythm.Manual{}, store, threeLevels(t)...)
 	f.Update(input.Intent{UpPressed: true})
 	if f.StartLevel() != 2 {
 		t.Fatalf("up past the furthest level: %d", f.StartLevel())
@@ -68,7 +68,7 @@ func TestChoosingAStartLevel(t *testing.T) {
 
 func TestEnteringALevelSavesItAsReached(t *testing.T) {
 	store := &save.Memory{}
-	f := NewFlow(&rhythm.Manual{}, store, threeLevels(t)...)
+	f := seenFlow(&rhythm.Manual{}, store, threeLevels(t)...)
 	f.Update(shift)
 	for range 20 {
 		if f.Session().LevelIndex() == 1 {
@@ -79,14 +79,14 @@ func TestEnteringALevelSavesItAsReached(t *testing.T) {
 	if f.Session().LevelIndex() != 1 {
 		t.Fatal("expected to reach level 2")
 	}
-	again := NewFlow(&rhythm.Manual{}, store, threeLevels(t)...)
+	again := seenFlow(&rhythm.Manual{}, store, threeLevels(t)...)
 	if again.StartLevel() != 1 {
 		t.Fatalf("continue from %d, want 1", again.StartLevel())
 	}
 }
 
 func TestSkipLevelNeedsAssist(t *testing.T) {
-	f := NewFlow(&rhythm.Manual{}, &save.Memory{}, threeLevels(t)...)
+	f := seenFlow(&rhythm.Manual{}, &save.Memory{}, threeLevels(t)...)
 	f.Update(shift)
 	f.Update(input.Intent{PausePressed: true})
 	if slices.Contains(f.MenuItems(), MenuSkip) {

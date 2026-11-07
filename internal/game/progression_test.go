@@ -178,7 +178,7 @@ func TestFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(&rhythm.Manual{}, &save.Memory{}, lvl, lvl)
+			f := seenFlow(&rhythm.Manual{}, &save.Memory{}, lvl, lvl)
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}

@@ -98,7 +98,7 @@ func TestDeathUnderPressure(t *testing.T) {
 
 func TestPressureUnlocksAfterACleanRunAndRecordsClears(t *testing.T) {
 	store := &save.Memory{}
-	f := NewFlow(&rhythm.Manual{}, store, mustParse(t, quantizedOpen))
+	f := seenFlow(&rhythm.Manual{}, store, mustParse(t, quantizedOpen))
 	f.Update(input.Intent{IncreasePressed: true})
 	if f.Pressure() != 0 {
 		t.Fatal("pressure chosen before it was unlocked")

@@ -36,7 +36,7 @@ func TestLanguage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(&rhythm.Manual{}, &save.Memory{Stored: save.Data{Language: tt.saved}}, mustParse(t, timedLevel))
+			f := seenFlow(&rhythm.Manual{}, &save.Memory{Stored: save.Data{Language: tt.saved}}, mustParse(t, timedLevel))
 			f.UseLocale(tt.locale)
 			for _, in := range tt.inputs {
 				f.Update(in)
@@ -50,10 +50,10 @@ func TestLanguage(t *testing.T) {
 
 func TestLanguageChoicePersists(t *testing.T) {
 	store := &save.Memory{}
-	f := NewFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
+	f := seenFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
 	f.UseLocale("en-US")
 	f.Update(langKey)
-	again := NewFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
+	again := seenFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
 	again.UseLocale("en-US")
 	if again.Language() != i18n.PT || store.Stored.Language != "pt" {
 		t.Fatalf("reloaded %v stored %q", again.Language(), store.Stored.Language)

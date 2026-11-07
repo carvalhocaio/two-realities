@@ -15,8 +15,8 @@ import (
 const (
 	pauseDimAlpha = 0.7
 	pauseTitleY   = 50
-	pauseFirstY   = 76
-	pauseStep     = 12
+	pauseFirstY   = 70
+	pauseStep     = 11
 	pauseHintGap  = 6
 	beatDotSize   = 3
 	beatDotGap    = 6
@@ -33,6 +33,7 @@ func menuLabels(f *game.Flow) [game.MenuCount]string {
 	lang := f.Language()
 	return [game.MenuCount]string{
 		game.MenuSkip:        lang.T(i18n.MenuSkip),
+		game.MenuHelp:        lang.T(i18n.MenuHelp),
 		game.MenuResume:      lang.T(i18n.MenuResume),
 		game.MenuAssist:      lang.T(i18n.MenuAssist, onOff(f.Assist(), lang)),
 		game.MenuMute:        lang.T(i18n.MenuMute, onOff(f.Muted(), lang)),

@@ -97,7 +97,10 @@ func (r *shotRunner) enter(sh Shot) {
 	if sh.Level == TitleShot {
 		return
 	}
-	if r.app.flow.Screen() == game.ScreenTitle {
+	for range 4 {
+		if r.app.flow.Screen() == game.ScreenPlaying {
+			break
+		}
 		r.src.in = input.Intent{ShiftPressed: true}
 		_ = r.app.Update()
 	}

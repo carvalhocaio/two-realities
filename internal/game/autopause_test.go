@@ -28,12 +28,12 @@ func TestAutoPause(t *testing.T) {
 		{"never resumes by itself", then(one(shift), one(focusLost), ticks(idle, 120), ticks(right, 30)), ScreenPaused, false},
 		{"pause key resumes", then(one(shift), one(focusLost), one(pauseKey)), ScreenPlaying, false},
 		{"enter pauses during play", then(one(shift), one(enterKey)), ScreenPaused, false},
-		{"enter confirms the selected item", then(one(shift), one(focusLost), one(downKey), one(enterKey)), ScreenPaused, true},
+		{"enter confirms the selected item", then(one(shift), one(focusLost), ticks(downKey, menuDowns(MenuAssist)), one(enterKey)), ScreenPaused, true},
 		{"enter on resume resumes", then(one(shift), one(focusLost), one(enterKey)), ScreenPlaying, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(&rhythm.Manual{}, &save.Memory{}, mustParse(t, timedLevel))
+			f := seenFlow(&rhythm.Manual{}, &save.Memory{}, mustParse(t, timedLevel))
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}
@@ -45,7 +45,7 @@ func TestAutoPause(t *testing.T) {
 }
 
 func TestFocusLossOnEndScreenIsIgnored(t *testing.T) {
-	f := NewFlow(&rhythm.Manual{}, &save.Memory{}, mustParse(t, timedLevel))
+	f := seenFlow(&rhythm.Manual{}, &save.Memory{}, mustParse(t, timedLevel))
 	f.Update(shift)
 	for f.Screen() == ScreenPlaying {
 		f.Update(right)
@@ -72,7 +72,7 @@ func TestStorageNotice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFlow(&rhythm.Manual{}, tt.store, mustParse(t, timedLevel))
+			f := seenFlow(&rhythm.Manual{}, tt.store, mustParse(t, timedLevel))
 			if f.StorageNotice() != tt.notice {
 				t.Fatalf("notice %v, want %v", f.StorageNotice(), tt.notice)
 			}
@@ -90,7 +90,7 @@ func TestStorageNotice(t *testing.T) {
 
 func TestBrokenStorageNeverStopsTheGame(t *testing.T) {
 	lvl := mustParse(t, timedLevel)
-	f := NewFlow(&rhythm.Manual{}, save.NewFallback(unavailableStorage{}), lvl, lvl)
+	f := seenFlow(&rhythm.Manual{}, save.NewFallback(unavailableStorage{}), lvl, lvl)
 	f.Update(shift)
 	for range 200 {
 		f.Update(right)

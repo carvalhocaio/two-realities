@@ -77,6 +77,8 @@ func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
 		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices()}, a.tick)
+	case game.ScreenHelp:
+		drawHelp(screen, a.flow.Language(), a.tick)
 	case game.ScreenEnd:
 		drawEndScreen(screen, a.flow.Session().Summary(), a.flow.Language(), a.tick)
 	default:
@@ -114,10 +116,10 @@ func (a *App) setTitle(title string) {
 }
 
 func musicTrack(f *game.Flow) tunes.Track {
-	if f.Screen() != game.ScreenPlaying && f.Screen() != game.ScreenPaused {
+	s := f.Session()
+	if s == nil || f.Screen() == game.ScreenTitle || f.Screen() == game.ScreenEnd {
 		return tunes.ActOne
 	}
-	s := f.Session()
 	if w, ok := s.Warden(); ok && w.Lit < level.LampCount {
 		return tunes.WardenOne + tunes.Track(w.Lit)
 	}

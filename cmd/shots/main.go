@@ -20,10 +20,12 @@ var (
 	right = input.Intent{Right: true}
 	jump  = input.Intent{Right: true, JumpPressed: true}
 	shift = input.Intent{ShiftPressed: true}
+	help  = input.Intent{HelpPressed: true}
 )
 
 var shots = []ebitenapp.Shot{
 	{Name: "title", Level: ebitenapp.TitleShot, Every: 30, Steps: []step{hold(60, idle)}},
+	{Name: "help", Level: ebitenapp.TitleShot, Every: 20, Steps: []step{hold(1, help), hold(20, idle)}},
 	{Name: "first_shift", Level: 0, Every: 1, Steps: []step{
 		hold(20, idle), hold(30, right), hold(50, jump), hold(1, shift), hold(1, right), hold(150, right), hold(45, idle),
 	}},

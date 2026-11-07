@@ -14,6 +14,7 @@ type Intent struct {
 	DecreasePressed bool
 	IncreasePressed bool
 	LanguagePressed bool
+	HelpPressed     bool
 }
 
 func (i Intent) Acts() bool {

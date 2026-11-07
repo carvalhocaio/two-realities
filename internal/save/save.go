@@ -11,6 +11,7 @@ type Data struct {
 	PressureUnlocked bool            `json:"pressure_unlocked,omitempty"`
 	PressureCleared  int             `json:"pressure_cleared,omitempty"`
 	Reached          map[string]bool `json:"reached,omitempty"`
+	HelpSeen         bool            `json:"help_seen,omitempty"`
 }
 
 type Storage interface {

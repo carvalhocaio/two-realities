@@ -17,12 +17,14 @@ const (
 	ScreenPlaying
 	ScreenPaused
 	ScreenEnd
+	ScreenHelp
 )
 
 type MenuItem int
 
 const (
 	MenuResume MenuItem = iota
+	MenuHelp
 	MenuAssist
 	MenuSkip
 	MenuMute
@@ -51,6 +53,7 @@ type Flow struct {
 	lang     i18n.Lang
 	pressure int
 	startAt  int
+	helpBack Screen
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
@@ -103,7 +106,6 @@ func (f *Flow) moveMenu(step int) {
 
 func (f *Flow) Screen() Screen      { return f.screen }
 func (f *Flow) Session() *Session   { return f.session }
-func (f *Flow) LevelCount() int     { return len(f.levels) }
 func (f *Flow) Menu() MenuItem      { return f.menu }
 func (f *Flow) Assist() bool        { return f.assist }
 func (f *Flow) Muted() bool         { return f.muted }
@@ -135,7 +137,12 @@ func (f *Flow) Update(in input.Intent) {
 		}
 		f.choosePressure(in)
 		f.chooseStart(in)
-		if in.ShiftPressed {
+		switch {
+		case in.HelpPressed:
+			f.openHelp(ScreenTitle)
+		case in.ShiftPressed && !f.records.HelpSeen():
+			f.openHelp(ScreenPlaying)
+		case in.ShiftPressed:
 			f.start()
 		}
 	case ScreenPlaying:
@@ -149,6 +156,8 @@ func (f *Flow) Update(in input.Intent) {
 		}
 	case ScreenPaused:
 		f.updateMenu(in)
+	case ScreenHelp:
+		f.updateHelp(in)
 	case ScreenEnd:
 		if in.ShiftPressed {
 			f.toTitle()
@@ -209,6 +218,8 @@ func (f *Flow) confirm() {
 	switch f.menu {
 	case MenuResume:
 		f.resume()
+	case MenuHelp:
+		f.openHelp(ScreenPaused)
 	case MenuAssist:
 		f.assist = !f.assist
 		f.session.SetAssist(f.assist)

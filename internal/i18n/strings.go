@@ -28,6 +28,15 @@ const (
 	MenuAudioOffset
 	MenuLanguage
 	MenuSkip
+	MenuHelp
+	HelpTitle
+	HelpWorlds
+	HelpFragments
+	HelpSpikes
+	HelpWatchers
+	HelpBeat
+	HelpRestart
+	HelpPrompt
 	MenuTitle
 	On
 	Off
@@ -63,7 +72,7 @@ var tables = [LangCount]map[Key]string{
 		TitleControlsMove:      "ARROWS OR A D: MOVE    SPACE: JUMP",
 		TitleControlsWorld:     "SHIFT: SWAP WORLDS    R: RESTART",
 		TitleControlsExtra:     "M: MUTE    T: TIMER    P OR ESC: PAUSE",
-		TitleLanguage:          "L: PORTUGUÊS",
+		TitleLanguage:          "L: PORTUGUÊS    H: HOW TO PLAY",
 		StorageNotice:          "PROGRESS WON'T BE SAVED IN THIS BROWSER",
 		WorldYellow:            "YELLOW",
 		WorldGrey:              "GREY",
@@ -83,6 +92,15 @@ var tables = [LangCount]map[Key]string{
 		MenuAudioOffset:        "AUDIO OFFSET: %s",
 		MenuLanguage:           "LANGUAGE: ENGLISH",
 		MenuSkip:               "SKIP LEVEL",
+		MenuHelp:               "HOW TO PLAY",
+		HelpTitle:              "HOW TO PLAY",
+		HelpWorlds:             "SHIFT SWAPS WORLDS. DOTTED TILES ARE THE OTHER ONE: NOT SOLID.",
+		HelpFragments:          "GOING GREY IS FREE. COMING BACK COSTS 1 FRAGMENT, FOUND IN GREY.",
+		HelpSpikes:             "SPIKES ONLY HURT IN THEIR OWN WORLD.",
+		HelpWatchers:           "WATCHERS SEE YOU ONLY IN GREY. SHIFT BEFORE THE ALERT FILLS.",
+		HelpBeat:               "LATER, SHIFT WAITS FOR THE BEAT, THEN SWAPS ON ITS OWN.",
+		HelpRestart:            "OUT OF FRAGMENTS? R RESTARTS THE LEVEL.",
+		HelpPrompt:             "PRESS SHIFT TO CONTINUE",
 		MenuTitle:              "BACK TO TITLE",
 		On:                     "ON",
 		Off:                    "OFF",
@@ -115,7 +133,7 @@ var tables = [LangCount]map[Key]string{
 		TitleControlsMove:      "SETAS OU A D: ANDAR    ESPAÇO: PULAR",
 		TitleControlsWorld:     "SHIFT: TROCAR DE MUNDO    R: REINICIAR",
 		TitleControlsExtra:     "M: SOM    T: TEMPO    P OU ESC: PAUSA",
-		TitleLanguage:          "L: ENGLISH",
+		TitleLanguage:          "L: ENGLISH    H: COMO JOGAR",
 		StorageNotice:          "SEU PROGRESSO NÃO SERÁ SALVO NESTE NAVEGADOR",
 		WorldYellow:            "AMARELO",
 		WorldGrey:              "CINZA",
@@ -135,6 +153,15 @@ var tables = [LangCount]map[Key]string{
 		MenuAudioOffset:        "ATRASO DO ÁUDIO: %s",
 		MenuLanguage:           "IDIOMA: PORTUGUÊS",
 		MenuSkip:               "PULAR FASE",
+		MenuHelp:               "COMO JOGAR",
+		HelpTitle:              "COMO JOGAR",
+		HelpWorlds:             "SHIFT TROCA DE MUNDO. O PONTILHADO É O OUTRO: NÃO É SÓLIDO.",
+		HelpFragments:          "IR AO CINZA É GRÁTIS. VOLTAR CUSTA 1 FRAGMENTO, ACHADO NO CINZA.",
+		HelpSpikes:             "ESPINHOS SÓ FEREM NO PRÓPRIO MUNDO.",
+		HelpWatchers:           "VIGIAS SÓ TE VEEM NO CINZA. TROQUE ANTES DO ALERTA ENCHER.",
+		HelpBeat:               "DEPOIS, A TROCA ESPERA A BATIDA, E ENTÃO TROCA SOZINHA.",
+		HelpRestart:            "SEM FRAGMENTOS? R REINICIA A FASE.",
+		HelpPrompt:             "APERTE SHIFT PARA CONTINUAR",
 		MenuTitle:              "VOLTAR AO INÍCIO",
 		On:                     "SIM",
 		Off:                    "NÃO",

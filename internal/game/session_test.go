@@ -7,6 +7,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/player"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
+	"github.com/carvalhocaio/two-realities/internal/save"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
@@ -170,4 +171,10 @@ func TestTryShiftOutcome(t *testing.T) {
 			}
 		})
 	}
+}
+
+func seenFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
+	f := NewFlow(clock, store, levels...)
+	f.records.data.HelpSeen = true
+	return f
 }

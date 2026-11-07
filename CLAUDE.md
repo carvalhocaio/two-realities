@@ -62,8 +62,11 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - `game.Records` wraps the storage. Level bests save on each exit unless assist was on during that level; the run best saves only for runs started at level 1, without dev skips and without assist (end screen shows `PRACTICE` / `ASSIST`).
 - **T** toggles the HUD timer (hidden by default). The level-complete banner (`TIME ... BEST ...` / `NEW BEST`) always shows for 2.5s.
 
+### How to play card
+- `ScreenHelp` (`game/help.go`, drawn by `ebitenapp/help.go`): six one-line rules with icons drawn from the game pieces (worlds, fragment cost, spikes, watchers, beat, R). Opened by **H** on the title, the pause menu item "HOW TO PLAY", and automatically on the first Shift of a fresh save (`help_seen` in save data; any older progress counts as seen). Shift, Enter, P/Esc or H close it, back to where it was opened (or into the run on the first start). `help_test.go` checks every line fits the screen in both languages.
+
 ### Assist mode and pause
-- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, assist on/off, skip level (only listed while assist is on and not on the last level; `Flow.MenuItems`), mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
+- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, how to play, assist on/off, skip level (only listed while assist is on and not on the last level; `Flow.MenuItems`), mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
 - Auto-pause: `internal/platform.Signals` turns window blur, `visibilitychange` to hidden, fullscreen exit (`fullscreenchange`, or a resize from screen size, since an iframe made fullscreen by the parent page may not get the event) and desktop focus loss (`ebiten.IsFocused` edge) into one `Intent.FocusLost`. `Flow` pauses only from `ScreenPlaying` and never resumes by itself. Listeners live in `platform/browser_js.go`; the keyboard adapter polls the signals.
 - Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
 - Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
@@ -190,7 +193,7 @@ shift: free
 - Physics reference for design: run 1.4 px/tick, jump ≈ 26px high / ≈ 40px long, so 1-tile corridors block jumping and gaps of 5+ tiles can't be jumped.
 
 ## Controls
-A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute · T timer · L language (title) · P/Enter/Esc pause (arrows/W/S + Enter/Space/Shift in the menu).
+A/D or arrows move · Space/W/Up jump · Left/Right Shift swap worlds · R restart · M mute · T timer · L language (title) · H how to play (title) · P/Enter/Esc pause (arrows/W/S + Enter/Space/Shift in the menu).
 
 ## Commands
 `make run` · `make run-dev` (`]`/`[` level skip) · `make test` (Go + loader JS) · `make test-cover` · `make lint` (go vet, also with `-tags dev`, + gofmt) · `make build-wasm` · `make package` (itch upload folder in `dist/html5`) · `make serve` (web/ on :8080, override with `PORT=`). Go version pinned in `.tool-versions` (asdf).

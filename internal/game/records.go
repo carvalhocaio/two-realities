@@ -123,6 +123,18 @@ func (r *Records) Furthest(levels []level.Level) int {
 
 func (r *Records) CampaignDone() bool { return r.PressureUnlocked() }
 
+func (r *Records) HelpSeen() bool {
+	return r.data.HelpSeen || r.PressureUnlocked() || len(r.data.BestLevel) > 0 || len(r.data.Reached) > 0
+}
+
+func (r *Records) markHelpSeen() {
+	if r.data.HelpSeen {
+		return
+	}
+	r.data.HelpSeen = true
+	r.persist()
+}
+
 func (r *Records) markReached(name string) {
 	if r.data.Reached[name] {
 		return

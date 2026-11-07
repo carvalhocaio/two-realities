@@ -30,6 +30,7 @@ The **yellow** world is warm and open. The **grey** world is cold, and it is wat
 | M / T | mute / timer |
 | P, Enter or Esc | pause (assist, audio offset, language) |
 | L | language (title screen) |
+| H | how to play (title screen; also in the pause menu) |
 | Up / Down | starting level (title screen, after reaching level 2) |
 
 ## Build and run

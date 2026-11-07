@@ -287,15 +287,15 @@ func TestPauseMenu(t *testing.T) {
 		{"escape pauses", then(one(shift), one(pause)), ScreenPaused, false, false},
 		{"escape resumes", then(one(shift), one(pause), one(pause)), ScreenPlaying, false, false},
 		{"resume item", then(one(shift), one(pause), one(confirm)), ScreenPlaying, false, false},
-		{"assist toggles", then(one(shift), one(pause), one(down), one(confirm)), ScreenPaused, true, false},
-		{"mute toggles", then(one(shift), one(pause), one(down), one(down), one(confirm)), ScreenPaused, false, true},
+		{"assist toggles", then(one(shift), one(pause), ticks(down, menuDowns(MenuAssist)), one(confirm)), ScreenPaused, true, false},
+		{"mute toggles", then(one(shift), one(pause), ticks(down, menuDowns(MenuMute)), one(confirm)), ScreenPaused, false, true},
 		{"menu wraps upward to title", then(one(shift), one(pause), one(up), one(confirm)), ScreenTitle, false, false},
 		{"m mutes anywhere", then(one(mute), one(shift)), ScreenPlaying, false, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lvl := mustParse(t, timedLevel)
-			f := NewFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
+			f := seenFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}
@@ -311,7 +311,7 @@ func TestPauseMenu(t *testing.T) {
 
 func TestPausedSessionDoesNotMove(t *testing.T) {
 	lvl := mustParse(t, timedLevel)
-	f := NewFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
+	f := seenFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
 	f.Update(shift)
 	f.Update(input.Intent{PausePressed: true})
 	before := f.Session().PlayerBox()
@@ -325,9 +325,9 @@ func TestPausedSessionDoesNotMove(t *testing.T) {
 
 func TestAssistCarriesIntoNewRuns(t *testing.T) {
 	lvl := mustParse(t, timedLevel)
-	f := NewFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
+	f := seenFlow(&rhythm.Manual{}, &save.Memory{}, lvl)
 	confirm := input.Intent{ConfirmPressed: true}
-	for _, in := range then(one(shift), one(input.Intent{PausePressed: true}), one(input.Intent{DownPressed: true}), one(confirm), one(input.Intent{UpPressed: true}), one(input.Intent{UpPressed: true}), one(confirm), one(shift)) {
+	for _, in := range then(one(shift), one(input.Intent{PausePressed: true}), ticks(input.Intent{DownPressed: true}, menuDowns(MenuAssist)), one(confirm), ticks(input.Intent{UpPressed: true}, menuDowns(MenuAssist)+1), one(confirm), one(shift)) {
 		f.Update(in)
 	}
 	if f.Screen() != ScreenPlaying || !f.Session().Assist() {

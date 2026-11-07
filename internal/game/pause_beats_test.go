@@ -22,7 +22,7 @@ func TestPauseDoesNotBendTheBeat(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clock := &rhythm.Manual{}
-			f := NewFlow(clock, &save.Memory{}, mustParse(t, tt.level))
+			f := seenFlow(clock, &save.Memory{}, mustParse(t, tt.level))
 			f.Update(shift)
 			clock.Advance(beatDuration / 4)
 			f.Update(idle)

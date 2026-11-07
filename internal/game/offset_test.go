@@ -37,7 +37,7 @@ func TestAudioOffsetMenu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := &save.Memory{Stored: save.Data{AudioOffsetMs: tt.stored}}
-			f := NewFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
+			f := seenFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
 			for _, in := range tt.inputs {
 				f.Update(in)
 			}
@@ -50,11 +50,11 @@ func TestAudioOffsetMenu(t *testing.T) {
 
 func TestAudioOffsetPersists(t *testing.T) {
 	store := &save.Memory{}
-	f := NewFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
+	f := seenFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
 	for _, in := range then(toOffsetItem(), ticks(moreKey, 4)) {
 		f.Update(in)
 	}
-	again := NewFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
+	again := seenFlow(&rhythm.Manual{}, store, mustParse(t, timedLevel))
 	if again.AudioOffsetMs() != 4*AudioOffsetStep {
 		t.Fatalf("reloaded offset %d, want %d", again.AudioOffsetMs(), 4*AudioOffsetStep)
 	}
