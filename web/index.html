@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="wasm-size" content="0">
   <title>Two Realities</title>
   <style>
     html, body {
@@ -19,16 +20,50 @@
       position: absolute;
       inset: 0;
       display: grid;
-      place-items: center;
-      color: #e6e6e6;
-      font: 14px monospace;
+      place-content: center;
+      justify-items: center;
+      gap: 14px;
+      background: #fff3d6;
+      color: #3b2a16;
+      font: bold 14px monospace;
+      letter-spacing: 2px;
+    }
+    #status h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 4px;
+    }
+    #bar {
+      width: min(320px, 70vw);
+      height: 12px;
+      border: 2px solid #3b2a16;
+      box-sizing: border-box;
+      padding: 2px;
+    }
+    #fill {
+      width: 0;
+      height: 100%;
+      background: #e8a33d;
+    }
+    #bar.unknown #fill {
+      width: 30%;
+      animation: slide 1.2s steps(12) infinite alternate;
+    }
+    @keyframes slide {
+      to { transform: translateX(233%); }
     }
   </style>
 </head>
 <body>
-  <div id="status">Loading…</div>
+  <div id="status" role="status" aria-live="polite">
+    <h1>TWO REALITIES</h1>
+    <div id="bar"><div id="fill"></div></div>
+    <div id="label">LOADING…</div>
+  </div>
   <script src="wasm_exec.js"></script>
-  <script>
+  <script type="module">
+    import { download, expectedSize, fraction, label, language } from "./loader.js";
+
     (() => {
       const gameKeys = new Set([
         "Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "ShiftLeft", "ShiftRight",
@@ -71,21 +106,33 @@
         requestAnimationFrame(waitForCanvas);
       };
 
+      const lang = language(navigator.language);
+      const bar = document.getElementById("bar");
+      const fill = document.getElementById("fill");
+      const text = document.getElementById("label");
+      const show = (stage, received = 0, total = 0) => {
+        const f = fraction(received, total);
+        bar.classList.toggle("unknown", stage === "loading" && f === null);
+        fill.style.width = stage === "loading" ? (f === null ? "" : `${f * 100}%`) : "100%";
+        text.textContent = label(lang, stage, received, total);
+      };
+
       const go = new Go();
+      const injected = document.querySelector('meta[name="wasm-size"]').content;
+      show("loading");
       fetch("game.wasm")
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`game.wasm: HTTP ${res.status}`);
-          }
-          return res.arrayBuffer();
+        .then((res) => download(res, expectedSize(res.headers, injected), (r, t) => show("loading", r, t)))
+        .then((bytes) => {
+          show("starting");
+          return WebAssembly.instantiate(bytes, go.importObject);
         })
-        .then((bytes) => WebAssembly.instantiate(bytes, go.importObject))
         .then((result) => {
           waitForCanvas();
           return go.run(result.instance);
         })
         .catch((err) => {
-          status.textContent = `Failed to load: ${err.message}`;
+          show("failed");
+          text.textContent += `: ${err.message}`;
         });
     })();
   </script>

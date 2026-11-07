@@ -39,7 +39,8 @@ Requires Go (version in `.tool-versions`).
 ```sh
 make run         # desktop
 make run-dev     # desktop with ] / [ level skip
-make test        # all tests
+make test        # all tests (Go and the web loader, needs Node)
+make test-cover  # the same with coverage
 make lint        # go vet (also with -tags dev) + gofmt
 make build-wasm  # web/game.wasm + wasm_exec.js
 make serve       # serve web/ on :8080 (PORT= to change)
