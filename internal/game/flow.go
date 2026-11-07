@@ -127,7 +127,7 @@ func (f *Flow) updateMenu(in input.Intent) {
 	case in.ConfirmPressed:
 		f.confirm()
 	case in.PausePressed:
-		f.screen = ScreenPlaying
+		f.resume()
 	case in.UpPressed:
 		f.menu = (f.menu + MenuCount - 1) % MenuCount
 	case in.DownPressed:
@@ -139,6 +139,11 @@ func (f *Flow) updateMenu(in input.Intent) {
 	case f.menu == MenuLanguage && (in.DecreasePressed || in.IncreasePressed):
 		f.switchLanguage()
 	}
+}
+
+func (f *Flow) resume() {
+	f.screen = ScreenPlaying
+	f.session.Resume()
 }
 
 func (f *Flow) setOffset(ms int) {
@@ -153,7 +158,7 @@ func clampOffset(ms int) int {
 func (f *Flow) confirm() {
 	switch f.menu {
 	case MenuResume:
-		f.screen = ScreenPlaying
+		f.resume()
 	case MenuAssist:
 		f.assist = !f.assist
 		f.session.SetAssist(f.assist)

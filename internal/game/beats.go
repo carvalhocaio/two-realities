@@ -77,3 +77,13 @@ func (s *Session) AutoCountdown() int {
 	}
 	return left
 }
+
+func (s *Session) Resume() {
+	skipped := s.clock.Beat() - s.beats.last
+	if skipped <= 0 {
+		return
+	}
+	s.beats.last += skipped
+	s.beats.start += skipped
+	s.warden.start += skipped
+}
