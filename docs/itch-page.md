@@ -91,7 +91,7 @@ Feito em Go com Ebitengine para o GitHub Game Off 2026 (tema: SHIFT). Código: h
 
 ## Page settings
 
-- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..6.png` (960x540; 6 is the how to play card) and `shift.gif`. Embed background (behind "Run game"): `embed-bg.png` (640x360, a Warden frame). Regenerate frames with `make shots OUT=dir`.
+- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..6.png` (960x540; 6 is the how to play card) and `shift.gif`. Embed background (behind "Run game"): `embed-bg.png` (960x540 = the embed size, a Warden frame; a smaller image gets tiled). Regenerate frames with `make shots OUT=dir`.
 - Genre: Puzzle (secondary: Platformer). Tags: puzzle-platformer, pixel-art, rhythm, boss-fight, two-worlds, game-off.
 - Embed: 960x540, fullscreen button on, "click to launch" off.
 - Pricing: no payments. Visibility: public when submitting to the jam.
