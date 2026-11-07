@@ -12,6 +12,11 @@ import (
 func (r *runner) w(i int) Watcher { return r.s.Watchers()[i] }
 
 func solveCrossfire(r *runner) {
+	crossfireUntilLastJump(r)
+	r.finish(right)
+}
+
+func crossfireUntilLastJump(r *runner) {
 	r.shiftTo(world.Grey)
 	r.until(r.hasFragments(1), right)
 	r.until(r.reachX(58), right)
@@ -35,7 +40,6 @@ func solveCrossfire(r *runner) {
 	r.shiftTo(world.Grey)
 	r.until(r.reachX(452), right)
 	r.step(jumpRight)
-	r.finish(right)
 }
 
 func solveDescent(r *runner) {
@@ -116,6 +120,11 @@ func predictWatcher(x float64, dir int, ticks int, lo, hi, speed float64) (float
 }
 
 func solveClockwork(r *runner) {
+	clockworkUntilLastJump(r)
+	r.finish(right)
+}
+
+func clockworkUntilLastJump(r *runner) {
 	r.until(r.reachX(82), right)
 	r.freshWindow(world.Yellow)
 	r.until(r.reachX(152), right)
@@ -143,7 +152,6 @@ func solveClockwork(r *runner) {
 	r.until(func() bool { return r.s.Active() == world.Grey }, idle)
 	r.until(r.reachX(482), right)
 	r.step(jumpRight)
-	r.finish(right)
 }
 
 func TestRhythmMasteryWorksOnEveryBeatPhase(t *testing.T) {
@@ -206,7 +214,7 @@ func TestCrossfireHasExactFragments(t *testing.T) {
 		t.Fatal(err)
 	}
 	const hidingPlaces = 3
-	if got := lvl.StartFragments + len(lvl.Fragments); got != hidingPlaces {
+	if got := fragmentsBeforeLastHazard(lvl); got != hidingPlaces {
 		t.Fatalf("fragments available = %d, want exactly %d", got, hidingPlaces)
 	}
 }

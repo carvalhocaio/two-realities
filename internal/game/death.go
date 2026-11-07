@@ -18,6 +18,9 @@ func (s *Session) die(cause DeathCause) {
 		return
 	}
 	s.death = cause
+	if cause == DeathFall && !s.shifted {
+		s.shiftHint = true
+	}
 	s.deathTimer = DeathFreezeTicks
 }
 

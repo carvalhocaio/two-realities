@@ -39,9 +39,9 @@ fragments: 0
 ##############........##############
 
 [transmissions]
-The warm floor gives up halfway. The grey one never does.
+The warm floor gives up halfway. Press Shift: the grey one never does.
 If you read this, I made it this far too.
 
 [transmissions.pt]
-O chão quente desiste no meio do caminho. O cinza nunca desiste.
+O chão quente desiste no meio do caminho. Aperte Shift: o cinza nunca desiste.
 Se você está lendo isto, eu também cheguei até aqui.

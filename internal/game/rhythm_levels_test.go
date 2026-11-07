@@ -42,6 +42,11 @@ func (r *runner) reachPocketBehindWatcher() {
 }
 
 func solveOnTheBeat(r *runner) {
+	onTheBeatUntilGapJump(r)
+	r.finish(right)
+}
+
+func onTheBeatUntilGapJump(r *runner) {
 	r.reachPocketBehindWatcher()
 	r.queueShift(world.Yellow)
 	r.until(func() bool {
@@ -51,7 +56,6 @@ func solveOnTheBeat(r *runner) {
 	r.queueShift(world.Grey)
 	r.until(r.reachX(beatGapJump), right)
 	r.step(jumpRight)
-	r.finish(right)
 }
 
 func solveMetronome(r *runner) {

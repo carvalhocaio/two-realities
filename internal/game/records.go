@@ -34,7 +34,7 @@ func (r *Records) SecretFound(name string) bool { return r.data.Secrets[name] }
 
 func (r *Records) SecretsFound(levels []level.Level) (found, total int) {
 	for _, l := range levels {
-		if l.Secret == nil {
+		if len(l.Secrets) == 0 {
 			continue
 		}
 		total++

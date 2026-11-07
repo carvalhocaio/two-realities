@@ -14,6 +14,8 @@ const (
 	WorldGrey
 	HudLevel
 	HudRestart
+	HudSecret
+	HudShiftHint
 	HudMuted
 	HudWarden
 	ResultTime
@@ -65,6 +67,8 @@ var tables = [LangCount]map[Key]string{
 		WorldGrey:              "GREY",
 		HudLevel:               "LV %d/%d",
 		HudRestart:             "R TO RESTART",
+		HudSecret:              "SECRET FOUND!",
+		HudShiftHint:           "SHIFT: SWAP WORLDS",
 		HudMuted:               "MUTE",
 		HudWarden:              "THE WARDEN",
 		ResultTime:             "TIME %s",
@@ -113,6 +117,8 @@ var tables = [LangCount]map[Key]string{
 		WorldGrey:              "CINZA",
 		HudLevel:               "FASE %d/%d",
 		HudRestart:             "R PARA REINICIAR",
+		HudSecret:              "SEGREDO ENCONTRADO!",
+		HudShiftHint:           "SHIFT: TROCAR DE MUNDO",
 		HudMuted:               "MUDO",
 		HudWarden:              "O CARCEREIRO",
 		ResultTime:             "TEMPO %s",

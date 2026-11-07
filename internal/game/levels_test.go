@@ -97,7 +97,7 @@ func (r *runner) watcher() Watcher { return r.s.Watchers()[0] }
 func (r *runner) dodgeCorridor() {
 	const (
 		pillarJumpX  = 58
-		pocketX      = 155
+		pocketX      = 151
 		afterPocketX = 185
 		gapJumpX     = 236
 	)
@@ -161,6 +161,11 @@ func solvePlanning(r *runner) {
 }
 
 func solveFinale(r *runner) {
+	finaleUntilLastYellow(r)
+	r.finish(walkLeft)
+}
+
+func finaleUntilLastYellow(r *runner) {
 	r.dodgeCorridor()
 	r.until(func() bool { return r.s.PlayerBox().Y > 300 }, right)
 	r.until(r.hasFragments(1), walkLeft)
@@ -169,7 +174,6 @@ func solveFinale(r *runner) {
 	r.shiftTo(world.Grey)
 	r.until(r.hasFragments(1), walkLeft)
 	r.shiftTo(world.Yellow)
-	r.finish(walkLeft)
 }
 
 var levelSolutions = []struct {
@@ -289,12 +293,12 @@ func TestTeachingOrder(t *testing.T) {
 		{},
 		{fragments: true},
 		{fragments: true, spikes: true},
-		{fragments: true, watchers: true},
+		{fragments: true, spikes: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true},
 		{fragments: true, spikes: true, watchers: true, checkpoints: true},
-		{fragments: true, watchers: true, checkpoints: true},
 		{fragments: true, spikes: true, watchers: true, checkpoints: true},
-		{fragments: true, watchers: true, quantized: true},
+		{fragments: true, spikes: true, watchers: true, checkpoints: true},
+		{fragments: true, spikes: true, watchers: true, quantized: true},
 		{auto: true},
 		{fragments: true, spikes: true, watchers: true, quantized: true},
 		{spikes: true, watchers: true, auto: true},
@@ -362,9 +366,28 @@ func TestPlanningLevelHasExactFragments(t *testing.T) {
 		t.Fatal(err)
 	}
 	const mandatoryReturns = 2
-	if got := lvl.StartFragments + len(lvl.Fragments); got != mandatoryReturns {
+	if got := fragmentsBeforeLastHazard(lvl); got != mandatoryReturns {
 		t.Fatalf("fragments available = %d, want exactly %d", got, mandatoryReturns)
 	}
+}
+
+func fragmentsBeforeLastHazard(lvl level.Level) int {
+	last := 0
+	for _, w := range lvl.Watchers {
+		last = max(last, w.X)
+	}
+	for _, layer := range lvl.Spikes {
+		for _, sp := range layer {
+			last = max(last, sp.X)
+		}
+	}
+	n := lvl.StartFragments
+	for _, f := range lvl.Fragments {
+		if f.X < last {
+			n++
+		}
+	}
+	return n
 }
 
 func TestFinaleRespawnsAtCheckpoint(t *testing.T) {

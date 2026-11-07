@@ -10,7 +10,8 @@ The **yellow** world is warm and open. The **grey** world is cold, and it is wat
 
 - 13 handmade levels in three acts, one new idea per level
 - Rhythm-locked shifting with music synthesized in code
-- 12 secrets, speedrun timer and personal bests, Pressure 1-5 challenge mode
+- 12 secrets that move: each level has up to 3 hidden spots and one is drawn every time you enter it, so you have to look instead of memorizing
+- Speedrun timer and personal bests, Pressure 1-5 challenge mode after the first clear
 - Assist mode, audio offset, English and Brazilian Portuguese
 
 | Yellow | Grey |
@@ -48,7 +49,7 @@ Pushing a `v*` tag deploys the build to itch.io through GitHub Actions and butle
 
 ## Code
 
-Go with [Ebitengine](https://ebitengine.org/). Game logic lives in pure packages under `internal/` (level parser, physics, session, rhythm clock, music synth, save, i18n) and is tested without a window; Ebitengine is only used in `internal/ebitenapp`. Levels are plain-text files in `internal/level/levels/`, and every level has a scripted solution in the tests. Design notes and architecture rules are in [CLAUDE.md](CLAUDE.md).
+Go with [Ebitengine](https://ebitengine.org/). Game logic lives in pure packages under `internal/` (level parser, physics, session, rhythm clock, music synth, save, i18n) and is tested without a window; Ebitengine is only used in `internal/ebitenapp`. Levels are plain-text files in `internal/level/levels/`. Every level has a scripted solution in the tests, every secret spot is taken by a test that then finishes the level, and known exploits (walking on watcher corridor roofs, pausing to bend the beat) have regression tests. Design notes and architecture rules are in [CLAUDE.md](CLAUDE.md).
 
 ## AI use
 

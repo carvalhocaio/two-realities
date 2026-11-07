@@ -16,8 +16,6 @@ const (
 	deathFlashAlpha  = 0.6
 	deathBlinkTicks  = 4
 	lockedExitAlpha  = 0.25
-	exitRise         = 4
-	exitFrame        = 2
 	beatGhostFade    = 2.5
 )
 
@@ -56,12 +54,14 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	dst.DrawImage(ghost, op)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
-	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s))
+	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s), s.ExitOpen(), tick)
 	drawCheckpoints(dst, s, pal)
 	drawWardenBack(dst, s, pal, tick)
 	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
 	drawSignals(dst, s, pal)
 	drawSecret(dst, s, tick)
+	drawSecretGlint(dst, s, tick)
+	drawSecretBurst(dst, s)
 	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
 	drawGlows(dst, s, tick)
 	fx.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick))
@@ -91,11 +91,4 @@ func drawFlash(dst *ebiten.Image, area geom.Rect, c color.Color, strength float6
 		return
 	}
 	fillRect(dst, area, c, float32(strength))
-}
-
-func drawExit(dst *ebiten.Image, tile geom.Rect, pal palette, alpha float32) {
-	frame := geom.Rect{X: tile.X + 1, Y: tile.Y - exitRise, W: tile.W - 2, H: tile.H + exitRise}
-	fillRect(dst, frame, pal.exit, alpha)
-	door := geom.Rect{X: frame.X + exitFrame, Y: frame.Y + exitFrame, W: frame.W - 2*exitFrame, H: frame.H - exitFrame}
-	fillRect(dst, door, secretColor, alpha)
 }

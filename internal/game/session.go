@@ -12,11 +12,13 @@ import (
 
 const (
 	BlockedFeedbackTicks = 12
+	SecretFeedbackTicks  = 90
 )
 
 type Feedback struct {
 	Shake        float64
 	CounterFlash float64
+	SecretFound  float64
 }
 
 type Session struct {
@@ -31,6 +33,7 @@ type Session struct {
 	collected        []bool
 	solidFeedback    int
 	fragmentFeedback int
+	secretFeedback   int
 	restartHint      bool
 	death            DeathCause
 	deathTimer       int
@@ -40,6 +43,10 @@ type Session struct {
 	beats            beatState
 	signals          transmissionState
 	secretTaken      bool
+	secretSpot       int
+	shifted          bool
+	shiftHint        bool
+	picker           func(n int) int
 	timer            runTimer
 	result           LevelResult
 	resultTimer      int
@@ -51,7 +58,7 @@ type Session struct {
 }
 
 func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {
-	s := &Session{clock: clock, levels: levels, records: NewRecords(&save.Memory{})}
+	s := &Session{clock: clock, levels: levels, records: NewRecords(&save.Memory{}), picker: randomSpot}
 	s.timer.runEligible = true
 	s.enterLevel(0)
 	return s
@@ -77,6 +84,7 @@ func (s *Session) respawn() {
 	s.epoch++
 	s.solidFeedback = 0
 	s.fragmentFeedback = 0
+	s.secretFeedback = 0
 	s.restartHint = false
 	s.death = Alive
 	s.deathTimer = 0
@@ -104,6 +112,7 @@ func (s *Session) Update(in input.Intent) {
 	}
 	s.solidFeedback = max(s.solidFeedback-1, 0)
 	s.fragmentFeedback = max(s.fragmentFeedback-1, 0)
+	s.secretFeedback = max(s.secretFeedback-1, 0)
 	if in.ShiftPressed {
 		s.requestShift()
 	}
@@ -137,6 +146,7 @@ func (s *Session) Active() world.World   { return s.active }
 func (s *Session) PlayerBox() geom.Rect  { return s.player.Box }
 func (s *Session) PlayerGrounded() bool  { return s.player.Grounded() }
 func (s *Session) RestartHint() bool     { return s.restartHint }
+func (s *Session) ShiftHint() bool       { return s.shiftHint }
 func (s *Session) Watchers() []Watcher   { return s.watchers }
 func (s *Session) Finished() bool        { return s.finished }
 func (s *Session) Epoch() int            { return s.epoch }
@@ -149,6 +159,7 @@ func (s *Session) Feedback() Feedback {
 	return Feedback{
 		Shake:        float64(s.solidFeedback) / BlockedFeedbackTicks,
 		CounterFlash: float64(s.fragmentFeedback) / BlockedFeedbackTicks,
+		SecretFound:  float64(s.secretFeedback) / SecretFeedbackTicks,
 	}
 }
 

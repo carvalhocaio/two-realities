@@ -23,6 +23,8 @@ const (
 	tileSecret     = 'S'
 
 	noLayer = world.World(-1)
+
+	MaxSecretSpots = 3
 )
 
 var (
@@ -38,7 +40,7 @@ var (
 	ErrMarkerCount         = errors.New("level needs exactly one spawn and one exit")
 	ErrFragmentInAuto      = errors.New("fragments are not allowed in auto shift mode")
 	ErrTransmissionCount   = errors.New("each T marker needs exactly one transmission line")
-	ErrSecretCount         = errors.New("level has more than one secret")
+	ErrSecretCount         = errors.New("level has too many secret spots")
 )
 
 var sectionNames = map[string]world.World{
@@ -100,12 +102,10 @@ func Parse(text string) (Level, error) {
 	if lvl.Boss, err = parseBoss(head.boss, markers); err != nil {
 		return Level{}, err
 	}
-	if len(secrets) > 1 {
+	if len(secrets) > MaxSecretSpots {
 		return Level{}, ErrSecretCount
 	}
-	if len(secrets) == 1 {
-		lvl.Secret = &secrets[0]
-	}
+	lvl.Secrets = secrets
 	lvl.Transmissions, err = pairTransmissions(signals, texts)
 	if err != nil {
 		return Level{}, err

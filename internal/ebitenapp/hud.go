@@ -60,10 +60,14 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	switch {
 	case h.notice != "":
 		drawCentered(dst, h.notice, pal, pal.panelInk)
+	case s.Feedback().SecretFound > 0:
+		drawCentered(dst, h.lang.T(i18n.HudSecret), pal, fragmentColor)
 	case showResult:
 		drawCentered(dst, resultText(result, h.lang), pal, pal.panelInk)
 	case s.RestartHint():
 		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, dangerColor)
+	case s.ShiftHint():
+		drawCentered(dst, h.lang.T(i18n.HudShiftHint), pal, fragmentColor)
 	default:
 		drawLevelLabel(dst, s, h, pal)
 	}

@@ -67,7 +67,7 @@ func TestParse(t *testing.T) {
 		{"transmission too long", head + "[yellow]\n#PTE#\n[grey]\n#####\n[transmissions]\n" + strings.Repeat("a", MaxTransmissionLength+1) + "\n", ErrTransmissionText},
 		{"secret in yellow", head + "[yellow]\n#PSE#\n[grey]\n#####\n", nil},
 		{"secret in grey", head + "[yellow]\n#P.E#\n[grey]\n#.S.#\n", nil},
-		{"two secrets", head + "[yellow]\n#PSE#\n[grey]\n#S..#\n", ErrSecretCount},
+		{"four secret spots", head + "[yellow]\n#PSSE#\n[grey]\n#SS..#\n", ErrSecretCount},
 		{"secret in auto", head + "shift: auto\nauto_every: 4\n[yellow]\n#PSE#\n[grey]\n#####\n", nil},
 		{"act two", head + "act: 2\n[yellow]\n#PE#\n[grey]\n####\n", nil},
 		{"act zero", head + "act: 0\n[yellow]\n#PE#\n[grey]\n####\n", ErrInvalidHeader},
@@ -133,8 +133,8 @@ func TestParseTransmissionsAndSecret(t *testing.T) {
 			t.Errorf("transmission %d = %+v, want %+v", i, lvl.Transmissions[i], w)
 		}
 	}
-	if lvl.Secret == nil || *lvl.Secret != (Marker{Point{X: 4, Y: 0}, world.Grey}) {
-		t.Fatalf("secret = %+v", lvl.Secret)
+	if len(lvl.Secrets) != 1 || lvl.Secrets[0] != (Marker{Point{X: 4, Y: 0}, world.Grey}) {
+		t.Fatalf("secrets = %+v", lvl.Secrets)
 	}
 	if lvl.Layer(world.Grey).Solid(4, 0) || lvl.Layer(world.Yellow).Solid(3, 0) {
 		t.Fatal("marker tiles must be empty")

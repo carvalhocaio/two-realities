@@ -17,6 +17,7 @@ type palette struct {
 	spike      color.RGBA
 	panel      color.RGBA
 	panelInk   color.RGBA
+	door       color.RGBA
 }
 
 var palettes = [world.Count]palette{
@@ -29,6 +30,7 @@ var palettes = [world.Count]palette{
 		spike:      dangerColor,
 		panel:      color.RGBA{0x3B, 0x2A, 0x16, 0xFF},
 		panelInk:   color.RGBA{0xFF, 0xF3, 0xD6, 0xFF},
+		door:       color.RGBA{0xFF, 0xD6, 0x8F, 0xFF},
 	},
 	world.Grey: {
 		background: color.RGBA{0x2B, 0x2D, 0x33, 0xFF},
@@ -39,6 +41,7 @@ var palettes = [world.Count]palette{
 		spike:      dangerColor,
 		panel:      enemyColor,
 		panelInk:   color.RGBA{0xE4, 0xE2, 0xDC, 0xFF},
+		door:       enemyColor,
 	},
 }
 

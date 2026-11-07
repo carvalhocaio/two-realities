@@ -16,7 +16,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - Glow (`glow.go`): additive radial glow (one pre-rendered gradient drawn with `BlendLighter`, no shader) on the warm things while grey is active: fragments, secret, open exit, active checkpoint flag, lit and current Warden lamps; a slow pulse. Skipped in yellow, where it would be invisible on cream.
 - Grey-only backdrop (`backdrop.go`): two layers of tower silhouettes (parallax 0.25 and 0.5, seeded per level, anchored to the level bottom) and a screen-locked vignette, both drawn into the canvas before the tiles, so they shade the background only and never dim tiles, the player or hazards.
 - Player feel (`playerfx.go`, visual only): a 2px eye on the facing side (from horizontal movement), and on landings faster than `landingSpeed` a short squash (wider and lower, feet fixed) plus three dust specks in the tile color. No trail, no rounded corners. Resets on respawn and level change.
-- Pieces and HUD: watchers are `enemyColor` blocks with a 4px red visor on the facing side; the exit is a portal (frame in the world's exit color, light door, 4px taller than its tile, dim while locked); the HUD bar takes the world's background and its panels are dark (`panel`/`panelInk`) with a 1px frame in the tile color (the world chip framed in the shown world's tile color); the transmission box uses the same panel colors.
+- Pieces and HUD: watchers are `enemyColor` blocks with a 4px red visor on the facing side; the exit is an archway (`portal.go`: threshold 1px wider than the tile on each side, two posts and a lintel with cut corners in the world's exit color, dark door, 4px taller than its tile; when open, a light line at the bottom and motes rising in a loop; dim and still while locked); the HUD bar takes the world's background and its panels are dark (`panel`/`panelInk`) with a 1px frame in the tile color (the world chip framed in the shown world's tile color); the transmission box uses the same panel colors.
 - Shared accents: fragment yellow (in grey it only appears on fragments, exit, lamps, secret and lit checkpoints), `dangerColor` red only for danger (active spikes, watcher visor and sight, the Warden's beam/rail, blocked flash), `enemyColor` near-black for watcher and Warden bodies.
 - The inactive world is a ghost: dotted outlines for tiles, watchers and the eye, outlined spikes, all in that world's tile color (or `enemyColor` for enemies), so it never reads as solid or as active danger.
 
@@ -32,6 +32,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
   - Line of sight: horizontal ray at eye height in the facing direction, `SightRange` tiles max, stopped by grey solid tiles. The player is seen if the ray crosses their box (jumping above it breaks sight).
   - Alert meter fills one per tick while seen (`AlertTicks` = 0.4s, "!" + meter above the watcher); leaving sight or shifting to yellow resets it. Full meter = caught.
   - **Core dodge:** shifting to yellow before the meter fills saves the player.
+  - Watcher corridors (L4-L7, L9, L11) have grey spikes on their roof: a 1-tile corridor roof is low enough to jump onto, and walking on it would skip the watcher (`roofs_test.go`).
 - **Death** (spikes, caught, falling out): `DeathFreezeTicks` (0.5s) freeze with white flash, shake and blinking player, input ignored, then restart from spawn.
 
 ### Shift modes and rhythm
@@ -62,10 +63,16 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - Auto-pause: `internal/platform.Signals` turns window blur, `visibilitychange` to hidden, fullscreen exit (`fullscreenchange`, or a resize from screen size, since an iframe made fullscreen by the parent page may not get the event) and desktop focus loss (`ebiten.IsFocused` edge) into one `Intent.FocusLost`. `Flow` pauses only from `ScreenPlaying` and never resumes by itself. Listeners live in `platform/browser_js.go`; the keyboard adapter polls the signals.
 - Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
 - Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
+- Resuming (`Flow.resume` → `Session.Resume`) skips the beats that passed during the pause (beat state and Warden timeline move forward together), so pausing can neither fire a queued shift off the beat nor swallow auto swaps (`pause_beats_test.go`).
 
 ### Secrets
-- `S` marker, at most one per level, either layer; drawn only while its layer is active (never in the ghost). Collecting it adds a fragment and marks the secret; it is saved when the level is finished with it (checkpoints snapshot it). The end screen shows secrets found out of the total.
-- Every level uses the same hidden shape: a 2-tile ledge in yellow 2 tiles above the floor, and a 2-tile ledge in the secret's layer 2 tiles higher and 1 tile to the right, with the secret on top. Reaching it needs a mid-air shift at the top of the jump (queued on the beat in L7, timed to the auto flip in L8). `secrets_levels_test.go` grabs every secret.
+- `S` markers are secret **spots**: up to `MaxSecretSpots` (3) per level, either layer. One spot is drawn at random when the level is entered (`Session.pickSecret`, `rand.IntN`; tests use `UseSecretPicker`) and stays the same through deaths and R in that visit, so the player has to look for it instead of memorizing it. Only the chosen spot exists; it is drawn only while its layer is active, and from the other world it only gives a faint glint (a 1px cross for `secretGlintTicks` every `secretGlintPeriod`, `fragment.go`) so a curious player can notice it. Collecting it adds a fragment and marks the level's secret; it is saved when the level is finished with it (checkpoints snapshot it). The end screen shows secrets found out of the levels with spots.
+- Every spot uses the same signature: a 2-tile ledge in yellow 2 tiles above a yellow floor, and a 2-tile ledge in the secret's layer 2 tiles higher and 1 tile to the right, with the secret on top. Reaching it needs a mid-air shift at the top of the jump (queued on the beat in quantized levels, timed to the auto flip in auto levels). The empty ledges of the spots not drawn stay as decoys.
+- Placement: L1 keeps one spot at the start (it teaches the signature); the other levels have 1-2 spots away from the spawn and never over a teaching hazard, after the tight part in the "exact fragments" levels (3, 5, 7). Where the player reaches the end in grey with no fragments (4, 5, 7, 9), an extra "fuel" fragment after the last hazard pays the shift back to yellow.
+- Rhythm levels (9, 10, 12) use an easier signature: the grey ledge is 3 tiles wide and only 1 tile above the yellow ledge, with the secret on its middle tile. Pressing jump and shift together on the yellow ledge at a random beat phase then works on 25 of 36 phases (20 with the standard shape). L11 keeps the standard shape: its grey wall under the spot would let a lower ledge be reached without shifting.
+- L1 teaches the key: its first transmission says "Press Shift", and falling before ever shifting in a level shows "SHIFT: SWAP WORLDS" in the HUD until the first shift (`Session.ShiftHint`).
+- Taking a secret gives clear feedback: a ring of sparks at the spot and "SECRET FOUND!" in the HUD for `SecretFeedbackTicks` (1.5s), since a mid-air pickup is easy to miss.
+- `secrets_levels_test.go` takes every spot of every level and then finishes the level (`secretRoutes`), and checks each spot has no stepping stone in its own layer.
 
 ### Languages
 - English and Brazilian Portuguese. `internal/i18n` (pure): `Lang` (`EN`, `PT`), typed `Key`s, one table per language, `lang.T(key, args...)`; a test checks every key exists in both and every string is drawable by the font.
@@ -115,7 +122,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 | 1 | `01_first_shift` | move, jump a step, first shift over a grey-only bridge | no fragments, never return |
 | 2 | `02_fragments` | fragments + asymmetric cost: grab one on the bridge, pay it to pass a grey-only wall | 1 fragment |
 | 3 | `03_spikes` | spikes per world: alternate worlds 4 times | 2 fragments, exactly |
-| 4 | `04_watcher` | first watcher: hide on the yellow pocket while it passes, return behind it | 1 fragment |
+| 4 | `04_watcher` | first watcher: hide on the yellow pocket while it passes, return behind it | 1 fragment (+1 fuel for the secret) |
 | 5 | `05_planning` | watcher + spikes with exactly 2 fragments: wasting one means R | 2 fragments, exactly |
 | 6 | `06_finale` | everything + checkpoints: corridor on top, drop, spikes walking left at the bottom | 3 fragments, 2 checkpoints |
 | 7 | `07_crossfire` | mastery (Act II): two watchers split by a grey-only pillar crossed through yellow; three hiding places, three fragments | 3 fragments, exactly; 1 checkpoint |
@@ -172,7 +179,7 @@ shift: free
 - Both layers must be the same size.
 - `C` checkpoint: either layer; must stand on yellow ground (respawn is in yellow).
 - `T` transmission: either layer, paired with `[transmissions]` lines.
-- `S` secret: either layer, at most one per level, allowed in auto levels. Boss levels have none.
+- `S` secret spot: either layer, up to 3 per level (one is drawn per visit), allowed in auto levels. Boss levels have none.
 - Boss levels (`boss: warden`): `L` lamp ×3, `O` rail (grey only), `1`/`2` gate tiles; these markers are errors in other levels.
 - Spawn must stand on yellow ground. 17 rows fit the view exactly; taller/wider levels scroll.
 - Physics reference for design: run 1.4 px/tick, jump ≈ 26px high / ≈ 40px long, so 1-tile corridors block jumping and gaps of 5+ tiles can't be jumped.

@@ -13,6 +13,8 @@ func (s *Session) enterLevel(i int) {
 	s.index = i
 	s.level = s.levels[i]
 	s.resetLevelTimer()
+	s.pickSecret()
+	s.shifted, s.shiftHint = false, false
 	s.Restart()
 }
 

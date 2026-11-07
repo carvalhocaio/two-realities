@@ -36,5 +36,6 @@ func (s *Session) TryShift() ShiftOutcome {
 
 	s.fragments -= cost
 	s.active = target
+	s.shifted, s.shiftHint = true, false
 	return ShiftDone
 }
