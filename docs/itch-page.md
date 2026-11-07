@@ -21,13 +21,14 @@ Then the shift stops being yours. In the third act it snaps to the beat of the m
 - Original music and sound effects, all synthesized by the game itself
 - Speedrun timer and personal bests; continue from the furthest level you reached
 - **Pressure 1-5**: an optional challenge mode unlocked after your first clear
-- Notes left by someone who tried to escape before you
+- Notes left by someone who tried to escape before you, and one last note at the end
 
 **Accessibility**
 - A short "How to play" card on your first start (H on the title or in the pause menu to see it again)
 - Assist mode (pause menu): watchers take longer to notice you, the auto shift never crushes you, and you can skip a level
+- Separate music and sound volumes, and a reduce effects option (no screen shake, softer flashes; on by default if your system asks for reduced motion)
 - Audio offset (pause menu) for Bluetooth headphones and laggy speakers
-- Keyboard or gamepad
+- Keyboard or gamepad (on-screen hints follow the device you use)
 - English and Brazilian Portuguese (press L on the title screen)
 
 **Controls**
@@ -60,13 +61,14 @@ Depois a troca deixa de ser sua. No terceiro ato ela obedece à batida da músic
 - Música e efeitos sonoros originais, todos sintetizados pelo próprio jogo
 - Cronômetro de speedrun e recordes pessoais; continue da fase mais longe que alcançou
 - **Pressão 1-5**: um modo de desafio opcional, liberado depois de zerar
-- Bilhetes deixados por alguém que tentou fugir antes de você
+- Bilhetes deixados por alguém que tentou fugir antes de você, e um último bilhete no final
 
 **Acessibilidade**
 - Um cartão curto de "Como jogar" na primeira partida (H no título ou no menu de pausa para rever)
 - Modo assistido (menu de pausa): os vigias demoram mais para te notar, a troca automática nunca te esmaga e dá para pular a fase
+- Volumes separados de música e efeitos, e a opção reduzir efeitos (sem tremor de tela, flashes suaves; ligada sozinha se o sistema pede menos movimento)
 - Ajuste de atraso do áudio (menu de pausa) para fones Bluetooth e caixas com atraso
-- Teclado ou controle
+- Teclado ou controle (as dicas da tela seguem o dispositivo que você usa)
 - Inglês e português do Brasil (tecle L na tela de título)
 
 **Controles**
@@ -89,7 +91,7 @@ Feito em Go com Ebitengine para o GitHub Game Off 2026 (tema: SHIFT). Código: h
 
 ## Page settings
 
-- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..6.png` (960x540; 6 is the how to play card) and `shift.gif`. Regenerate frames with `make shots OUT=dir`.
+- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..6.png` (960x540; 6 is the how to play card) and `shift.gif`. Embed background (behind "Run game"): `embed-bg.png` (640x360, a Warden frame). Regenerate frames with `make shots OUT=dir`.
 - Genre: Puzzle (secondary: Platformer). Tags: puzzle-platformer, pixel-art, rhythm, boss-fight, two-worlds, game-off.
 - Embed: 960x540, fullscreen button on, "click to launch" off.
 - Pricing: no payments. Visibility: public when submitting to the jam.
