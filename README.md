@@ -59,4 +59,4 @@ Go with [Ebitengine](https://ebitengine.org/). Game logic lives in pure packages
 
 ## AI use
 
-This game was made with an AI coding assistant (Claude Code, by Anthropic), as disclosed on the itch.io page. No AI image, audio or voice generators were used: graphics are drawn by code and the music is synthesized by the game at startup.
+This game was made with an AI coding assistant (Claude Code, by Anthropic), as disclosed on the itch.io page. No AI image, audio or voice generators were used: graphics are drawn by code and the music and sound effects are synthesized by the game at startup.

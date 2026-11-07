@@ -17,13 +17,17 @@ Then the shift stops being yours. In the third act it snaps to the beat of the m
 - 13 handmade levels in three acts, one new idea per level
 - The Warden, a three-phase boss fight where each phase takes a little more control of the shift
 - Rhythm-locked shifting with original synthesized music (one song per act, a layered track per boss phase)
-- 12 hidden secrets, a speedrun timer and personal bests
+- 12 secrets that move: each visit draws one of up to three hidden spots, so you have to look instead of memorizing
+- Original music and sound effects, all synthesized by the game itself
+- Speedrun timer and personal bests; continue from the furthest level you reached
 - **Pressure 1-5**: an optional challenge mode unlocked after your first clear
 - Notes left by someone who tried to escape before you
 
 **Accessibility**
-- Assist mode (pause menu): watchers take longer to notice you, and the auto shift never crushes you
+- A short "How to play" card on your first start (H on the title or in the pause menu to see it again)
+- Assist mode (pause menu): watchers take longer to notice you, the auto shift never crushes you, and you can skip a level
 - Audio offset (pause menu) for Bluetooth headphones and laggy speakers
+- Keyboard or gamepad
 - English and Brazilian Portuguese (press L on the title screen)
 
 **Controls**
@@ -31,9 +35,10 @@ Then the shift stops being yours. In the third act it snaps to the beat of the m
 - Space, W or Up: jump
 - Shift: swap worlds
 - R: restart the level
-- M: mute · T: timer · P, Enter or Esc: pause
+- M: mute · T: timer · P, Enter or Esc: pause · H: how to play
+- Gamepad: stick or d-pad to move, A jump, B/X/LB/RB shift, Start pause, Back restart, Y how to play
 
-Best played with sound on and a keyboard. Click the game if it does not respond to keys.
+Best played with sound on. Click the game if it does not respond to keys; press any gamepad button once so the browser picks it up.
 
 Made in Go with Ebitengine for GitHub Game Off 2026 (theme: SHIFT). Source: https://github.com/carvalhocaio/two-realities
 
@@ -51,13 +56,17 @@ Depois a troca deixa de ser sua. No terceiro ato ela obedece à batida da músic
 - 13 fases feitas à mão em três atos, uma ideia nova por fase
 - O Carcereiro, um chefe em três fases, cada uma tomando um pouco mais do controle da troca
 - Troca presa ao ritmo, com música original sintetizada (uma por ato e uma faixa em camadas por fase do chefe)
-- 12 segredos escondidos, cronômetro de speedrun e recordes pessoais
+- 12 segredos que mudam de lugar: cada visita sorteia um de até três esconderijos, então é preciso procurar em vez de decorar
+- Música e efeitos sonoros originais, todos sintetizados pelo próprio jogo
+- Cronômetro de speedrun e recordes pessoais; continue da fase mais longe que alcançou
 - **Pressão 1-5**: um modo de desafio opcional, liberado depois de zerar
 - Bilhetes deixados por alguém que tentou fugir antes de você
 
 **Acessibilidade**
-- Modo assistido (menu de pausa): os vigias demoram mais para te notar e a troca automática nunca te esmaga
+- Um cartão curto de "Como jogar" na primeira partida (H no título ou no menu de pausa para rever)
+- Modo assistido (menu de pausa): os vigias demoram mais para te notar, a troca automática nunca te esmaga e dá para pular a fase
 - Ajuste de atraso do áudio (menu de pausa) para fones Bluetooth e caixas com atraso
+- Teclado ou controle
 - Inglês e português do Brasil (tecle L na tela de título)
 
 **Controles**
@@ -65,21 +74,22 @@ Depois a troca deixa de ser sua. No terceiro ato ela obedece à batida da músic
 - Espaço, W ou seta para cima: pular
 - Shift: trocar de mundo
 - R: reiniciar a fase
-- M: mudo · T: cronômetro · P, Enter ou Esc: pausa
+- M: mudo · T: cronômetro · P, Enter ou Esc: pausa · H: como jogar
+- Controle: analógico ou direcional para andar, A pula, B/X/LB/RB troca, Start pausa, Back reinicia, Y como jogar
 
-Melhor com som e teclado. Clique no jogo se ele não responder às teclas.
+Melhor com som. Clique no jogo se ele não responder às teclas; aperte qualquer botão do controle uma vez para o navegador reconhecê-lo.
 
 Feito em Go com Ebitengine para o GitHub Game Off 2026 (tema: SHIFT). Código: https://github.com/carvalhocaio/two-realities
 
 ## AI disclosure (required by Game Off) — draft, edit before publishing
 
-**AI use:** This game was made with an AI coding assistant (Claude Code, by Anthropic). I came up with the concept and direction, playtested every build and decided what stayed and what changed; the assistant wrote most of the code, including the level layouts, the in-game text and the code that synthesizes the music, from my briefs and feedback. No AI image, audio or voice generators were used: all graphics are drawn by code in a 4-color-per-world palette and the music is synthesized at startup by the game itself.
+**AI use:** This game was made with an AI coding assistant (Claude Code, by Anthropic). I came up with the concept and direction, playtested every build and decided what stayed and what changed; the assistant wrote most of the code, including the level layouts, the in-game text and the code that synthesizes the music and sound effects, from my briefs and feedback. No AI image, audio or voice generators were used: all graphics are drawn by code in a 4-color-per-world palette and the music and sound effects are synthesized at startup by the game itself.
 
-**Uso de IA:** Este jogo foi feito com um assistente de programação por IA (Claude Code, da Anthropic). Eu criei o conceito e a direção, testei cada versão e decidi o que ficava e o que mudava; o assistente escreveu a maior parte do código, incluindo o desenho das fases, os textos do jogo e o código que sintetiza a música, a partir das minhas orientações e do meu retorno. Nenhum gerador de imagem, áudio ou voz por IA foi usado: os gráficos são desenhados por código, com quatro cores por mundo, e a música é sintetizada pelo próprio jogo ao iniciar.
+**Uso de IA:** Este jogo foi feito com um assistente de programação por IA (Claude Code, da Anthropic). Eu criei o conceito e a direção, testei cada versão e decidi o que ficava e o que mudava; o assistente escreveu a maior parte do código, incluindo o desenho das fases, os textos do jogo e o código que sintetiza a música e os efeitos sonoros, a partir das minhas orientações e do meu retorno. Nenhum gerador de imagem, áudio ou voz por IA foi usado: os gráficos são desenhados por código, com quatro cores por mundo, e a música e os efeitos sonoros são sintetizados pelo próprio jogo ao iniciar.
 
 ## Page settings
 
-- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..5.png` (960x540) and `shift.gif`. Regenerate frames with `make shots OUT=dir`.
+- Assets in `docs/itch/`: cover `cover.png` (630x500). Screenshots: `screenshot-1..6.png` (960x540; 6 is the how to play card) and `shift.gif`. Regenerate frames with `make shots OUT=dir`.
 - Genre: Puzzle (secondary: Platformer). Tags: puzzle-platformer, pixel-art, rhythm, boss-fight, two-worlds, game-off.
 - Embed: 960x540, fullscreen button on, "click to launch" off.
 - Pricing: no payments. Visibility: public when submitting to the jam.
