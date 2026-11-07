@@ -103,6 +103,34 @@ func (r *Records) clearPressure(p int) bool {
 	return true
 }
 
+func (r *Records) Reached(levels []level.Level, i int) bool {
+	switch {
+	case i == 0, r.CampaignDone(), r.data.Reached[levels[i].Name]:
+		return true
+	}
+	_, cleared := r.data.BestLevel[levels[i-1].Name]
+	return cleared
+}
+
+func (r *Records) Furthest(levels []level.Level) int {
+	for i := len(levels) - 1; i > 0; i-- {
+		if r.Reached(levels, i) {
+			return i
+		}
+	}
+	return 0
+}
+
+func (r *Records) CampaignDone() bool { return r.PressureUnlocked() }
+
+func (r *Records) markReached(name string) {
+	if r.data.Reached[name] {
+		return
+	}
+	r.data.Reached[name] = true
+	r.persist()
+}
+
 func (r *Records) markSecret(name string) {
 	if r.data.Secrets[name] {
 		return

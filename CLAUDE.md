@@ -63,7 +63,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - **T** toggles the HUD timer (hidden by default). The level-complete banner (`TIME ... BEST ...` / `NEW BEST`) always shows for 2.5s.
 
 ### Assist mode and pause
-- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, assist on/off, mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
+- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, assist on/off, skip level (only listed while assist is on and not on the last level; `Flow.MenuItems`), mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
 - Auto-pause: `internal/platform.Signals` turns window blur, `visibilitychange` to hidden, fullscreen exit (`fullscreenchange`, or a resize from screen size, since an iframe made fullscreen by the parent page may not get the event) and desktop focus loss (`ebiten.IsFocused` edge) into one `Intent.FocusLost`. `Flow` pauses only from `ScreenPlaying` and never resumes by itself. Listeners live in `platform/browser_js.go`; the keyboard adapter polls the signals.
 - Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
 - Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
@@ -118,6 +118,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 ### Flow and progression
 - `game.Flow`: title ("press Shift to start") → playing → end screen ("press Shift for title") → title.
 - Levels load from `internal/level/levels/*.txt` sorted by name (`LoadAll`). Exit advances; finishing the last level shows the end screen.
+- Continue / level select: entering a level saves it as reached (`reached` in save data; older saves count the level after any level best, and a finished campaign unlocks all). The title shows "START AT LEVEL n/m" (Up/Down) once more than one level is reached; it defaults to the furthest level, or to level 1 after the campaign is done. Starting past level 1 is a practice run (no best run).
 - Dev build (`make run-dev`, `-tags dev`): `]` next level, `[` previous level.
 
 ### Level list (one new idea per level)

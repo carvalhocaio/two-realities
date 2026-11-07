@@ -12,7 +12,7 @@ import (
 var langKey = input.Intent{LanguagePressed: true}
 
 func toLanguageItem() []input.Intent {
-	return then(one(shift), one(pauseKey), ticks(downKey, int(MenuLanguage)))
+	return then(one(shift), one(pauseKey), ticks(downKey, menuDowns(MenuLanguage)))
 }
 
 func TestLanguage(t *testing.T) {

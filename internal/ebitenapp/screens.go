@@ -35,7 +35,7 @@ func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
 	}
 }
 
-func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pressure pressureChoice, tick int) {
+func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pressure pressureChoice, start startChoice, tick int) {
 	yellow, grey := palettes[world.Yellow], palettes[world.Grey]
 	lines := []line{
 		{text: lang.T(i18n.Title), y: 40, scale: titleScale, c: yellow.text},
@@ -44,6 +44,9 @@ func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pres
 		{text: lang.T(i18n.TitleControlsMove), y: 134, scale: 1, c: yellow.text},
 		{text: lang.T(i18n.TitleControlsWorld), y: 144, scale: 1, c: yellow.text},
 		{text: lang.T(i18n.TitleControlsExtra), y: 154, scale: 1, c: yellow.text},
+	}
+	if start.count > 1 {
+		lines = append(lines, line{text: lang.T(i18n.TitleStartLevel, start.level+1, start.count), y: 70, scale: 1, c: yellow.text})
 	}
 	if pressure.unlocked {
 		lines = append(lines, pressureLines(pressure.level, lang, yellow)...)
@@ -85,6 +88,10 @@ func bestRunText(sum game.RunSummary, lang i18n.Lang) string {
 		return lang.T(i18n.EndNoBest)
 	}
 	return lang.T(i18n.EndBestRun, formatTicks(sum.Best))
+}
+
+type startChoice struct {
+	level, count int
 }
 
 type pressureChoice struct {

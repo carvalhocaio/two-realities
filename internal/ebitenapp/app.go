@@ -76,7 +76,7 @@ func (a *App) Update() error {
 func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
-		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, a.tick)
+		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices()}, a.tick)
 	case game.ScreenEnd:
 		drawEndScreen(screen, a.flow.Session().Summary(), a.flow.Language(), a.tick)
 	default:

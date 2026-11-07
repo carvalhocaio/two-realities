@@ -27,6 +27,7 @@ const (
 	MenuMute
 	MenuAudioOffset
 	MenuLanguage
+	MenuSkip
 	MenuTitle
 	On
 	Off
@@ -43,6 +44,7 @@ const (
 	EndPrompt
 	TitlePressure
 	TitlePressureOff
+	TitleStartLevel
 	PressureFasterWatchers
 	PressureNoCheckpoints
 	PressureBeatGhost
@@ -80,6 +82,7 @@ var tables = [LangCount]map[Key]string{
 		MenuMute:               "MUTE: %s",
 		MenuAudioOffset:        "AUDIO OFFSET: %s",
 		MenuLanguage:           "LANGUAGE: ENGLISH",
+		MenuSkip:               "SKIP LEVEL",
 		MenuTitle:              "BACK TO TITLE",
 		On:                     "ON",
 		Off:                    "OFF",
@@ -96,6 +99,7 @@ var tables = [LangCount]map[Key]string{
 		EndPrompt:              "PRESS SHIFT FOR TITLE",
 		TitlePressure:          "PRESSURE %d - LEFT/RIGHT",
 		TitlePressureOff:       "PRESSURE OFF - LEFT/RIGHT",
+		TitleStartLevel:        "START AT LEVEL %d/%d - UP/DOWN",
 		PressureFasterWatchers: "+ FASTER WATCHERS",
 		PressureNoCheckpoints:  "+ NO CHECKPOINTS",
 		PressureBeatGhost:      "+ THE OTHER WORLD ONLY SHOWS ON THE BEAT",
@@ -130,6 +134,7 @@ var tables = [LangCount]map[Key]string{
 		MenuMute:               "MUDO: %s",
 		MenuAudioOffset:        "ATRASO DO ÁUDIO: %s",
 		MenuLanguage:           "IDIOMA: PORTUGUÊS",
+		MenuSkip:               "PULAR FASE",
 		MenuTitle:              "VOLTAR AO INÍCIO",
 		On:                     "SIM",
 		Off:                    "NÃO",
@@ -146,6 +151,7 @@ var tables = [LangCount]map[Key]string{
 		EndPrompt:              "APERTE SHIFT PARA VOLTAR",
 		TitlePressure:          "PRESSÃO %d - ESQUERDA/DIREITA",
 		TitlePressureOff:       "PRESSÃO DESLIGADA - ESQUERDA/DIREITA",
+		TitleStartLevel:        "COMEÇAR NA FASE %d/%d - CIMA/BAIXO",
 		PressureFasterWatchers: "+ VIGIAS MAIS RÁPIDOS",
 		PressureNoCheckpoints:  "+ SEM CHECKPOINTS",
 		PressureBeatGhost:      "+ O OUTRO MUNDO SÓ APARECE NA BATIDA",

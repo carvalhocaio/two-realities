@@ -1,6 +1,8 @@
 package game
 
 import (
+	"slices"
+
 	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/input"
 	"github.com/carvalhocaio/two-realities/internal/level"
@@ -22,6 +24,7 @@ type MenuItem int
 const (
 	MenuResume MenuItem = iota
 	MenuAssist
+	MenuSkip
 	MenuMute
 	MenuAudioOffset
 	MenuLanguage
@@ -47,11 +50,55 @@ type Flow struct {
 	offset   int
 	lang     i18n.Lang
 	pressure int
+	startAt  int
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
 	records := NewRecords(store)
-	return &Flow{clock: clock, levels: levels, records: records, screen: ScreenTitle, offset: clampOffset(records.AudioOffset())}
+	f := &Flow{clock: clock, levels: levels, records: records, offset: clampOffset(records.AudioOffset())}
+	f.toTitle()
+	return f
+}
+
+func (f *Flow) toTitle() {
+	f.session = nil
+	f.screen = ScreenTitle
+	f.startAt = 0
+	if !f.records.CampaignDone() {
+		f.startAt = f.records.Furthest(f.levels)
+	}
+}
+
+func (f *Flow) StartLevel() int   { return f.startAt }
+func (f *Flow) StartChoices() int { return f.records.Furthest(f.levels) + 1 }
+
+func (f *Flow) chooseStart(in input.Intent) {
+	switch {
+	case in.UpPressed:
+		f.startAt = min(f.startAt+1, f.StartChoices()-1)
+	case in.DownPressed:
+		f.startAt = max(f.startAt-1, 0)
+	}
+}
+
+func (f *Flow) MenuItems() []MenuItem {
+	items := make([]MenuItem, 0, MenuCount)
+	for m := range MenuCount {
+		if m != MenuSkip || f.canSkip() {
+			items = append(items, m)
+		}
+	}
+	return items
+}
+
+func (f *Flow) canSkip() bool {
+	return f.assist && f.session != nil && f.session.LevelIndex() < f.session.LevelCount()-1
+}
+
+func (f *Flow) moveMenu(step int) {
+	items := f.MenuItems()
+	i := max(slices.Index(items, f.menu), 0)
+	f.menu = items[(i+step+len(items))%len(items)]
 }
 
 func (f *Flow) Screen() Screen      { return f.screen }
@@ -87,6 +134,7 @@ func (f *Flow) Update(in input.Intent) {
 			f.switchLanguage()
 		}
 		f.choosePressure(in)
+		f.chooseStart(in)
 		if in.ShiftPressed {
 			f.start()
 		}
@@ -103,8 +151,7 @@ func (f *Flow) Update(in input.Intent) {
 		f.updateMenu(in)
 	case ScreenEnd:
 		if in.ShiftPressed {
-			f.session = nil
-			f.screen = ScreenTitle
+			f.toTitle()
 		}
 	}
 }
@@ -119,6 +166,9 @@ func (f *Flow) start() {
 	f.session.UseRecords(f.records)
 	f.session.SetAssist(f.assist)
 	f.session.SetPressure(f.Pressure())
+	if f.startAt > 0 {
+		f.session.GoToLevel(f.startAt)
+	}
 	f.screen = ScreenPlaying
 }
 
@@ -129,9 +179,9 @@ func (f *Flow) updateMenu(in input.Intent) {
 	case in.PausePressed:
 		f.resume()
 	case in.UpPressed:
-		f.menu = (f.menu + MenuCount - 1) % MenuCount
+		f.moveMenu(-1)
 	case in.DownPressed:
-		f.menu = (f.menu + 1) % MenuCount
+		f.moveMenu(1)
 	case f.menu == MenuAudioOffset && in.DecreasePressed:
 		f.setOffset(f.offset - AudioOffsetStep)
 	case f.menu == MenuAudioOffset && in.IncreasePressed:
@@ -166,9 +216,11 @@ func (f *Flow) confirm() {
 		f.muted = !f.muted
 	case MenuLanguage:
 		f.switchLanguage()
+	case MenuSkip:
+		f.session.GoToLevel(f.session.LevelIndex() + 1)
+		f.resume()
 	case MenuTitle:
-		f.session = nil
-		f.screen = ScreenTitle
+		f.toTitle()
 	}
 }
 

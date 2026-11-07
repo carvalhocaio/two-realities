@@ -10,6 +10,7 @@ type Data struct {
 	Language         string          `json:"language,omitempty"`
 	PressureUnlocked bool            `json:"pressure_unlocked,omitempty"`
 	PressureCleared  int             `json:"pressure_cleared,omitempty"`
+	Reached          map[string]bool `json:"reached,omitempty"`
 }
 
 type Storage interface {
@@ -23,6 +24,9 @@ func (d Data) Normalized() Data {
 	}
 	if d.Secrets == nil {
 		d.Secrets = map[string]bool{}
+	}
+	if d.Reached == nil {
+		d.Reached = map[string]bool{}
 	}
 	return d
 }

@@ -15,8 +15,8 @@ import (
 const (
 	pauseDimAlpha = 0.7
 	pauseTitleY   = 50
-	pauseFirstY   = 80
-	pauseStep     = 14
+	pauseFirstY   = 76
+	pauseStep     = 12
 	pauseHintGap  = 6
 	beatDotSize   = 3
 	beatDotGap    = 6
@@ -32,6 +32,7 @@ func onOff(on bool, lang i18n.Lang) string {
 func menuLabels(f *game.Flow) [game.MenuCount]string {
 	lang := f.Language()
 	return [game.MenuCount]string{
+		game.MenuSkip:        lang.T(i18n.MenuSkip),
 		game.MenuResume:      lang.T(i18n.MenuResume),
 		game.MenuAssist:      lang.T(i18n.MenuAssist, onOff(f.Assist(), lang)),
 		game.MenuMute:        lang.T(i18n.MenuMute, onOff(f.Muted(), lang)),
@@ -52,20 +53,21 @@ func drawPauseMenu(dst *ebiten.Image, f *game.Flow, phase float64) {
 	pal := palettes[f.Session().Active()]
 	fillRect(dst, geom.Rect{W: ScreenWidth, H: ScreenHeight}, pal.background, pauseDimAlpha)
 	drawCenteredLine(dst, f.Language().T(i18n.Paused), pauseTitleY, subtitleScale, pal.text)
-	for i, label := range menuLabels(f) {
-		c := color.Color(pal.text)
-		if game.MenuItem(i) == f.Menu() {
+	labels, items := menuLabels(f), f.MenuItems()
+	for i, item := range items {
+		label, c := labels[item], color.Color(pal.text)
+		if item == f.Menu() {
 			c = pal.exit
 			label = "- " + label + " -"
 		}
 		y := float64(pauseFirstY + i*pauseStep)
 		drawCenteredLine(dst, label, y, 1, c)
-		if game.MenuItem(i) == game.MenuAudioOffset {
+		if item == game.MenuAudioOffset {
 			drawBeatDot(dst, (ScreenWidth+textWidth(label))/2+beatDotGap, y+1, phase, pal)
 		}
 	}
 	if f.Menu() == game.MenuAudioOffset {
-		drawCenteredLine(dst, f.Language().T(i18n.OffsetHint), float64(pauseFirstY+int(game.MenuCount)*pauseStep+pauseHintGap), 1, pal.text)
+		drawCenteredLine(dst, f.Language().T(i18n.OffsetHint), float64(pauseFirstY+len(items)*pauseStep+pauseHintGap), 1, pal.text)
 	}
 }
 

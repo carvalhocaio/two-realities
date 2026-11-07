@@ -14,7 +14,7 @@ var (
 )
 
 func toOffsetItem() []input.Intent {
-	return then(one(shift), one(pauseKey), ticks(downKey, int(MenuAudioOffset)))
+	return then(one(shift), one(pauseKey), ticks(downKey, menuDowns(MenuAudioOffset)))
 }
 
 func TestAudioOffsetMenu(t *testing.T) {
@@ -58,4 +58,11 @@ func TestAudioOffsetPersists(t *testing.T) {
 	if again.AudioOffsetMs() != 4*AudioOffsetStep {
 		t.Fatalf("reloaded offset %d, want %d", again.AudioOffsetMs(), 4*AudioOffsetStep)
 	}
+}
+
+func menuDowns(item MenuItem) int {
+	if item > MenuSkip {
+		return int(item) - 1
+	}
+	return int(item)
 }

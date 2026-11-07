@@ -12,6 +12,9 @@ func (s *Session) GoToLevel(i int) {
 func (s *Session) enterLevel(i int) {
 	s.index = i
 	s.level = s.levels[i]
+	if s.records != nil {
+		s.records.markReached(s.level.Name)
+	}
 	s.resetLevelTimer()
 	s.pickSecret()
 	s.shifted, s.shiftHint = false, false
