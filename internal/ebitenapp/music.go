@@ -18,8 +18,7 @@ type music struct {
 	latency time.Duration
 }
 
-func newMusic() (*music, error) {
-	ctx := audio.NewContext(tunes.SampleRate)
+func newMusic(ctx *audio.Context) (*music, error) {
 	tracks := make([][]float32, tunes.TrackCount)
 	for i := range tracks {
 		tracks[i] = tunes.Render(tunes.Track(i), rhythm.BPM)

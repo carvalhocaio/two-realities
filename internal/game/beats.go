@@ -23,6 +23,7 @@ func (s *Session) requestShift() {
 		s.TryShift()
 	case level.ShiftQuantized:
 		s.beats.queued = !s.beats.queued
+		s.emit(EventShiftQueued)
 	}
 }
 
@@ -52,6 +53,7 @@ func (s *Session) nextAutoBeat(after int) int {
 
 func (s *Session) autoShift() {
 	s.active = s.active.Other()
+	s.emitShift(s.active)
 	layer := s.layer(s.active)
 	if !physics.OverlapsSolid(s.player.Box, layer) {
 		return

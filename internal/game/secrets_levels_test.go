@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/carvalhocaio/two-realities/internal/input"
@@ -64,6 +65,9 @@ func (r *runner) grabSecret() {
 	}
 	r.until(func() bool { return r.s.Active() == world.Grey }, right)
 	r.until(r.s.SecretTaken, right)
+	if !slices.Contains(r.s.Events(), EventSecret) {
+		r.t.Fatal("taking the secret should emit EventSecret")
+	}
 }
 
 func toLeftWall(r *runner) { r.until(r.backTo(10.5), walkLeft) }

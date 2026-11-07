@@ -44,6 +44,7 @@ func (s *Session) collectSecret() {
 		return
 	}
 	s.secretTaken = true
+	s.emit(EventSecret)
 	s.secretFeedback = SecretFeedbackTicks
 	s.fragments++
 	s.restartHint = false

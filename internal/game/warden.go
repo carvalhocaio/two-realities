@@ -195,6 +195,7 @@ func (s *Session) lightLamp() bool {
 		lit:       lit,
 	}
 	s.warden.hit = WardenHitTicks
+	s.emit(EventLamp)
 	s.resetWarden(lit)
 	s.warden.beam.Stage = BeamIdle
 	return true

@@ -35,6 +35,7 @@ func (s *Session) collectFragments() {
 			s.collected[i] = true
 			s.fragments++
 			s.restartHint = false
+			s.emit(EventFragment)
 		}
 	}
 }

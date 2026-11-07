@@ -44,6 +44,10 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - The ebiten adapter implements `Clock` from the audio player's position minus an audio latency offset (`defaultAudioLatency` in `latency_js.go` / `latency_other.go`), so music and gameplay never drift. The player sets the offset in the pause menu ("AUDIO OFFSET", `AudioOffsetStep` 10ms, clamped to ±`AudioOffsetLimit` 500ms, positive = beats later for laggy output such as Bluetooth); it lives in `Flow`, is saved as `audio_offset_ms`, and a dot next to the item pulses on the beat for calibration.
 - Music is synthesized in `internal/music` (pure, tested): six 4-bar loops at `rhythm.BPM` (Act I A minor, calm; Act II D minor, four-on-the-floor; Act III E minor, snare and lead; Warden 1-3 in C minor, adding hats/arp, then snare/lead/octave bass), rendered once at startup with note tails wrapped into the loop. `ebitenapp/loop.go` streams them into one float32 player and switches track only on bar lines, so the player position (the beat clock) never jumps. The track follows the level's `act` header, or the Warden's phase. Music starts on the title Shift press (browser autoplay rule). **M** mutes (volume 0, the clock keeps running). The HUD bottom border pulses on every beat.
 
+### Sound effects
+- `Session` emits `Event`s (`events.go`: jump, landing faster than `landSoundSpeed`, shift to grey/yellow incl. auto swaps, blocked shift, queued toggle, fragment, secret, checkpoint, transmission, watcher spotting you, death, Warden lamp, exit). They are cleared at the start of each `Update` and drained once by `Events()`.
+- `music.RenderSound` (pure, `sfx.go`) synthesizes each `Sound` once at startup with the music voices (peak `sfxPeak`, trailing silence trimmed); `ebitenapp/sfx.go` maps events to sounds, one player per sound (retriggered, never stacked), muted with M like the music.
+
 ### Transmissions
 - `T` marker (either layer) + text sections after the layers: `[transmissions]` (English, required when there are `T` markers) and optional `[transmissions.pt]`, each with one line per `T` in reading order (yellow layer first, then grey, row by row). Count mismatch in any language is a parse error; a missing Portuguese section falls back to English. Text is uppercased and must be drawable by `internal/font` (max `MaxTransmissionLength` runes).
 - Touching a `T` while its layer is active opens it (once per attempt: death and R reset it). Typewriter box placed away from the player (top of the view when the player is in the lower half, bottom otherwise; it keeps its side while open and only flips if the player walks under it, `textbox.go`); it fades after `TransmissionTicks` (4s) or when the player is farther than `TransmissionRange` (12 tiles). Heard markers are drawn dimmed.
@@ -150,7 +154,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `cmd/shots` (dev tag) — scripted runs that save 320x180 frames for the itch page (`make shots OUT=dir`; scenes in `main.go`, runner in `ebitenapp/shots.go`).
 - `internal/camera` — camera follow/clamp math.
 - `internal/rhythm` — beat clock interface, BPM, beat/phase math.
-- `internal/music` — synth voices, drums and the six songs rendered to loop buffers.
+- `internal/music` — synth voices, drums, the six songs rendered to loop buffers, and the sound effects.
 - `internal/i18n` — languages, string tables, locale detection.
 - `internal/font` — 3x5 glyph table with accents, drawable-text check.
 - `internal/save` — `Storage` interface, save `Data`, key prefix, `Fallback`, localStorage/file/memory adapters.

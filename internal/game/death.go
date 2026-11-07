@@ -18,6 +18,7 @@ func (s *Session) die(cause DeathCause) {
 		return
 	}
 	s.death = cause
+	s.emit(EventDeath)
 	if cause == DeathFall && !s.shifted {
 		s.shiftHint = true
 	}

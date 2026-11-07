@@ -13,6 +13,7 @@ import (
 const (
 	BlockedFeedbackTicks = 12
 	SecretFeedbackTicks  = 90
+	landSoundSpeed       = 2
 )
 
 type Feedback struct {
@@ -55,6 +56,7 @@ type Session struct {
 	layers           [world.Count]level.Grid
 	warden           wardenState
 	pressure         int
+	events           []Event
 }
 
 func NewSession(clock rhythm.Clock, levels ...level.Level) *Session {
@@ -98,6 +100,7 @@ func (s *Session) respawn() {
 }
 
 func (s *Session) Update(in input.Intent) {
+	s.events = s.events[:0]
 	if s.finished {
 		return
 	}
@@ -121,7 +124,7 @@ func (s *Session) Update(in input.Intent) {
 		return
 	}
 
-	s.player.Update(in, s.layer(s.active))
+	s.movePlayer(in)
 	s.collectFragments()
 	s.collectSecret()
 	s.activateCheckpoints()
@@ -136,6 +139,7 @@ func (s *Session) Update(in input.Intent) {
 		s.die(DeathFall)
 	}
 	if s.death == Alive && s.ExitOpen() && s.reachedExit() {
+		s.emit(EventExit)
 		s.completeLevel()
 		s.nextLevel()
 	}
@@ -171,4 +175,15 @@ func (s *Session) reachedExit() bool {
 
 func (s *Session) fellOut() bool {
 	return s.player.Box.Y > s.layer(s.active).PixelHeight()
+}
+
+func (s *Session) movePlayer(in input.Intent) {
+	wasGrounded, fall := s.player.Grounded(), s.player.Vel.Y
+	s.player.Update(in, s.layer(s.active))
+	switch {
+	case s.player.Jumped():
+		s.emit(EventJump)
+	case !wasGrounded && s.player.Grounded() && fall > landSoundSpeed:
+		s.emit(EventLand)
+	}
 }

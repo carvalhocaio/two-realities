@@ -37,6 +37,9 @@ func (s *Session) updateWatchers() {
 		w.Patrol(grey, s.watcherSpeed())
 		if s.active == world.Grey && w.Sees(s.player.Box, grey) {
 			w.Alert++
+			if w.Alert == 1 {
+				s.emit(EventSpotted)
+			}
 		} else {
 			w.Alert = 0
 		}

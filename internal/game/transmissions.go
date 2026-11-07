@@ -38,6 +38,7 @@ func (s *Session) updateTransmissions() {
 		if !t.heard[i] && tr.Layer == s.active && s.player.Box.Overlaps(level.TileRect(tr.Point)) {
 			t.heard[i] = true
 			t.current, t.age, t.fading = i, 0, 0
+			s.emit(EventTransmission)
 		}
 	}
 	if t.current < 0 {

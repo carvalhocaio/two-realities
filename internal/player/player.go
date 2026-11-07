@@ -12,6 +12,7 @@ type Player struct {
 	Vel      geom.Vec
 	grounded bool
 	jump     jumpWindow
+	jumped   bool
 }
 
 func New(spawn level.Point) Player {
@@ -25,11 +26,13 @@ func New(spawn level.Point) Player {
 }
 
 func (p *Player) Grounded() bool { return p.grounded }
+func (p *Player) Jumped() bool   { return p.jumped }
 
 func (p *Player) Update(in input.Intent, g level.Grid) {
 	p.Vel.X = horizontal(in) * RunSpeed
 
-	if p.jump.tick(p.grounded, in.JumpPressed) {
+	p.jumped = p.jump.tick(p.grounded, in.JumpPressed)
+	if p.jumped {
 		p.Vel.Y = -JumpSpeed
 	}
 	p.Vel.Y = min(p.Vel.Y+Gravity, MaxFall)

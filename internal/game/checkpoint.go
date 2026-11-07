@@ -39,6 +39,7 @@ func (s *Session) activateCheckpoints() {
 				collected: append([]bool(nil), s.collected...),
 				secret:    s.secretTaken,
 			}
+			s.emit(EventCheckpoint)
 		}
 	}
 }

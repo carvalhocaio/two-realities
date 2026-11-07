@@ -4,6 +4,7 @@ import (
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/input"
@@ -26,6 +27,7 @@ const (
 type App struct {
 	flow        *game.Flow
 	music       *music
+	sfx         *sfx
 	input       input.Source
 	view        *worldView
 	textbox     textbox
@@ -37,13 +39,14 @@ type App struct {
 }
 
 func New(levels []level.Level, store save.Storage, source input.Source) (*App, error) {
-	m, err := newMusic()
+	ctx := audio.NewContext(tunes.SampleRate)
+	m, err := newMusic(ctx)
 	if err != nil {
 		return nil, err
 	}
 	flow := game.NewFlow(m, store, levels...)
 	flow.UseLocale(platform.Locale())
-	return &App{flow: flow, music: m, input: source, view: newWorldView()}, nil
+	return &App{flow: flow, music: m, sfx: newSFX(ctx), input: source, view: newWorldView()}, nil
 }
 
 func (a *App) Update() error {
@@ -54,6 +57,9 @@ func (a *App) Update() error {
 		a.music.start()
 	}
 	a.music.setMuted(a.flow.Muted())
+	if s := a.flow.Session(); s != nil {
+		a.sfx.play(s.Events(), a.flow.Muted())
+	}
 	a.music.setOffset(a.flow.AudioOffsetMs())
 	a.music.setTrack(musicTrack(a.flow))
 	if anyJustPressed(timerKeys) {
