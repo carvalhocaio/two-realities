@@ -25,7 +25,7 @@ var (
 var shots = []ebitenapp.Shot{
 	{Name: "title", Level: ebitenapp.TitleShot, Every: 30, Steps: []step{hold(60, idle)}},
 	{Name: "first_shift", Level: 0, Every: 1, Steps: []step{
-		hold(20, idle), hold(30, right), hold(50, jump), hold(1, shift), hold(1, right), hold(70, right), hold(30, idle),
+		hold(20, idle), hold(30, right), hold(50, jump), hold(1, shift), hold(1, right), hold(150, right), hold(45, idle),
 	}},
 	{Name: "crossfire", Level: 6, Every: 10, Steps: []step{hold(60, idle), hold(1, shift), hold(240, idle)}},
 	{Name: "exit_yellow", Level: 1, Every: 20, Steps: []step{
