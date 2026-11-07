@@ -22,8 +22,6 @@ const (
 	tileSignal     = 'T'
 	tileSecret     = 'S'
 
-	noLayer = world.World(-1)
-
 	MaxSecretSpots = 3
 )
 
@@ -32,7 +30,6 @@ var (
 	ErrWatcherOutsideGrey  = errors.New("watchers are only allowed in the grey layer")
 	ErrUnknownSection      = errors.New("unknown section")
 	ErrDuplicateSection    = errors.New("duplicate section")
-	ErrRowOutsideLayer     = errors.New("row outside of a section")
 	ErrMissingSection      = errors.New("missing section")
 	ErrRaggedRows          = errors.New("rows have different lengths")
 	ErrSizeMismatch        = errors.New("layers have different sizes")
@@ -117,7 +114,7 @@ func splitSections(lines []string) ([world.Count][]string, textBlocks, error) {
 	var rows [world.Count][]string
 	texts := textBlocks{}
 	seen := map[string]bool{}
-	current := noLayer
+	var current world.World
 	inText, textLang := false, i18n.EN
 
 	for _, line := range lines {
@@ -144,9 +141,6 @@ func splitSections(lines []string) ([world.Count][]string, textBlocks, error) {
 		if inText {
 			texts[textLang] = append(texts[textLang], line)
 			continue
-		}
-		if current == noLayer {
-			return rows, nil, ErrRowOutsideLayer
 		}
 		rows[current] = append(rows[current], line)
 	}

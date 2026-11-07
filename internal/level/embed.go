@@ -16,8 +16,14 @@ var files embed.FS
 
 var ErrNoLevels = errors.New("no embedded levels")
 
-func Load(name string) (Level, error) {
-	data, err := files.ReadFile(levelsDir + "/" + name + ".txt")
+func Load(name string) (Level, error) { return load(files, name) }
+
+func Names() ([]string, error) { return names(files) }
+
+func LoadAll() ([]Level, error) { return loadAll(files) }
+
+func load(fsys fs.FS, name string) (Level, error) {
+	data, err := fs.ReadFile(fsys, levelsDir+"/"+name+".txt")
 	if err != nil {
 		return Level{}, fmt.Errorf("load level %s: %w", name, err)
 	}
@@ -29,30 +35,30 @@ func Load(name string) (Level, error) {
 	return lvl, nil
 }
 
-func Names() ([]string, error) {
-	entries, err := fs.ReadDir(files, levelsDir)
+func names(fsys fs.FS) ([]string, error) {
+	entries, err := fs.ReadDir(fsys, levelsDir)
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, 0, len(entries))
+	out := make([]string, 0, len(entries))
 	for _, e := range entries {
-		names = append(names, strings.TrimSuffix(e.Name(), ".txt"))
+		out = append(out, strings.TrimSuffix(e.Name(), ".txt"))
 	}
-	sort.Strings(names)
-	return names, nil
+	sort.Strings(out)
+	return out, nil
 }
 
-func LoadAll() ([]Level, error) {
-	names, err := Names()
+func loadAll(fsys fs.FS) ([]Level, error) {
+	list, err := names(fsys)
 	if err != nil {
 		return nil, err
 	}
-	if len(names) == 0 {
+	if len(list) == 0 {
 		return nil, ErrNoLevels
 	}
-	levels := make([]Level, 0, len(names))
-	for _, name := range names {
-		lvl, err := Load(name)
+	levels := make([]Level, 0, len(list))
+	for _, name := range list {
+		lvl, err := load(fsys, name)
 		if err != nil {
 			return nil, err
 		}

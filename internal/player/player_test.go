@@ -107,6 +107,12 @@ func TestPlayerUpdate(t *testing.T) {
 		{"jumps from ground", []input.Intent{{}, {JumpPressed: true}}, func(p Player) bool {
 			return p.Vel.Y < 0 && !p.Grounded()
 		}},
+		{"reports the jump on its tick", []input.Intent{{}, {JumpPressed: true}}, func(p Player) bool {
+			return p.Jumped()
+		}},
+		{"jump flag clears in the air", []input.Intent{{}, {JumpPressed: true}, {}}, func(p Player) bool {
+			return !p.Jumped() && !p.Grounded()
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
