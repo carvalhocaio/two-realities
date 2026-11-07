@@ -42,16 +42,9 @@ func (m *music) start() {
 	}
 }
 
-func (m *music) setMuted(muted bool) {
-	if muted == m.muted {
-		return
-	}
+func (m *music) setVolume(muted bool, level int) {
 	m.muted = muted
-	if muted {
-		m.player.SetVolume(0)
-		return
-	}
-	m.player.SetVolume(musicVolume)
+	m.player.SetVolume(mixVolume(musicVolume, muted, level))
 }
 
 func (m *music) setOffset(ms int) {

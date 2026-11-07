@@ -109,6 +109,10 @@ func TestPressureUnlocksAfterACleanRunAndRecordsClears(t *testing.T) {
 			if f.Screen() == ScreenEnd {
 				break
 			}
+			if f.Screen() == ScreenEpilogue {
+				f.Update(input.Intent{ShiftPressed: true})
+				continue
+			}
 			f.Update(right)
 		}
 		f.Update(input.Intent{ShiftPressed: true})

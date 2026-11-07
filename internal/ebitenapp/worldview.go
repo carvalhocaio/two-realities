@@ -21,6 +21,7 @@ type worldView struct {
 	wipe    *wipe
 	towers  []towerLayer
 	fx      playerFX
+	reduced bool
 }
 
 func newWorldView() *worldView {
@@ -71,7 +72,8 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 
 	blocked := s.Feedback().Shake
 	dying := deathStrength(s)
-	sx, sy := shakeOffset(max(blocked, dying))
+	shake, flash := effectScale(v.reduced)
+	sx, sy := shakeOffset(max(blocked, dying) * shake)
 
 	screen.Fill(palettes[s.Active()].background)
 	op := &ebiten.DrawImageOptions{}
@@ -79,12 +81,14 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 	screen.DrawImage(v.canvas, op)
 
 	viewport := geom.Rect{Y: HUDHeight, W: ScreenWidth, H: ViewHeight}
-	drawFlash(screen, viewport, dangerColor, blocked*dangerColorAlpha)
-	drawFlash(screen, viewport, deathFlash, dying*deathFlashAlpha)
+	drawFlash(screen, viewport, dangerColor, blocked*dangerColorAlpha*flash)
+	drawFlash(screen, viewport, deathFlash, dying*deathFlashAlpha*flash)
 
 	v.wipe.begin(s.Active(), s.Epoch(), tick)
 	v.wipe.remember(screen)
-	v.wipe.draw(screen, tick)
+	if !v.reduced {
+		v.wipe.draw(screen, tick)
+	}
 }
 
 func deathStrength(s *game.Session) float64 {

@@ -12,7 +12,7 @@ The **yellow** world is warm and open. The **grey** world is cold, and it is wat
 - Rhythm-locked shifting with music synthesized in code
 - 12 secrets that move: each level has up to 3 hidden spots and one is drawn every time you enter it, so you have to look instead of memorizing
 - Speedrun timer and personal bests, Pressure 1-5 challenge mode after the first clear
-- Continue from the furthest level reached, assist mode with level skip, audio offset, English and Brazilian Portuguese
+- Continue from the furthest level reached, assist mode with level skip, separate music and sound volumes, a reduce effects option (follows the browser's reduced motion setting), audio offset, English and Brazilian Portuguese
 - Sound effects synthesized in code, like the music
 
 | Yellow | Grey |

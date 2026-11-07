@@ -29,6 +29,7 @@ type hudState struct {
 	timer  bool
 	notice string
 	lang   i18n.Lang
+	pad    bool
 }
 
 var hudDiamondRows = []int{1, 3, 5, 3, 1}
@@ -65,9 +66,9 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	case showResult:
 		drawCentered(dst, resultText(result, h.lang), pal, pal.panelInk)
 	case s.RestartHint():
-		drawCentered(dst, h.lang.T(i18n.HudRestart), pal, dangerColor)
+		drawCentered(dst, hint(h.lang, i18n.HudRestart, h.pad), pal, dangerColor)
 	case s.ShiftHint():
-		drawCentered(dst, h.lang.T(i18n.HudShiftHint), pal, fragmentColor)
+		drawCentered(dst, hint(h.lang, i18n.HudShiftHint, h.pad), pal, fragmentColor)
 	default:
 		drawLevelLabel(dst, s, h, pal)
 	}

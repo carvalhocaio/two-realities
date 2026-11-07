@@ -123,6 +123,40 @@ func (r *Records) Furthest(levels []level.Level) int {
 
 func (r *Records) CampaignDone() bool { return r.PressureUnlocked() }
 
+func (r *Records) MusicVolume() int { return clampVolume(VolumeSteps - r.data.MusicDown) }
+func (r *Records) SoundVolume() int { return clampVolume(VolumeSteps - r.data.SoundDown) }
+
+func (r *Records) setVolumes(music, sound int) {
+	down := [2]int{VolumeSteps - music, VolumeSteps - sound}
+	if r.data.MusicDown == down[0] && r.data.SoundDown == down[1] {
+		return
+	}
+	r.data.MusicDown, r.data.SoundDown = down[0], down[1]
+	r.persist()
+}
+
+func (r *Records) ReducedEffects() (on, set bool) {
+	switch r.data.Effects {
+	case effectsReduced:
+		return true, true
+	case effectsFull:
+		return false, true
+	}
+	return false, false
+}
+
+func (r *Records) setReducedEffects(on bool) {
+	value := effectsFull
+	if on {
+		value = effectsReduced
+	}
+	if r.data.Effects == value {
+		return
+	}
+	r.data.Effects = value
+	r.persist()
+}
+
 func (r *Records) HelpSeen() bool {
 	return r.data.HelpSeen || r.PressureUnlocked() || len(r.data.BestLevel) > 0 || len(r.data.Reached) > 0
 }

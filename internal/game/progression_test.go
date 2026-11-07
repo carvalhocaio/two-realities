@@ -171,10 +171,11 @@ func TestFlow(t *testing.T) {
 		{"title ignores other keys", []input.Intent{right, restart, {JumpPressed: true}}, ScreenTitle, -1},
 		{"shift starts first level", one(shift), ScreenPlaying, 0},
 		{"exit moves to second level", then(one(shift), ticks(right, 2)), ScreenPlaying, 1},
-		{"last exit shows end screen", then(one(shift), ticks(right, 4)), ScreenEnd, -1},
-		{"end screen ignores other keys", then(one(shift), ticks(right, 4), ticks(right, 3)), ScreenEnd, -1},
-		{"shift on end returns to title", then(one(shift), ticks(right, 4), one(shift)), ScreenTitle, -1},
-		{"new game starts from first level", then(one(shift), ticks(right, 4), one(shift), one(shift)), ScreenPlaying, 0},
+		{"last exit shows the epilogue", then(one(shift), ticks(right, 4)), ScreenEpilogue, -1},
+		{"the epilogue leads to the end screen", then(one(shift), ticks(right, 4), skipEpilogue()), ScreenEnd, -1},
+		{"end screen ignores other keys", then(one(shift), ticks(right, 4), skipEpilogue(), ticks(right, 3)), ScreenEnd, -1},
+		{"shift on end returns to title", then(one(shift), ticks(right, 4), skipEpilogue(), one(shift)), ScreenTitle, -1},
+		{"new game starts from first level", then(one(shift), ticks(right, 4), skipEpilogue(), one(shift), one(shift)), ScreenPlaying, 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

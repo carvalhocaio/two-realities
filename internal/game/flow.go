@@ -18,6 +18,7 @@ const (
 	ScreenPaused
 	ScreenEnd
 	ScreenHelp
+	ScreenEpilogue
 )
 
 type MenuItem int
@@ -27,7 +28,9 @@ const (
 	MenuHelp
 	MenuAssist
 	MenuSkip
-	MenuMute
+	MenuMusic
+	MenuSounds
+	MenuEffects
 	MenuAudioOffset
 	MenuLanguage
 	MenuTitle
@@ -54,11 +57,16 @@ type Flow struct {
 	pressure int
 	startAt  int
 	helpBack Screen
+	music    int
+	sound    int
+	reduced  bool
+	epilogue epilogueState
 }
 
 func NewFlow(clock rhythm.Clock, store save.Storage, levels ...level.Level) *Flow {
 	records := NewRecords(store)
-	f := &Flow{clock: clock, levels: levels, records: records, offset: clampOffset(records.AudioOffset())}
+	f := &Flow{clock: clock, levels: levels, records: records, offset: clampOffset(records.AudioOffset()), music: records.MusicVolume(), sound: records.SoundVolume()}
+	f.reduced, _ = records.ReducedEffects()
 	f.toTitle()
 	return f
 }
@@ -106,6 +114,7 @@ func (f *Flow) moveMenu(step int) {
 
 func (f *Flow) Screen() Screen      { return f.screen }
 func (f *Flow) Session() *Session   { return f.session }
+func (f *Flow) LevelCount() int     { return len(f.levels) }
 func (f *Flow) Menu() MenuItem      { return f.menu }
 func (f *Flow) Assist() bool        { return f.assist }
 func (f *Flow) Muted() bool         { return f.muted }
@@ -152,12 +161,14 @@ func (f *Flow) Update(in input.Intent) {
 		}
 		f.session.Update(in)
 		if f.session.Finished() {
-			f.screen = ScreenEnd
+			f.screen, f.epilogue = ScreenEpilogue, epilogueState{}
 		}
 	case ScreenPaused:
 		f.updateMenu(in)
 	case ScreenHelp:
 		f.updateHelp(in)
+	case ScreenEpilogue:
+		f.updateEpilogue(in)
 	case ScreenEnd:
 		if in.StartPressed() {
 			f.toTitle()
@@ -191,6 +202,7 @@ func (f *Flow) updateMenu(in input.Intent) {
 		f.moveMenu(-1)
 	case in.DownPressed:
 		f.moveMenu(1)
+	case f.adjustVolume(in):
 	case f.menu == MenuAudioOffset && in.DecreasePressed:
 		f.setOffset(f.offset - AudioOffsetStep)
 	case f.menu == MenuAudioOffset && in.IncreasePressed:
@@ -223,8 +235,8 @@ func (f *Flow) confirm() {
 	case MenuAssist:
 		f.assist = !f.assist
 		f.session.SetAssist(f.assist)
-	case MenuMute:
-		f.muted = !f.muted
+	case MenuEffects:
+		f.toggleEffects()
 	case MenuLanguage:
 		f.switchLanguage()
 	case MenuSkip:

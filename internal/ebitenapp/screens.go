@@ -35,23 +35,23 @@ func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
 	}
 }
 
-func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice, pad bool, pressure pressureChoice, start startChoice, tick int) {
+func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pad padState, pressure pressureChoice, start startChoice, tick int) {
 	yellow, grey := palettes[world.Yellow], palettes[world.Grey]
 	lines := []line{
 		{text: lang.T(i18n.Title), y: 40, scale: titleScale, c: yellow.text},
-		{text: lang.T(i18n.TitlePrompt), y: 90, scale: 1, c: grey.background, blink: true},
+		{text: hint(lang, i18n.TitlePrompt, pad.using), y: 90, scale: 1, c: grey.background, blink: true},
 		{text: lang.T(i18n.TitleLanguage), y: 102, scale: 1, c: yellow.exit},
 		{text: lang.T(i18n.TitleControlsMove), y: 134, scale: 1, c: yellow.text},
 		{text: lang.T(i18n.TitleControlsWorld), y: 144, scale: 1, c: yellow.text},
 		{text: lang.T(i18n.TitleControlsExtra), y: 154, scale: 1, c: yellow.text},
 	}
 	if start.count > 1 {
-		lines = append(lines, line{text: lang.T(i18n.TitleStartLevel, start.level+1, start.count), y: 70, scale: 1, c: yellow.text})
+		lines = append(lines, line{text: startLabel(lang, start), y: 70, scale: 1, c: yellow.text})
 	}
 	if pressure.unlocked {
 		lines = append(lines, pressureLines(pressure.level, lang, yellow)...)
 	}
-	if pad {
+	if pad.connected {
 		lines = append(lines, line{text: lang.T(i18n.TitleControlsPad), y: 163, scale: 1, c: yellow.exit})
 	}
 	if storageNotice {
@@ -60,7 +60,7 @@ func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice, pad bool,
 	drawLines(dst, yellow.background, lines, tick)
 }
 
-func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, lang i18n.Lang, tick int) {
+func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, lang i18n.Lang, pad bool, tick int) {
 	grey := palettes[world.Grey]
 	drawLines(dst, grey.background, []line{
 		{text: lang.T(i18n.EndTitle), y: 40, scale: subtitleScale, c: fragmentColor},
@@ -69,7 +69,7 @@ func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, lang i18n.Lang, tick 
 		{text: bestRunText(sum, lang), y: 96, scale: 1, c: grey.text},
 		{text: lang.T(i18n.EndSecrets, sum.Secrets, sum.SecretsTotal), y: 108, scale: 1, c: secretColor},
 		{text: pressureText(sum, lang), y: 120, scale: 1, c: dangerColor},
-		{text: lang.T(i18n.EndPrompt), y: 136, scale: 1, c: grey.text, blink: true},
+		{text: hint(lang, i18n.EndPrompt, pad), y: 136, scale: 1, c: grey.text, blink: true},
 	}, tick)
 }
 
@@ -94,7 +94,11 @@ func bestRunText(sum game.RunSummary, lang i18n.Lang) string {
 }
 
 type startChoice struct {
-	level, count int
+	level, count, total int
+}
+
+func startLabel(lang i18n.Lang, s startChoice) string {
+	return lang.T(i18n.TitleStartLevel, s.level+1, s.total)
 }
 
 type pressureChoice struct {

@@ -37,7 +37,6 @@ func newSFX(ctx *audio.Context) *sfx {
 	s := &sfx{}
 	for i := range s.players {
 		s.players[i] = ctx.NewPlayerF32FromBytes(stereoBytes(tunes.RenderSound(tunes.Sound(i))))
-		s.players[i].SetVolume(sfxVolume)
 	}
 	return s
 }
@@ -52,8 +51,8 @@ func stereoBytes(mono []float32) []byte {
 	return out
 }
 
-func (s *sfx) play(events []game.Event, muted bool) {
-	if muted {
+func (s *sfx) play(events []game.Event, volume float64) {
+	if volume <= 0 {
 		return
 	}
 	for _, e := range events {
@@ -62,6 +61,7 @@ func (s *sfx) play(events []game.Event, muted bool) {
 			continue
 		}
 		p := s.players[sound]
+		p.SetVolume(volume)
 		_ = p.Rewind()
 		p.Play()
 	}

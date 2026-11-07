@@ -14,8 +14,8 @@ import (
 
 const (
 	pauseDimAlpha = 0.7
-	pauseTitleY   = 50
-	pauseFirstY   = 70
+	pauseTitleY   = 40
+	pauseFirstY   = 58
 	pauseStep     = 11
 	pauseHintGap  = 6
 	beatDotSize   = 3
@@ -36,12 +36,16 @@ func menuLabels(f *game.Flow) [game.MenuCount]string {
 		game.MenuHelp:        lang.T(i18n.MenuHelp),
 		game.MenuResume:      lang.T(i18n.MenuResume),
 		game.MenuAssist:      lang.T(i18n.MenuAssist, onOff(f.Assist(), lang)),
-		game.MenuMute:        lang.T(i18n.MenuMute, onOff(f.Muted(), lang)),
+		game.MenuMusic:       lang.T(i18n.MenuMusic, volumeLabel(f.MusicVolume())),
+		game.MenuSounds:      lang.T(i18n.MenuSounds, volumeLabel(f.SoundVolume())),
+		game.MenuEffects:     lang.T(i18n.MenuEffects, onOff(f.ReduceEffects(), lang)),
 		game.MenuAudioOffset: lang.T(i18n.MenuAudioOffset, offsetLabel(f.AudioOffsetMs())),
 		game.MenuLanguage:    lang.T(i18n.MenuLanguage),
 		game.MenuTitle:       lang.T(i18n.MenuTitle),
 	}
 }
+
+func volumeLabel(level int) string { return fmt.Sprintf("%d/%d", level, game.VolumeSteps) }
 
 func offsetLabel(ms int) string {
 	if ms > 0 {

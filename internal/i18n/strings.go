@@ -25,7 +25,9 @@ const (
 	Paused
 	MenuResume
 	MenuAssist
-	MenuMute
+	MenuMusic
+	MenuSounds
+	MenuEffects
 	MenuAudioOffset
 	MenuLanguage
 	MenuSkip
@@ -38,6 +40,18 @@ const (
 	HelpBeat
 	HelpRestart
 	HelpPrompt
+	HudRestartPad
+	HudShiftHintPad
+	TitlePromptPad
+	HelpPromptPad
+	EndPromptPad
+	HelpWorldsPad
+	HelpRestartPad
+	EpilogueTitle
+	Epilogue1
+	Epilogue2
+	Epilogue3
+	Epilogue4
 	MenuTitle
 	On
 	Off
@@ -90,7 +104,9 @@ var tables = [LangCount]map[Key]string{
 		Paused:                 "PAUSED",
 		MenuResume:             "RESUME",
 		MenuAssist:             "ASSIST MODE: %s",
-		MenuMute:               "MUTE: %s",
+		MenuMusic:              "MUSIC: %s",
+		MenuSounds:             "SOUNDS: %s",
+		MenuEffects:            "REDUCE EFFECTS: %s",
 		MenuAudioOffset:        "AUDIO OFFSET: %s",
 		MenuLanguage:           "LANGUAGE: ENGLISH",
 		MenuSkip:               "SKIP LEVEL",
@@ -103,6 +119,18 @@ var tables = [LangCount]map[Key]string{
 		HelpBeat:               "LATER, SHIFT WAITS FOR THE BEAT, THEN SWAPS ON ITS OWN.",
 		HelpRestart:            "OUT OF FRAGMENTS? R RESTARTS THE LEVEL.",
 		HelpPrompt:             "PRESS SHIFT TO CONTINUE",
+		HudRestartPad:          "BACK TO RESTART",
+		HudShiftHintPad:        "B: SWAP WORLDS",
+		TitlePromptPad:         "PRESS A TO START",
+		HelpPromptPad:          "PRESS A TO CONTINUE",
+		EndPromptPad:           "PRESS A FOR TITLE",
+		HelpWorldsPad:          "B SWAPS WORLDS. DOTTED TILES ARE THE OTHER ONE: NOT SOLID.",
+		HelpRestartPad:         "OUT OF FRAGMENTS? BACK RESTARTS THE LEVEL.",
+		EpilogueTitle:          "ONE LAST NOTE",
+		Epilogue1:              "IF YOU ARE READING THIS, YOU MADE IT FURTHER THAN I DID.",
+		Epilogue2:              "I NEVER FOUND THE LAST LAMP. I LEFT THESE NOTES INSTEAD.",
+		Epilogue3:              "BOTH WORLDS WILL KEEP SHIFTING. NOW YOU KNOW HOW TO CROSS.",
+		Epilogue4:              "LEAVE A NOTE FOR THE NEXT ONE.",
 		MenuTitle:              "BACK TO TITLE",
 		On:                     "ON",
 		Off:                    "OFF",
@@ -152,7 +180,9 @@ var tables = [LangCount]map[Key]string{
 		Paused:                 "PAUSA",
 		MenuResume:             "CONTINUAR",
 		MenuAssist:             "MODO ASSISTIDO: %s",
-		MenuMute:               "MUDO: %s",
+		MenuMusic:              "MÚSICA: %s",
+		MenuSounds:             "SONS: %s",
+		MenuEffects:            "REDUZIR EFEITOS: %s",
 		MenuAudioOffset:        "ATRASO DO ÁUDIO: %s",
 		MenuLanguage:           "IDIOMA: PORTUGUÊS",
 		MenuSkip:               "PULAR FASE",
@@ -165,6 +195,18 @@ var tables = [LangCount]map[Key]string{
 		HelpBeat:               "DEPOIS, A TROCA ESPERA A BATIDA, E ENTÃO TROCA SOZINHA.",
 		HelpRestart:            "SEM FRAGMENTOS? R REINICIA A FASE.",
 		HelpPrompt:             "APERTE SHIFT PARA CONTINUAR",
+		HudRestartPad:          "BACK PARA REINICIAR",
+		HudShiftHintPad:        "B: TROCAR DE MUNDO",
+		TitlePromptPad:         "APERTE A PARA COMEÇAR",
+		HelpPromptPad:          "APERTE A PARA CONTINUAR",
+		EndPromptPad:           "APERTE A PARA VOLTAR",
+		HelpWorldsPad:          "B TROCA DE MUNDO. O PONTILHADO É O OUTRO: NÃO É SÓLIDO.",
+		HelpRestartPad:         "SEM FRAGMENTOS? BACK REINICIA A FASE.",
+		EpilogueTitle:          "UM ÚLTIMO BILHETE",
+		Epilogue1:              "SE VOCÊ ESTÁ LENDO ISTO, FOI MAIS LONGE DO QUE EU.",
+		Epilogue2:              "NUNCA ACHEI A ÚLTIMA LÂMPADA. DEIXEI ESTES BILHETES NO LUGAR.",
+		Epilogue3:              "OS DOIS MUNDOS VÃO CONTINUAR TROCANDO. AGORA VOCÊ SABE ATRAVESSAR.",
+		Epilogue4:              "DEIXE UM BILHETE PARA O PRÓXIMO.",
 		MenuTitle:              "VOLTAR AO INÍCIO",
 		On:                     "SIM",
 		Off:                    "NÃO",

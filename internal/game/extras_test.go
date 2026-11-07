@@ -288,7 +288,7 @@ func TestPauseMenu(t *testing.T) {
 		{"escape resumes", then(one(shift), one(pause), one(pause)), ScreenPlaying, false, false},
 		{"resume item", then(one(shift), one(pause), one(confirm)), ScreenPlaying, false, false},
 		{"assist toggles", then(one(shift), one(pause), ticks(down, menuDowns(MenuAssist)), one(confirm)), ScreenPaused, true, false},
-		{"mute toggles", then(one(shift), one(pause), ticks(down, menuDowns(MenuMute)), one(confirm)), ScreenPaused, false, true},
+		{"m mutes inside the pause menu", then(one(shift), one(pause), one(mute)), ScreenPaused, false, true},
 		{"menu wraps upward to title", then(one(shift), one(pause), one(up), one(confirm)), ScreenTitle, false, false},
 		{"m mutes anywhere", then(one(mute), one(shift)), ScreenPlaying, false, true},
 	}

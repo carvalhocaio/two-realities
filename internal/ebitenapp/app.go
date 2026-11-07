@@ -46,6 +46,7 @@ func New(levels []level.Level, store save.Storage, source input.Source) (*App, e
 	}
 	flow := game.NewFlow(m, store, levels...)
 	flow.UseLocale(platform.Locale())
+	flow.UseReducedMotion(platform.ReducedMotion())
 	return &App{flow: flow, music: m, sfx: newSFX(ctx), input: source, view: newWorldView()}, nil
 }
 
@@ -56,9 +57,9 @@ func (a *App) Update() error {
 	if a.flow.Screen() == game.ScreenPlaying {
 		a.music.start()
 	}
-	a.music.setMuted(a.flow.Muted())
+	a.music.setVolume(a.flow.Muted(), a.flow.MusicVolume())
 	if s := a.flow.Session(); s != nil {
-		a.sfx.play(s.Events(), a.flow.Muted())
+		a.sfx.play(s.Events(), mixVolume(sfxVolume, a.flow.Muted(), a.flow.SoundVolume()))
 	}
 	a.music.setOffset(a.flow.AudioOffsetMs())
 	a.music.setTrack(musicTrack(a.flow))
@@ -76,13 +77,17 @@ func (a *App) Update() error {
 func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
-		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), a.padConnected(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices()}, a.tick)
+		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), a.pad(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices(), a.flow.LevelCount()}, a.tick)
 	case game.ScreenHelp:
-		drawHelp(screen, a.flow.Language(), a.tick)
+		drawHelp(screen, a.flow.Language(), a.pad().using, a.tick)
+	case game.ScreenEpilogue:
+		lines, done := a.flow.Epilogue()
+		drawEpilogue(screen, lines, done, a.flow.Language(), a.pad().using, a.tick)
 	case game.ScreenEnd:
-		drawEndScreen(screen, a.flow.Session().Summary(), a.flow.Language(), a.tick)
+		drawEndScreen(screen, a.flow.Session().Summary(), a.flow.Language(), a.pad().using, a.tick)
 	default:
 		s := a.flow.Session()
+		a.view.reduced = a.flow.ReduceEffects()
 		a.view.draw(screen, s, a.music.Phase(), a.tick)
 		drawHUD(screen, s, a.tick, a.hudState())
 		a.textbox.draw(screen, s, a.view.onScreen(s.PlayerBox()), a.flow.Language())
@@ -93,16 +98,22 @@ func (a *App) Draw(screen *ebiten.Image) {
 }
 
 func (a *App) hudState() hudState {
-	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer, lang: a.flow.Language()}
+	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer, lang: a.flow.Language(), pad: a.pad().using}
 	if a.noticeTimer > 0 {
 		h.notice = a.notice
 	}
 	return h
 }
 
-func (a *App) padConnected() bool {
-	p, ok := a.input.(interface{ PadConnected() bool })
-	return ok && p.PadConnected()
+func (a *App) pad() padState {
+	p, ok := a.input.(interface {
+		PadConnected() bool
+		UsingPad() bool
+	})
+	if !ok {
+		return padState{}
+	}
+	return padState{connected: p.PadConnected(), using: p.UsingPad()}
 }
 
 func (a *App) showNotice(msg string) {

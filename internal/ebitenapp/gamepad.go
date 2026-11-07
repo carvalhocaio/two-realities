@@ -25,6 +25,7 @@ type Controls struct {
 	keyboard Keyboard
 	ids      []ebiten.GamepadID
 	prev     input.PadState
+	device   input.Device
 }
 
 var _ input.Source = (*Controls)(nil)
@@ -33,12 +34,13 @@ func NewControls() *Controls { return &Controls{keyboard: NewKeyboard()} }
 
 func (c *Controls) Read() input.Intent {
 	cur := c.readPads()
-	in := input.Merge(c.keyboard.Read(), input.PadIntent(c.prev, cur))
-	c.prev = cur
-	return in
+	kb, pad := c.keyboard.Read(), input.PadIntent(c.prev, cur)
+	c.prev, c.device = cur, input.LastDevice(c.device, kb, pad)
+	return input.Merge(kb, pad)
 }
 
 func (c *Controls) PadConnected() bool { return c.prev.Connected }
+func (c *Controls) UsingPad() bool     { return c.device == input.DevicePad }
 
 func (c *Controls) readPads() input.PadState {
 	var all input.PadState

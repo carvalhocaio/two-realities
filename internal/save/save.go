@@ -12,6 +12,9 @@ type Data struct {
 	PressureCleared  int             `json:"pressure_cleared,omitempty"`
 	Reached          map[string]bool `json:"reached,omitempty"`
 	HelpSeen         bool            `json:"help_seen,omitempty"`
+	MusicDown        int             `json:"music_down,omitempty"`
+	SoundDown        int             `json:"sound_down,omitempty"`
+	Effects          string          `json:"effects,omitempty"`
 }
 
 type Storage interface {

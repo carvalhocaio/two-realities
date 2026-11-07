@@ -61,7 +61,7 @@ func TestFormatting(t *testing.T) {
 	if got := PT.T(HudLevel, 3, 8); got != "FASE 3/8" {
 		t.Fatalf("got %q", got)
 	}
-	if got := EN.T(MenuMute, EN.T(On)); got != "MUTE: ON" {
+	if got := EN.T(MenuEffects, EN.T(On)); got != "REDUCE EFFECTS: ON" {
 		t.Fatalf("got %q", got)
 	}
 }

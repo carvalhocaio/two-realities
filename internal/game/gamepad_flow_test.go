@@ -77,6 +77,9 @@ func TestConfirmStartsAndLeavesTheEndScreen(t *testing.T) {
 	for range 20 {
 		f.Update(right)
 	}
+	for f.Screen() == ScreenEpilogue {
+		f.Update(confirm)
+	}
 	if f.Screen() != ScreenEnd {
 		t.Fatalf("screen %v, want the end screen", f.Screen())
 	}

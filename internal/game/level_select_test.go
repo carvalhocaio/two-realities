@@ -108,3 +108,10 @@ func TestSkipLevelNeedsAssist(t *testing.T) {
 		t.Fatal("the last level cannot be skipped")
 	}
 }
+
+func TestLevelCountIsTheWholeCampaign(t *testing.T) {
+	f := seenFlow(&rhythm.Manual{}, &save.Memory{}, threeLevels(t)...)
+	if f.LevelCount() != 3 || f.StartChoices() != 1 {
+		t.Fatalf("level count %d, choices %d", f.LevelCount(), f.StartChoices())
+	}
+}

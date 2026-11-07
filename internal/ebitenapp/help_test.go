@@ -91,3 +91,20 @@ func TestEveryPadButtonHasItsOwnMapping(t *testing.T) {
 		seen[sb] = true
 	}
 }
+
+func TestStartLabelShowsTheWholeCampaign(t *testing.T) {
+	tests := []struct {
+		lang i18n.Lang
+		s    startChoice
+		want string
+	}{
+		{i18n.EN, startChoice{level: 4, count: 5, total: 13}, "START AT LEVEL 5/13 - UP/DOWN"},
+		{i18n.PT, startChoice{level: 4, count: 5, total: 13}, "COMEÇAR NA FASE 5/13 - CIMA/BAIXO"},
+		{i18n.EN, startChoice{level: 0, count: 13, total: 13}, "START AT LEVEL 1/13 - UP/DOWN"},
+	}
+	for _, tt := range tests {
+		if got := startLabel(tt.lang, tt.s); got != tt.want {
+			t.Errorf("%v %+v: %q, want %q", tt.lang, tt.s, got, tt.want)
+		}
+	}
+}

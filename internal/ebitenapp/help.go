@@ -33,17 +33,17 @@ var helpRows = []helpRow{
 	{i18n.HelpRestart, drawRestartIcon},
 }
 
-func drawHelp(dst *ebiten.Image, lang i18n.Lang, tick int) {
+func drawHelp(dst *ebiten.Image, lang i18n.Lang, pad bool, tick int) {
 	pal := palettes[world.Yellow]
 	dst.Fill(pal.background)
 	drawCenteredLine(dst, lang.T(i18n.HelpTitle), helpTitleY, subtitleScale, pal.text)
 	for i, row := range helpRows {
 		y := float64(helpFirstY + i*helpStep)
 		row.icon(dst, helpIconX, y, tick)
-		drawText(dst, lang.T(row.key), helpTextX, y+2, pal.text, 1)
+		drawText(dst, hint(lang, row.key, pad), helpTextX, y+2, pal.text, 1)
 	}
 	if (tick/promptBlink)%2 == 0 {
-		drawCenteredLine(dst, lang.T(i18n.HelpPrompt), helpPromptY, 1, pal.text)
+		drawCenteredLine(dst, hint(lang, i18n.HelpPrompt, pad), helpPromptY, 1, pal.text)
 	}
 }
 

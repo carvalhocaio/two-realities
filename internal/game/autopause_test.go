@@ -50,6 +50,7 @@ func TestFocusLossOnEndScreenIsIgnored(t *testing.T) {
 	for f.Screen() == ScreenPlaying {
 		f.Update(right)
 	}
+	passEpilogue(t, f)
 	f.Update(focusLost)
 	if f.Screen() != ScreenEnd {
 		t.Fatalf("screen %v, want end", f.Screen())
@@ -80,6 +81,7 @@ func TestStorageNotice(t *testing.T) {
 			for f.Screen() == ScreenPlaying {
 				f.Update(right)
 			}
+			passEpilogue(t, f)
 			f.Update(shift)
 			if f.Screen() != ScreenTitle || f.StorageNotice() {
 				t.Fatal("the notice shows only once, before the first run")
@@ -95,6 +97,7 @@ func TestBrokenStorageNeverStopsTheGame(t *testing.T) {
 	for range 200 {
 		f.Update(right)
 	}
+	passEpilogue(t, f)
 	if f.Screen() != ScreenEnd {
 		t.Fatalf("screen %v, want the run to finish", f.Screen())
 	}

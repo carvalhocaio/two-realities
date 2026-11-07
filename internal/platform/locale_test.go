@@ -34,3 +34,9 @@ func TestListenIsANoOpOnDesktop(t *testing.T) {
 		t.Fatal("desktop listen should not raise signals")
 	}
 }
+
+func TestReducedMotionIsOffOnDesktop(t *testing.T) {
+	if ReducedMotion() {
+		t.Fatal("desktop has no reduced motion preference")
+	}
+}

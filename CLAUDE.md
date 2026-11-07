@@ -66,10 +66,11 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - `ScreenHelp` (`game/help.go`, drawn by `ebitenapp/help.go`): six one-line rules with icons drawn from the game pieces (worlds, fragment cost, spikes, watchers, beat, R). Opened by **H** on the title, the pause menu item "HOW TO PLAY", and automatically on the first Shift of a fresh save (`help_seen` in save data; any older progress counts as seen). Shift, Enter, P/Esc or H close it, back to where it was opened (or into the run on the first start). `help_test.go` checks every line fits the screen in both languages.
 
 ### Assist mode and pause
-- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, how to play, assist on/off, skip level (only listed while assist is on and not on the last level; `Flow.MenuItems`), mute on/off, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
+- **P, Enter or Esc** open the pause menu (`ScreenPaused`): resume, how to play, assist on/off, skip level (only listed while assist is on and not on the last level; `Flow.MenuItems`), music and sounds volume (0-`VolumeSteps` with left/right, saved as `music_down`/`sound_down` so the zero value is full volume; gain is the square of the level), reduce effects, audio offset (left/right or -/= while selected), language, back to title. Arrows or W/S move, Enter/Space/Shift confirm (confirm wins over pause, so Enter picks the item), P/Esc resume. The session is frozen while paused.
 - Auto-pause: `internal/platform.Signals` turns window blur, `visibilitychange` to hidden, fullscreen exit (`fullscreenchange`, or a resize from screen size, since an iframe made fullscreen by the parent page may not get the event) and desktop focus loss (`ebiten.IsFocused` edge) into one `Intent.FocusLost`. `Flow` pauses only from `ScreenPlaying` and never resumes by itself. Listeners live in `platform/browser_js.go`; the keyboard adapter polls the signals.
 - Assist: watcher alert needs `2*AlertTicks`; an auto swap into a solid tile pushes the player to the nearest free spot (up, then sideways, up to 3 tiles) instead of killing. The assist choice persists across runs within the session (`Flow`).
-- Mute lives in `Flow` (M or the menu); the adapter only applies the volume.
+- Mute lives in `Flow` (M, anywhere); the adapter only applies the volume (`mixVolume`).
+- Reduce effects (`Flow.ReduceEffects`, saved as `effects`; with no saved choice it follows `platform.ReducedMotion()`, the browser's `prefers-reduced-motion`): render only, no screen shake, blocked/death flashes at 25%, no shift wipe band (`effectScale`, `worldview.go`).
 - Resuming (`Flow.resume` → `Session.Resume`) skips the beats that passed during the pause (beat state and Warden timeline move forward together), so pausing can neither fire a queued shift off the beat nor swallow auto swaps (`pause_beats_test.go`).
 
 ### Secrets
@@ -119,7 +120,8 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
 - The adapter renders the world into a level-sized canvas and blits it with the camera offset; the HUD is drawn screen-fixed.
 
 ### Flow and progression
-- `game.Flow`: title ("press Shift to start") → playing → end screen ("press Shift for title") → title.
+- `game.Flow`: title ("press Shift to start") → playing → epilogue → end screen ("press Shift for title") → title.
+- Epilogue (`game/epilogue.go`, `ebitenapp/epilogue.go`): after the last exit, "ONE LAST NOTE" types out `EpilogueLines` one by one (`EpilogueTicksPerRune`); Shift/confirm completes the current line, then advances; after the last line comes the end screen. It closes the transmissions' story (the note writer never lit the last lamp).
 - Levels load from `internal/level/levels/*.txt` sorted by name (`LoadAll`). Exit advances; finishing the last level shows the end screen.
 - Continue / level select: entering a level saves it as reached (`reached` in save data; older saves count the level after any level best, and a finished campaign unlocks all). The title shows "START AT LEVEL n/m" (Up/Down) once more than one level is reached; it defaults to the furthest level, or to level 1 after the campaign is done. Starting past level 1 is a practice run (no best run).
 - Dev build (`make run-dev`, `-tags dev`): `]` next level, `[` previous level.
@@ -150,6 +152,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 ### Gamepad
 - `input.PadState` / `input.PadIntent(prev, cur)` (pure): standard layout, left stick with `StickDeadZone` (0.5) or d-pad to move and navigate, A jump/confirm, B/X/LB/RB shift, Start pause, Back restart, Y help; "pressed" means it went down this tick (stick crossings too). `input.Merge` ORs keyboard and pad, and every connected pad is combined (`PadState.Combine`).
 - `ebitenapp.Controls` (the game's `input.Source`) reads pads with a standard layout each tick and merges them with the keyboard; the title shows a pad controls line while one is connected. Title and end screen take Shift or confirm (A, Enter, Space).
+- On-screen hints follow the last device used (`input.LastDevice`, `Controls.UsingPad`): with a pad, `padHints` (`ebitenapp/hints.go`) swap the restart/shift HUD hints, the title/help/epilogue/end prompts and the help card's shift/restart rows for pad versions ("BACK TO RESTART", "PRESS A TO START").
 
 ## Architecture rules
 - Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`, `music`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
