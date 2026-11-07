@@ -3,6 +3,8 @@ package ebitenapp
 import (
 	"testing"
 
+	"github.com/hajimehoshi/ebiten/v2"
+
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/input"
@@ -69,5 +71,23 @@ func TestPauseMenuFitsWithEveryItem(t *testing.T) {
 		if w := textWidth(lang.T(i18n.OffsetHint)); w > ScreenWidth {
 			t.Errorf("%v offset hint is %vpx wide", lang, w)
 		}
+	}
+}
+
+func TestTitlePadLineFits(t *testing.T) {
+	for _, lang := range []i18n.Lang{i18n.EN, i18n.PT} {
+		if w := textWidth(lang.T(i18n.TitleControlsPad)); w > ScreenWidth-8 {
+			t.Errorf("%v pad line is %vpx wide", lang, w)
+		}
+	}
+}
+
+func TestEveryPadButtonHasItsOwnMapping(t *testing.T) {
+	seen := map[ebiten.StandardGamepadButton]bool{}
+	for b, sb := range padButtons {
+		if seen[sb] {
+			t.Errorf("pad button %d reuses %v", b, sb)
+		}
+		seen[sb] = true
 	}
 }

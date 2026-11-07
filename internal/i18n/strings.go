@@ -10,6 +10,7 @@ const (
 	TitleControlsExtra
 	TitleLanguage
 	StorageNotice
+	TitleControlsPad
 	WorldYellow
 	WorldGrey
 	HudLevel
@@ -74,6 +75,7 @@ var tables = [LangCount]map[Key]string{
 		TitleControlsExtra:     "M: MUTE    T: TIMER    P OR ESC: PAUSE",
 		TitleLanguage:          "L: PORTUGUÊS    H: HOW TO PLAY",
 		StorageNotice:          "PROGRESS WON'T BE SAVED IN THIS BROWSER",
+		TitleControlsPad:       "GAMEPAD: A JUMP  B/X/LB/RB SHIFT  START PAUSE  Y HELP",
 		WorldYellow:            "YELLOW",
 		WorldGrey:              "GREY",
 		HudLevel:               "LV %d/%d",
@@ -135,6 +137,7 @@ var tables = [LangCount]map[Key]string{
 		TitleControlsExtra:     "M: SOM    T: TEMPO    P OU ESC: PAUSA",
 		TitleLanguage:          "L: ENGLISH    H: COMO JOGAR",
 		StorageNotice:          "SEU PROGRESSO NÃO SERÁ SALVO NESTE NAVEGADOR",
+		TitleControlsPad:       "CONTROLE: A PULA  B/X/LB/RB TROCA  START PAUSA  Y AJUDA",
 		WorldYellow:            "AMARELO",
 		WorldGrey:              "CINZA",
 		HudLevel:               "FASE %d/%d",

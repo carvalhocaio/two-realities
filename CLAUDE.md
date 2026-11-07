@@ -147,6 +147,10 @@ Acts: I = 1-4 (one mechanic each), II = 5-8 (combining, ends with two mastery le
 
 Original characters and names only — no band names, logos, or lyrics anywhere.
 
+### Gamepad
+- `input.PadState` / `input.PadIntent(prev, cur)` (pure): standard layout, left stick with `StickDeadZone` (0.5) or d-pad to move and navigate, A jump/confirm, B/X/LB/RB shift, Start pause, Back restart, Y help; "pressed" means it went down this tick (stick crossings too). `input.Merge` ORs keyboard and pad, and every connected pad is combined (`PadState.Combine`).
+- `ebitenapp.Controls` (the game's `input.Source`) reads pads with a standard layout each tick and merges them with the keyboard; the title shows a pad controls line while one is connected. Title and end screen take Shift or confirm (A, Enter, Space).
+
 ## Architecture rules
 - Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`, `music`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
 - Input is abstracted as `input.Intent` + `input.Source`; logic tests feed `Intent` values directly.

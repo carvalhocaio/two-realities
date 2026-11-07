@@ -76,7 +76,7 @@ func (a *App) Update() error {
 func (a *App) Draw(screen *ebiten.Image) {
 	switch a.flow.Screen() {
 	case game.ScreenTitle:
-		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices()}, a.tick)
+		drawTitleScreen(screen, a.flow.Language(), a.flow.StorageNotice(), a.padConnected(), pressureChoice{a.flow.Records().PressureUnlocked(), a.flow.Pressure()}, startChoice{a.flow.StartLevel(), a.flow.StartChoices()}, a.tick)
 	case game.ScreenHelp:
 		drawHelp(screen, a.flow.Language(), a.tick)
 	case game.ScreenEnd:
@@ -98,6 +98,11 @@ func (a *App) hudState() hudState {
 		h.notice = a.notice
 	}
 	return h
+}
+
+func (a *App) padConnected() bool {
+	p, ok := a.input.(interface{ PadConnected() bool })
+	return ok && p.PadConnected()
 }
 
 func (a *App) showNotice(msg string) {
@@ -145,7 +150,7 @@ func Run(levels []level.Level, store save.Storage) error {
 	ebiten.SetWindowSize(ScreenWidth*windowScale, ScreenHeight*windowScale)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetTPS(60)
-	app, err := New(levels, store, NewKeyboard())
+	app, err := New(levels, store, NewControls())
 	if err != nil {
 		return err
 	}

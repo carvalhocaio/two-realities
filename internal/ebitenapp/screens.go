@@ -35,7 +35,7 @@ func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
 	}
 }
 
-func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pressure pressureChoice, start startChoice, tick int) {
+func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice, pad bool, pressure pressureChoice, start startChoice, tick int) {
 	yellow, grey := palettes[world.Yellow], palettes[world.Grey]
 	lines := []line{
 		{text: lang.T(i18n.Title), y: 40, scale: titleScale, c: yellow.text},
@@ -51,8 +51,11 @@ func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pres
 	if pressure.unlocked {
 		lines = append(lines, pressureLines(pressure.level, lang, yellow)...)
 	}
+	if pad {
+		lines = append(lines, line{text: lang.T(i18n.TitleControlsPad), y: 163, scale: 1, c: yellow.exit})
+	}
 	if storageNotice {
-		lines = append(lines, line{text: lang.T(i18n.StorageNotice), y: 168, scale: 1, c: dangerColor})
+		lines = append(lines, line{text: lang.T(i18n.StorageNotice), y: 172, scale: 1, c: dangerColor})
 	}
 	drawLines(dst, yellow.background, lines, tick)
 }

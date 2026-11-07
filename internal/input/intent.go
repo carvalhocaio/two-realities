@@ -17,6 +17,8 @@ type Intent struct {
 	HelpPressed     bool
 }
 
+func (i Intent) StartPressed() bool { return i.ShiftPressed || i.ConfirmPressed }
+
 func (i Intent) Acts() bool {
 	return i.Left || i.Right || i.JumpPressed || i.ShiftPressed
 }

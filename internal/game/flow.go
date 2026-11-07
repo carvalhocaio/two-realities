@@ -140,9 +140,9 @@ func (f *Flow) Update(in input.Intent) {
 		switch {
 		case in.HelpPressed:
 			f.openHelp(ScreenTitle)
-		case in.ShiftPressed && !f.records.HelpSeen():
+		case in.StartPressed() && !f.records.HelpSeen():
 			f.openHelp(ScreenPlaying)
-		case in.ShiftPressed:
+		case in.StartPressed():
 			f.start()
 		}
 	case ScreenPlaying:
@@ -159,7 +159,7 @@ func (f *Flow) Update(in input.Intent) {
 	case ScreenHelp:
 		f.updateHelp(in)
 	case ScreenEnd:
-		if in.ShiftPressed {
+		if in.StartPressed() {
 			f.toTitle()
 		}
 	}

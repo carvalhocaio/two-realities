@@ -33,6 +33,8 @@ The **yellow** world is warm and open. The **grey** world is cold, and it is wat
 | H | how to play (title screen; also in the pause menu) |
 | Up / Down | starting level (title screen, after reaching level 2) |
 
+With a gamepad: left stick or d-pad to move, A to jump, B/X/LB/RB to shift, Start to pause, Back to restart, Y for how to play.
+
 ## Build and run
 
 Requires Go (version in `.tool-versions`).
