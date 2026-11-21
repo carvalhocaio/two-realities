@@ -72,7 +72,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	fx.pickups.draw(dst)
 	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
 	drawGlows(dst, s, tick)
-	fx.player.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick))
+	fx.player.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick), fx.reduced)
 	drawWardenFront(dst, s, fx.warden, fx.reduced, tick)
 }
 
