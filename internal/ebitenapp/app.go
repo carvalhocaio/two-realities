@@ -92,7 +92,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 		a.view.reduced = a.flow.ReduceEffects()
 		a.view.draw(screen, s, a.music.Phase(), a.tick)
 		drawHUD(screen, s, a.tick, a.hudState())
-		a.textbox.draw(screen, s, a.view.onScreen(s.PlayerBox()), a.flow.Language())
+		a.textbox.draw(screen, s, a.view.onScreen(s.PlayerBox()), a.flow.Language(), a.flow.ReduceEffects())
 		if a.flow.Screen() == game.ScreenPaused {
 			drawPauseMenu(screen, a.flow, a.music.Phase())
 		}

@@ -33,3 +33,23 @@ func TestTextboxAvoidsThePlayer(t *testing.T) {
 		})
 	}
 }
+
+func TestBoxUnfolds(t *testing.T) {
+	box := geom.Rect{X: 8, Y: 20, W: 304, H: 30}
+	if boxOpening(0, true) != 1 || typedRunes(0, true) != 0 || typedRunes(9, true) != 9 {
+		t.Fatal("reduced effects should open at once and type from age 0")
+	}
+	if boxOpening(0, false) != 0 || boxOpening(boxOpenTicks/2, false) != 0.5 || boxOpening(boxOpenTicks+5, false) != 1 {
+		t.Fatal("box should open linearly over boxOpenTicks")
+	}
+	if typedRunes(boxOpenTicks, false) != 0 || typedRunes(boxOpenTicks+4, false) != 4 {
+		t.Fatal("typing should start once the box is open")
+	}
+	half := unfold(box, 0.5)
+	if half.H != 15 || half.Y != 28 || half.X != box.X || half.W != box.W {
+		t.Fatalf("half-open panel %+v from %+v", half, box)
+	}
+	if unfold(box, 0).H < 2 || unfold(box, 1) != box {
+		t.Fatalf("closed %+v / open %+v", unfold(box, 0), unfold(box, 1))
+	}
+}

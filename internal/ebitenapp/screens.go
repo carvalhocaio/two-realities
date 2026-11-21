@@ -2,10 +2,12 @@ package ebitenapp
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/carvalhocaio/two-realities/internal/game"
+	"github.com/carvalhocaio/two-realities/internal/geom"
 	"github.com/carvalhocaio/two-realities/internal/i18n"
 	"github.com/carvalhocaio/two-realities/internal/world"
 )
@@ -14,6 +16,10 @@ const (
 	titleScale    = 3
 	subtitleScale = 2
 	promptBlink   = 30
+	titleY        = 40
+	titleBlock    = 12
+	titleBlockGap = 10
+	titleSwap     = 72
 )
 
 type line struct {
@@ -38,7 +44,7 @@ func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
 func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pad padState, pressure pressureChoice, start startChoice, tick int) {
 	yellow, grey := palettes[world.Yellow], palettes[world.Grey]
 	lines := []line{
-		{text: lang.T(i18n.Title), y: 40, scale: titleScale, c: yellow.text},
+		{text: lang.T(i18n.Title), y: titleY, scale: titleScale, c: yellow.text},
 		{text: hint(lang, i18n.TitlePrompt, pad.using), y: 90, scale: 1, c: grey.background, blink: true},
 		{text: lang.T(i18n.TitleLanguage), y: 102, scale: 1, c: yellow.exit},
 		{text: lang.T(i18n.TitleControlsMove), y: 134, scale: 1, c: yellow.text},
@@ -58,6 +64,7 @@ func drawTitleScreen(dst *ebiten.Image, lang i18n.Lang, storageNotice bool, pad 
 		lines = append(lines, line{text: lang.T(i18n.StorageNotice), y: 172, scale: 1, c: dangerColor})
 	}
 	drawLines(dst, yellow.background, lines, tick)
+	drawTitleWorlds(dst, scaledTextWidth(lang.T(i18n.Title), titleScale), tick)
 }
 
 func drawEndScreen(dst *ebiten.Image, sum game.RunSummary, lang i18n.Lang, pad bool, tick int) {
@@ -134,3 +141,16 @@ func pressureText(sum game.RunSummary, lang i18n.Lang) string {
 		return lang.T(i18n.EndPressure, sum.Pressure)
 	}
 }
+
+func drawTitleWorlds(dst *ebiten.Image, titleWidth float64, tick int) {
+	y := float64(titleY + (glyphHeight*titleScale-titleBlock)/2)
+	left := geom.Rect{X: math.Round((ScreenWidth-titleWidth)/2) - titleBlockGap - titleBlock, Y: y, W: titleBlock, H: titleBlock}
+	right := geom.Rect{X: math.Round((ScreenWidth+titleWidth)/2) + titleBlockGap, Y: y, W: titleBlock, H: titleBlock}
+	if titleShifted(tick) {
+		left, right = right, left
+	}
+	fillRect(dst, left, palettes[world.Yellow].tile, 1)
+	drawDottedBox(dst, right, palettes[world.Grey].tile)
+}
+
+func titleShifted(tick int) bool { return (tick/titleSwap)%2 == 1 }
