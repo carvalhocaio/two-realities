@@ -77,3 +77,10 @@ func TestFallSparksRiseFromTheBottomEdge(t *testing.T) {
 		}
 	}
 }
+
+func TestAshAlternatesBeamAndBodyColors(t *testing.T) {
+	pal := palettes[1]
+	if ashColor(0, pal) != beamCoreColor || ashColor(1, pal) != pal.player || ashColor(2, pal) != beamCoreColor {
+		t.Fatal("ash motes should alternate beam core and body colors")
+	}
+}

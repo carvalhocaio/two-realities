@@ -225,3 +225,14 @@ func TestShiftLeavesAnEchoAndRestartResets(t *testing.T) {
 		t.Fatalf("restart kept effects: age %d echo %d stretch %d", r.fx.age, r.fx.echo.left, r.fx.stretch)
 	}
 }
+
+func TestStepDipLowersTheBodyWithFeetFixed(t *testing.T) {
+	box := geom.Rect{X: 10, Y: 10, W: 6, H: 9}
+	fx := playerFX{run: stepTicks}
+	if body := fx.body(box, false); body.H != box.H-1 || body.Bottom() != box.Bottom() {
+		t.Fatalf("dipped body %+v from %+v", body, box)
+	}
+	if body := fx.body(box, true); body != box {
+		t.Fatalf("reduced effects dipped the body: %+v", body)
+	}
+}

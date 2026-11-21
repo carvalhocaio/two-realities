@@ -95,3 +95,17 @@ func TestSpikeGlintSweepsTeethInOrder(t *testing.T) {
 		t.Fatalf("tip %+v, want the 1px top center", tip)
 	}
 }
+
+func TestSpikeTeethSplitTheSpikeBox(t *testing.T) {
+	p := level.Point{X: 3, Y: 2}
+	box := game.SpikeBox(p)
+	teeth := spikeTeeth(p)
+	if teeth[0].X != box.X || teeth[1].Right() != box.Right() || teeth[0].W != box.W/spikesPerTile {
+		t.Fatalf("teeth %+v do not split %+v", teeth, box)
+	}
+	for _, tooth := range teeth {
+		if tooth.Y != box.Y || tooth.H != box.H {
+			t.Fatalf("tooth %+v off the spike box %+v", tooth, box)
+		}
+	}
+}
