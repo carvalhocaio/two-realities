@@ -69,13 +69,7 @@ func drawSecretBurst(dst *ebiten.Image, s *game.Session) {
 	if f <= 0 || !ok {
 		return
 	}
-	c := centerOf(game.FragmentBox(sec.Point))
-	r := (1 - f) * secretBurstRadius
-	for i := range secretBurstSparks {
-		a := 2 * math.Pi * float64(i) / secretBurstSparks
-		p := geom.Rect{X: math.Round(c.X + math.Cos(a)*r), Y: math.Round(c.Y + math.Sin(a)*r), W: 1, H: 1}
-		fillRect(dst, p, fragmentColor, float32(f))
-	}
+	drawSparkRing(dst, centerOf(game.FragmentBox(sec.Point)), (1-f)*secretBurstRadius, secretBurstSparks, float32(f))
 }
 
 func drawSecret(dst *ebiten.Image, s *game.Session, tick int) {

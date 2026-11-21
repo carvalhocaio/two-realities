@@ -21,6 +21,8 @@ type worldView struct {
 	wipe    *wipe
 	towers  []towerLayer
 	fx      playerFX
+	pickups pickupFX
+	fade    levelFade
 	reduced bool
 }
 
@@ -30,6 +32,7 @@ func newWorldView() *worldView {
 
 func (v *worldView) follow(s *game.Session) {
 	v.fx.update(s)
+	v.pickups.update(s)
 	bounds := s.Level().Bounds()
 	if s != v.session || s.Epoch() != v.epoch {
 		v.session, v.epoch = s, s.Epoch()
@@ -67,7 +70,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 		drawBackdrop(v.canvas, v.towers, v.cam.X)
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
-	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), &v.fx, tick)
+	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), &v.fx, &v.pickups, tick)
 	drawBlockingTiles(v.canvas, s.BlockingTiles(), s.Feedback().Shake)
 	drawCountdown(v.canvas, s, phase, v.reduced)
 
@@ -85,6 +88,8 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 	drawFlash(screen, viewport, dangerColor, blocked*dangerColorAlpha*flash)
 	drawFlash(screen, viewport, deathFlash, dying*deathFlashAlpha*flash)
 
+	v.fade.begin(s, v.wipe.last, tick)
+	v.fade.draw(screen, tick)
 	v.wipe.begin(s.Active(), s.Epoch(), tick)
 	v.wipe.remember(screen)
 	if !v.reduced {
