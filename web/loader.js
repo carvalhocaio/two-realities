@@ -76,3 +76,18 @@ export async function download(response, total, onProgress) {
   }
   return bytes;
 }
+
+export function keyInit(e) {
+  return {
+    key: e.key,
+    code: e.code,
+    location: e.location,
+    repeat: e.repeat,
+    shiftKey: e.shiftKey,
+    ctrlKey: e.ctrlKey,
+    altKey: e.altKey,
+    metaKey: e.metaKey,
+    bubbles: true,
+    cancelable: true,
+  };
+}

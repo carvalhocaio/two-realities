@@ -62,7 +62,7 @@
   </div>
   <script src="wasm_exec.js"></script>
   <script type="module">
-    import { download, expectedSize, fraction, label, language } from "./loader.js";
+    import { download, expectedSize, fraction, keyInit, label, language } from "./loader.js";
 
     (() => {
       const gameKeys = new Set([
@@ -88,7 +88,7 @@
         const c = canvas();
         if (c && e.target !== c) {
           c.focus({ preventScroll: true });
-          c.dispatchEvent(new KeyboardEvent(e.type, e));
+          c.dispatchEvent(new KeyboardEvent(e.type, keyInit(e)));
         }
       };
 
