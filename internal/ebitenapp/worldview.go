@@ -68,7 +68,8 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
 	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), &v.fx, tick)
-	drawCountdown(v.canvas, s)
+	drawBlockingTiles(v.canvas, s.BlockingTiles(), s.Feedback().Shake)
+	drawCountdown(v.canvas, s, phase, v.reduced)
 
 	blocked := s.Feedback().Shake
 	dying := deathStrength(s)

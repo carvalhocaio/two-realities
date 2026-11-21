@@ -31,7 +31,7 @@ func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, a
 	}
 }
 
-func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color) {
+func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color, alpha float32) {
 	edges := []geom.Rect{
 		{X: r.X, Y: r.Y, W: r.W, H: 1},
 		{X: r.X, Y: r.Bottom() - 1, W: r.W, H: 1},
@@ -39,7 +39,7 @@ func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color) {
 		{X: r.Right() - 1, Y: r.Y, W: 1, H: r.H},
 	}
 	for _, e := range edges {
-		fillRect(dst, e, c, ghostOutlineAlpha)
+		fillRect(dst, e, c, alpha)
 	}
 }
 

@@ -127,3 +127,29 @@ func TestOverlapsSolid(t *testing.T) {
 		})
 	}
 }
+
+func TestSolidTiles(t *testing.T) {
+	tests := []struct {
+		name string
+		box  geom.Rect
+		want []level.Point
+	}{
+		{"empty air", geom.Rect{X: 5, Y: 5, W: 6, H: 9}, nil},
+		{"inside wall", geom.Rect{X: 27, Y: 20, W: 6, H: 9}, []level.Point{{X: 3, Y: 2}}},
+		{"across two floor tiles", geom.Rect{X: 5, Y: 32, W: 6, H: 9}, []level.Point{{X: 0, Y: 4}, {X: 1, Y: 4}}},
+		{"outside the map lists nothing", geom.Rect{X: -8, Y: 5, W: 6, H: 4}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SolidTiles(tt.box, room, nil)
+			if len(got) != len(tt.want) {
+				t.Fatalf("got %v, want %v", got, tt.want)
+			}
+			for i := range got {
+				if got[i] != tt.want[i] {
+					t.Fatalf("got %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
