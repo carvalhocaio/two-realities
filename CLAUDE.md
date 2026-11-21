@@ -34,7 +34,8 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
   - Alert meter fills one per tick while seen (`AlertTicks` = 0.4s, "!" + meter above the watcher); leaving sight or shifting to yellow resets it. Full meter = caught.
   - **Core dodge:** shifting to yellow before the meter fills saves the player.
   - Watcher corridors (L4-L7, L9, L11) have grey spikes on their roof: a 1-tile corridor roof is low enough to jump onto, and walking on it would skip the watcher (`roofs_test.go`).
-- **Death** (spikes, caught, falling out): `DeathFreezeTicks` (0.5s) freeze with white flash, shake and blinking player, input ignored, then restart from spawn.
+- **Death** (spikes, caught, falling out): `DeathFreezeTicks` (0.5s) freeze with white flash and shake, input ignored, then restart from spawn. Each cause has its own animation over `DeathProgress` (`deathfx.go`, visual only): spikes and crushed shatter the body into 2x2 shards that burst out, fall and settle on the floor; the beam dissolves the body upward with rising ash; caught splits it into sideways slices with red seams; a fall sends sparks up from the bottom edge. Reduce effects shows a plain fade instead.
+- Hazard motion (visual only): watchers show a 2px tread notch that alternates sides as they walk, slide the visor across the face when turning (`watcherfx.go`, `visorTurnTicks` 4, narrowing mid-turn), run a 2px pulse along the sight ray (length unchanged), and jitter the "!" by 1px above `jitterLevel` (0.6) of the meter (not with reduce effects); active spike tips glint in sequence every `glintPeriod` (100) ticks (`spikes.go`), ghost spikes stay still.
 
 ### Shift modes and rhythm
 - Per-level header `shift: free|quantized|auto` (default `free`). Levels 1-8 are free.

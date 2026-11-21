@@ -18,16 +18,27 @@ const (
 	markGap     = 2
 )
 
-func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, grey level.Grid, active bool, limit int) {
-	for _, w := range watchers {
-		if !active {
+type watcherDraw struct {
+	grey    level.Grid
+	active  bool
+	limit   int
+	bg      color.Color
+	fx      *watcherFX
+	reduced bool
+	tick    int
+}
+
+func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, d watcherDraw) {
+	for i, w := range watchers {
+		if !d.active {
 			drawDottedBox(dst, w.Box, enemyColor)
 			continue
 		}
-		drawSight(dst, w, grey)
+		drawSight(dst, w, d.grey, d.tick)
 		fillRect(dst, w.Box, enemyColor, 1)
-		drawEye(dst, w)
-		drawAlert(dst, w, limit)
+		fillRect(dst, treadNotch(w.Box), d.bg, 1)
+		fillRect(dst, visorRect(w, d.fx.turning(i)), dangerColor, 1)
+		drawAlert(dst, w, d.limit, d.tick, d.reduced)
 	}
 }
 
@@ -43,27 +54,22 @@ func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color, alpha float32) {
 	}
 }
 
-func drawSight(dst *ebiten.Image, w game.Watcher, grey level.Grid) {
+func drawSight(dst *ebiten.Image, w game.Watcher, grey level.Grid, tick int) {
 	origin := w.SightOrigin()
 	end := w.SightEnd(grey)
 	x0, x1 := min(origin.X, end), max(origin.X, end)
 	fillRect(dst, geom.Rect{X: x0, Y: origin.Y, W: x1 - x0, H: 1}, dangerColor, sightAlpha)
-}
-
-func drawEye(dst *ebiten.Image, w game.Watcher) {
-	x := w.Box.Right() - visorWidth - 1
-	if w.Dir < 0 {
-		x = w.Box.X + 1
+	if x, ok := sightPulse(x0, x1, w.Dir, tick); ok {
+		fillRect(dst, geom.Rect{X: math.Round(x), Y: origin.Y, W: sightPulseLen, H: 1}, dangerColor, 1)
 	}
-	fillRect(dst, geom.Rect{X: math.Round(x), Y: w.EyeY(), W: visorWidth, H: 1}, dangerColor, 1)
 }
 
-func drawAlert(dst *ebiten.Image, w game.Watcher, limit int) {
+func drawAlert(dst *ebiten.Image, w game.Watcher, limit, tick int, reduced bool) {
 	if w.Alert == 0 {
 		return
 	}
 	fill := w.AlertLevel(limit)
-	markX := w.Box.X + (w.Box.W-glyphWidth)/2
+	markX := w.Box.X + (w.Box.W-glyphWidth)/2 + alertJitter(fill, tick, reduced)
 	markY := w.Box.Y - markGap - glyphHeight - meterHeight - 1
 	drawText(dst, "!", markX, markY, dangerColor, float32(0.4+0.6*fill))
 

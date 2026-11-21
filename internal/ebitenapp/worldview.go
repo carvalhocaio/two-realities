@@ -23,6 +23,7 @@ type worldView struct {
 	fx      playerFX
 	pickups pickupFX
 	warden  wardenFX
+	watch   watcherFX
 	fade    levelFade
 	reduced bool
 }
@@ -36,6 +37,7 @@ func (v *worldView) follow(s *game.Session, events []game.Event) {
 	v.wipe.notice(events)
 	v.pickups.update(s)
 	v.warden.update(s)
+	v.watch.update(s)
 	bounds := s.Level().Bounds()
 	if s != v.session || s.Epoch() != v.epoch {
 		v.session, v.epoch = s, s.Epoch()
@@ -73,7 +75,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 		drawBackdrop(v.canvas, v.towers, v.cam.X)
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
-	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), sceneFX{player: &v.fx, pickups: &v.pickups, warden: &v.warden, reduced: v.reduced}, tick)
+	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), sceneFX{player: &v.fx, pickups: &v.pickups, watchers: &v.watch, warden: &v.warden, reduced: v.reduced}, tick)
 	drawBlockingTiles(v.canvas, s.BlockingTiles(), s.Feedback().Shake)
 	drawCountdown(v.canvas, s, phase, v.reduced)
 

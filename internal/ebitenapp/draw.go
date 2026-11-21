@@ -14,7 +14,6 @@ import (
 const (
 	dangerColorAlpha = 0.35
 	deathFlashAlpha  = 0.6
-	deathBlinkTicks  = 4
 	lockedExitAlpha  = 0.25
 	beatGhostFade    = 2.5
 )
@@ -45,10 +44,11 @@ func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
 }
 
 type sceneFX struct {
-	player  *playerFX
-	pickups *pickupFX
-	warden  *wardenFX
-	reduced bool
+	player   *playerFX
+	pickups  *pickupFX
+	watchers *watcherFX
+	warden   *wardenFX
+	reduced  bool
 }
 
 func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, fx sceneFX, tick int) {
@@ -61,6 +61,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	dst.DrawImage(ghost, op)
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
+	drawSpikeGlints(dst, lvl.Spikes[active], tick)
 	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s), s.ExitOpen(), tick)
 	drawCheckpoints(dst, s, pal, fx.pickups.hoistProgress(), tick)
 	drawWardenBack(dst, s, pal, fx.warden, fx.reduced, tick)
@@ -70,9 +71,15 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	drawSecretGlint(dst, s, tick)
 	drawSecretBurst(dst, s)
 	fx.pickups.draw(dst)
-	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
+	drawWatchers(dst, s.Watchers(), watcherDraw{
+		grey: lvl.Layer(world.Grey), active: active == world.Grey, limit: s.AlertLimit(),
+		bg: pal.background, fx: fx.watchers, reduced: fx.reduced, tick: tick,
+	})
 	drawGlows(dst, s, tick)
-	fx.player.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick), fx.reduced)
+	fx.player.draw(dst, s.PlayerBox(), pal, s.Death() == game.Alive, fx.reduced)
+	if s.Death() != game.Alive {
+		drawDeath(dst, s, pal, fx.reduced)
+	}
 	drawWardenFront(dst, s, fx.warden, fx.reduced, tick)
 }
 
@@ -81,10 +88,6 @@ func exitAlpha(s *game.Session) float32 {
 		return 1
 	}
 	return lockedExitAlpha
-}
-
-func playerVisible(s *game.Session, tick int) bool {
-	return s.Death() == game.Alive || (tick/deathBlinkTicks)%2 == 0
 }
 
 func fragmentAlpha(active world.World) float32 {
