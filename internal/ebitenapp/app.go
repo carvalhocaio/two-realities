@@ -1,7 +1,7 @@
 package ebitenapp
 
 import (
-	"math/rand/v2"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -21,6 +21,8 @@ const (
 	ViewHeight   = ScreenHeight - HUDHeight
 	windowScale  = 4
 	shakePixels  = 3
+	shakeFreqX   = 2.3
+	shakeFreqY   = 3.7
 	noticeTicks  = 60
 )
 
@@ -54,6 +56,7 @@ func (a *App) Update() error {
 	a.tick++
 	a.noticeTimer = max(a.noticeTimer-1, 0)
 	a.flow.Update(a.input.Read())
+	a.music.setTrack(musicTrack(a.flow))
 	if a.flow.Screen() == game.ScreenPlaying {
 		a.music.start()
 	}
@@ -62,7 +65,6 @@ func (a *App) Update() error {
 		a.sfx.play(s.Events(), mixVolume(sfxVolume, a.flow.Muted(), a.flow.SoundVolume()))
 	}
 	a.music.setOffset(a.flow.AudioOffsetMs())
-	a.music.setTrack(musicTrack(a.flow))
 	if anyJustPressed(timerKeys) {
 		a.showTimer = !a.showTimer
 	}
@@ -149,12 +151,13 @@ func windowTitle(f *game.Flow) string {
 	return "Two Realities — " + f.Session().Active().String()
 }
 
-func shakeOffset(strength float64) (float64, float64) {
+func shakeOffset(strength float64, tick int) (float64, float64) {
 	if strength <= 0 {
 		return 0, 0
 	}
 	amp := shakePixels * strength
-	return (rand.Float64()*2 - 1) * amp, (rand.Float64()*2 - 1) * amp
+	t := float64(tick)
+	return math.Sin(t*shakeFreqX) * amp, math.Cos(t*shakeFreqY) * amp
 }
 
 func Run(levels []level.Level, store save.Storage) error {

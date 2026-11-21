@@ -64,7 +64,10 @@ func drawGlows(dst *ebiten.Image, s *game.Session, tick int) {
 	if s.Active() != world.Grey {
 		return
 	}
-	for i, p := range s.RemainingFragments() {
+	for i, p := range s.Level().Fragments {
+		if s.FragmentCollected(i) {
+			continue
+		}
 		drawGlow(dst, centerOf(game.FragmentBox(p)), fragmentGlowR, fragmentColor, fragmentGlow*pulse(tick, float64(i)))
 	}
 	if box, ok := s.SecretBox(); ok {

@@ -16,6 +16,8 @@ func FragmentBox(p level.Point) geom.Rect {
 
 func (s *Session) Fragments() int { return s.fragments }
 
+func (s *Session) FragmentCollected(i int) bool { return s.collected[i] }
+
 func (s *Session) RemainingFragments() []level.Point {
 	var out []level.Point
 	for i, p := range s.level.Fragments {

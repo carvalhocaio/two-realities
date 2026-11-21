@@ -113,13 +113,13 @@ func (s *Session) resetWarden(lit int) {
 }
 
 func (s *Session) closeGates() {
-	closed := s.ClosedGates()
+	closed := s.closedGates()
 	for w := range world.Count {
 		s.layers[w] = s.level.Layer(world.World(w)).WithSolid(closed)
 	}
 }
 
-func (s *Session) ClosedGates() []level.Point {
+func (s *Session) closedGates() []level.Point {
 	if s.level.Boss == nil {
 		return nil
 	}

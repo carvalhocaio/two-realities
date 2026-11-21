@@ -73,7 +73,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 	blocked := s.Feedback().Shake
 	dying := deathStrength(s)
 	shake, flash := effectScale(v.reduced)
-	sx, sy := shakeOffset(max(blocked, dying) * shake)
+	sx, sy := shakeOffset(max(blocked, dying)*shake, tick)
 
 	screen.Fill(palettes[s.Active()].background)
 	op := &ebiten.DrawImageOptions{}

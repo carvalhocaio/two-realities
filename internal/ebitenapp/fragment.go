@@ -8,7 +8,6 @@ import (
 
 	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
-	"github.com/carvalhocaio/two-realities/internal/level"
 )
 
 const (
@@ -35,8 +34,11 @@ func drawRows(dst *ebiten.Image, box geom.Rect, rows []int, c color.Color, alpha
 	}
 }
 
-func drawFragments(dst *ebiten.Image, fragments []level.Point, tick int, alpha float32) {
-	for i, p := range fragments {
+func drawFragments(dst *ebiten.Image, s *game.Session, tick int, alpha float32) {
+	for i, p := range s.Level().Fragments {
+		if s.FragmentCollected(i) {
+			continue
+		}
 		box := game.FragmentBox(p)
 		box.Y += math.Round(math.Sin(float64(tick)*bobSpeed+float64(i)) * bobAmplitude)
 		drawRows(dst, box, diamondRows, fragmentColor, alpha)

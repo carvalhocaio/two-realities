@@ -39,7 +39,9 @@ func drawWardenBack(dst *ebiten.Image, s *game.Session, pal palette, tick int) {
 	if !ok {
 		return
 	}
-	drawGates(dst, s.ClosedGates(), pal)
+	for _, gate := range s.Level().Boss.Gates[min(w.Lit, level.GateCount):] {
+		drawGates(dst, gate, pal)
+	}
 	drawLamps(dst, s.Level().Boss.Lamps, w.Lit, pal, tick)
 	drawBeam(dst, w.Beam, s.Active() == world.Grey, tick)
 }

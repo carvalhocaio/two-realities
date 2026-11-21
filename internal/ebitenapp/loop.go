@@ -23,6 +23,9 @@ func newLoopReader(tracks [][]float32, barFrames int) *loopReader {
 
 func (l *loopReader) Read(p []byte) (int, error) {
 	n := 0
+	if l.bar == 0 && l.pos == 0 {
+		l.cur = int(l.next.Load())
+	}
 	for n+bytesPerFrame <= len(p) {
 		track := l.tracks[l.cur]
 		v := track[(l.bar*l.frames+l.pos)%len(track)]
