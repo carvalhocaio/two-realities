@@ -60,7 +60,7 @@ func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lan
 	box := t.place(player, height)
 
 	fillRect(dst, box, pal.panel, boxAlpha*alpha)
-	drawOutline(dst, box, pal.tile)
+	drawOutline(dst, box, pal.tile, ghostOutlineAlpha)
 	shown := view.Age / typewriterRate
 	y := box.Y + boxPadding
 	for _, line := range lines {

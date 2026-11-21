@@ -37,3 +37,16 @@ func OverlapsSolid(box geom.Rect, g level.Grid) bool {
 	}
 	return false
 }
+
+func SolidTiles(box geom.Rect, g level.Grid, out []level.Point) []level.Point {
+	x0, x1 := tileSpan(box.X, box.W)
+	y0, y1 := tileSpan(box.Y, box.H)
+	for y := y0; y <= y1; y++ {
+		for x := x0; x <= x1; x++ {
+			if g.InBounds(x, y) && g.Solid(x, y) {
+				out = append(out, level.Point{X: x, Y: y})
+			}
+		}
+	}
+	return out
+}

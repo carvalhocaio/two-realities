@@ -1,6 +1,7 @@
 package ebitenapp
 
 import (
+	"image/color"
 	"math"
 	"strconv"
 
@@ -16,6 +17,7 @@ const (
 	pulseSharpness = 3
 	countdownScale = 2
 	countdownGap   = 3
+	countdownLift  = 2
 )
 
 func drawBeatPulse(dst *ebiten.Image, phase float64, pal palette) {
@@ -34,7 +36,7 @@ func shownWorld(s *game.Session, tick int) world.World {
 	return s.Active()
 }
 
-func drawCountdown(dst *ebiten.Image, s *game.Session) {
+func drawCountdown(dst *ebiten.Image, s *game.Session, phase float64, reduced bool) {
 	n := s.AutoCountdown()
 	if n == 0 {
 		return
@@ -42,6 +44,20 @@ func drawCountdown(dst *ebiten.Image, s *game.Session) {
 	msg := strconv.Itoa(n)
 	box := s.PlayerBox()
 	w := scaledTextWidth(msg, countdownScale)
-	y := box.Y - countdownGap - glyphHeight*countdownScale
-	drawScaledText(dst, msg, math.Round(box.X+box.W/2-w/2), y, countdownScale, palettes[s.Active()].text, 1)
+	y := box.Y - countdownGap - glyphHeight*countdownScale - countdownPop(phase, reduced)
+	drawScaledText(dst, msg, math.Round(box.X+box.W/2-w/2), y, countdownScale, countdownColor(n, palettes[s.Active()]), 1)
+}
+
+func countdownPop(phase float64, reduced bool) float64 {
+	if reduced {
+		return 0
+	}
+	return math.Round(countdownLift * math.Pow(1-phase, pulseSharpness))
+}
+
+func countdownColor(n int, pal palette) color.RGBA {
+	if n == 1 {
+		return pal.exit
+	}
+	return pal.text
 }

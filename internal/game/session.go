@@ -33,6 +33,7 @@ type Session struct {
 	fragments        int
 	collected        []bool
 	solidFeedback    int
+	blockers         []level.Point
 	fragmentFeedback int
 	secretFeedback   int
 	restartHint      bool
@@ -165,6 +166,13 @@ func (s *Session) Feedback() Feedback {
 		CounterFlash: float64(s.fragmentFeedback) / BlockedFeedbackTicks,
 		SecretFound:  float64(s.secretFeedback) / SecretFeedbackTicks,
 	}
+}
+
+func (s *Session) BlockingTiles() []level.Point {
+	if s.solidFeedback == 0 {
+		return nil
+	}
+	return s.blockers
 }
 
 func (s *Session) layer(w world.World) level.Grid { return s.layers[w] }

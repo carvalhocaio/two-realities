@@ -7,6 +7,7 @@ import (
 	"github.com/carvalhocaio/two-realities/internal/level"
 	"github.com/carvalhocaio/two-realities/internal/rhythm"
 	"github.com/carvalhocaio/two-realities/internal/save"
+	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
 func TestSessionAccessors(t *testing.T) {
@@ -104,5 +105,35 @@ func TestFragmentCollected(t *testing.T) {
 	play(s, then(one(shift), ticks(right, 10)))
 	if !s.FragmentCollected(0) || len(s.RemainingFragments()) != 0 {
 		t.Fatalf("fragment not collected: collected %v, remaining %d", s.FragmentCollected(0), len(s.RemainingFragments()))
+	}
+}
+
+func TestBlockingTiles(t *testing.T) {
+	s := newSession(t, blockedLevel)
+	if s.BlockingTiles() != nil {
+		t.Fatal("blocking tiles before any shift")
+	}
+	play(s, one(shift))
+	tiles := s.BlockingTiles()
+	if len(tiles) == 0 {
+		t.Fatal("blocked shift listed no tiles")
+	}
+	grey := s.layer(world.Grey)
+	for _, p := range tiles {
+		if !grey.Solid(p.X, p.Y) || !s.PlayerBox().Overlaps(level.TileRect(p)) {
+			t.Fatalf("tile %v is not a grey solid under the player", p)
+		}
+	}
+	play(s, ticks(idle, BlockedFeedbackTicks))
+	if s.BlockingTiles() != nil {
+		t.Fatal("blocking tiles outlived the feedback")
+	}
+}
+
+func TestShiftDoneListsNoBlockingTiles(t *testing.T) {
+	s := newSession(t, openLevel)
+	play(s, one(shift))
+	if s.BlockingTiles() != nil {
+		t.Fatal("a successful shift listed blocking tiles")
 	}
 }

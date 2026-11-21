@@ -32,6 +32,7 @@ func (s *Session) TryShift() ShiftOutcome {
 	}
 	if physics.OverlapsSolid(s.player.Box, s.layer(target)) {
 		s.solidFeedback = BlockedFeedbackTicks
+		s.blockers = physics.SolidTiles(s.player.Box, s.layer(target), s.blockers[:0])
 		s.emit(EventShiftBlocked)
 		return ShiftBlockedSolid
 	}
