@@ -22,7 +22,7 @@ type watcherDraw struct {
 	grey    level.Grid
 	active  bool
 	limit   int
-	bg      color.Color
+	bg      color.RGBA
 	fx      *watcherFX
 	reduced bool
 	tick    int
@@ -42,7 +42,7 @@ func drawWatchers(dst *ebiten.Image, watchers []game.Watcher, d watcherDraw) {
 	}
 }
 
-func drawOutline(dst *ebiten.Image, r geom.Rect, c color.Color, alpha float32) {
+func drawOutline(dst *ebiten.Image, r geom.Rect, c color.RGBA, alpha float32) {
 	edges := []geom.Rect{
 		{X: r.X, Y: r.Y, W: r.W, H: 1},
 		{X: r.X, Y: r.Bottom() - 1, W: r.W, H: 1},

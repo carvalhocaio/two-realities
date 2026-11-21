@@ -17,6 +17,7 @@ type worldView struct {
 	session *game.Session
 	canvas  *ebiten.Image
 	ghosts  [world.Count]*ebiten.Image
+	solids  [world.Count]*ebiten.Image
 	level   int
 	wipe    *wipe
 	towers  []towerLayer
@@ -53,8 +54,10 @@ func (v *worldView) prepare(s *game.Session) {
 	}
 	v.level = s.LevelIndex()
 	b := s.Level().Bounds()
+	deallocate(v.canvas, v.ghosts[world.Yellow], v.ghosts[world.Grey], v.solids[world.Yellow], v.solids[world.Grey])
 	v.canvas = ebiten.NewImage(int(b.W), int(b.H))
 	v.ghosts = [world.Count]*ebiten.Image{}
+	v.solids = [world.Count]*ebiten.Image{}
 	v.towers = newBackdrop(v.level, b.W, b.H)
 }
 
@@ -68,6 +71,14 @@ func (v *worldView) ghost(s *game.Session) *ebiten.Image {
 	return v.ghosts[active]
 }
 
+func (v *worldView) solid(s *game.Session) *ebiten.Image {
+	active := s.Active()
+	if v.solids[active] == nil {
+		v.solids[active] = newSolidImage(s.Level(), active)
+	}
+	return v.solids[active]
+}
+
 func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, tick int) {
 	v.prepare(s)
 	v.canvas.Fill(palettes[s.Active()].background)
@@ -75,7 +86,7 @@ func (v *worldView) draw(screen *ebiten.Image, s *game.Session, phase float64, t
 		drawBackdrop(v.canvas, v.towers, v.cam.X)
 		drawVignette(v.canvas, math.Round(v.cam.X), math.Round(v.cam.Y))
 	}
-	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), sceneFX{player: &v.fx, pickups: &v.pickups, watchers: &v.watch, warden: &v.warden, reduced: v.reduced}, tick)
+	drawScene(v.canvas, s, v.ghost(s), ghostAlpha(s, phase), v.solid(s), sceneFX{player: &v.fx, pickups: &v.pickups, watchers: &v.watch, warden: &v.warden, reduced: v.reduced}, tick)
 	drawBlockingTiles(v.canvas, s.BlockingTiles(), s.Feedback().Shake)
 	drawCountdown(v.canvas, s, phase, v.reduced)
 

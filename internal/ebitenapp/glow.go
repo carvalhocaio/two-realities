@@ -43,13 +43,13 @@ var glowTexture = func() *ebiten.Image {
 	return img
 }()
 
-func drawGlow(dst *ebiten.Image, center geom.Vec, radius float64, c color.Color, strength float64) {
+func drawGlow(dst *ebiten.Image, center geom.Vec, radius float64, c color.RGBA, strength float64) {
 	op := &ebiten.DrawImageOptions{Blend: ebiten.BlendLighter}
 	scale := 2 * radius / glowTextureSize
 	op.GeoM.Translate(-glowTextureSize/2, -glowTextureSize/2)
 	op.GeoM.Scale(scale, scale)
 	op.GeoM.Translate(center.X, center.Y)
-	op.ColorScale.ScaleWithColor(c)
+	scaleRGBA(&op.ColorScale, c)
 	op.ColorScale.ScaleAlpha(float32(strength))
 	dst.DrawImage(glowTexture, op)
 }

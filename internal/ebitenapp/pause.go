@@ -60,7 +60,7 @@ func drawPauseMenu(dst *ebiten.Image, f *game.Flow, phase float64) {
 	drawCenteredLine(dst, f.Language().T(i18n.Paused), pauseTitleY, subtitleScale, pal.text)
 	labels, items := menuLabels(f), f.MenuItems()
 	for i, item := range items {
-		label, c := labels[item], color.Color(pal.text)
+		label, c := labels[item], pal.text
 		if item == f.Menu() {
 			c = pal.exit
 			label = "- " + label + " -"
@@ -81,7 +81,7 @@ func drawBeatDot(dst *ebiten.Image, x, y, phase float64, pal palette) {
 	fillRect(dst, geom.Rect{X: x, Y: y, W: beatDotSize, H: beatDotSize}, pal.exit, alpha)
 }
 
-func drawCenteredLine(dst *ebiten.Image, msg string, y, scale float64, c color.Color) {
+func drawCenteredLine(dst *ebiten.Image, msg string, y, scale float64, c color.RGBA) {
 	w := scaledTextWidth(msg, scale)
 	drawScaledText(dst, msg, (ScreenWidth-w)/2, y, scale, c, 1)
 }

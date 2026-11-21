@@ -103,7 +103,7 @@ func drawDeath(dst *ebiten.Image, s *game.Session, pal palette, reduced bool) {
 	}
 }
 
-func ashColor(i int, pal palette) color.Color {
+func ashColor(i int, pal palette) color.RGBA {
 	if i%2 == 0 {
 		return beamCoreColor
 	}

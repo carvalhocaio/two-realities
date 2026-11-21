@@ -158,6 +158,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - On-screen hints follow the last device used (`input.LastDevice`, `Controls.UsingPad`): with a pad, `padHints` (`ebitenapp/hints.go`) swap the restart/shift HUD hints, the title/help/epilogue/end prompts and the help card's shift/restart rows for pad versions ("BACK TO RESTART", "PRESS A TO START").
 
 ## Architecture rules
+- Render helpers take `color.RGBA`, never `color.Color`: converting a color to the interface allocates on every call, and `fillRect` runs thousands of times per frame. `scaleRGBA` builds the same `ColorScale` as `ScaleWithColor` without the interface (`color_test.go`).
 - Game logic (`geom`, `world`, `level`, `physics`, `player`, `game`, `input`, `rhythm`, `save`, `platform`, `i18n`, `font`, `music`) must NOT import ebiten. Ebiten lives only in `internal/ebitenapp`.
 - Input is abstracted as `input.Intent` + `input.Source`; logic tests feed `Intent` values directly.
 - Package-by-feature under `internal/`. Idiomatic Go, SOLID, DRY, small files, clear names, no long comments or doc blocks. All code and identifiers in English.
@@ -177,7 +178,7 @@ Original characters and names only — no band names, logos, or lyrics anywhere.
 - `internal/physics` — axis-separated AABB vs tile grid. Sides/top of the map are solid, bottom is open (falling out restarts).
 - `internal/player` — movement, gravity, coyote time and jump buffer (`tuning.go`).
 - `internal/game` — `Session`: active world, shift outcomes and cost, shift modes (`beats.go`), transmissions, secrets, timer and `Records`, assist, pause menu in `Flow`, fragments, watchers, spikes, death freeze, feedback timers, restart hint, level progression, the Warden boss (`warden.go`, `beam.go`).
-- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer (tiles + spikes, per level), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), music player, bar-aligned track switching and audio beat clock (`music.go`, `loop.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), Warden eye/beam/lamps/gates and HUD pips (`warden.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
+- `internal/ebitenapp` — keyboard, palettes, scene, cached ghost layer and cached active layer (tiles + spikes, per level and world, `solids.go`; old level images are deallocated on level change), fragments (bobbing diamonds), spikes, watchers, checkpoints, world view with camera (`worldview.go`), HUD bar, title/end screens (`screens.go`), music player, bar-aligned track switching and audio beat clock (`music.go`, `loop.go`), beat pulse/queued blink/countdown (`beatfx.go`), transmission box (`textbox.go`), Warden eye/beam/lamps/gates and HUD pips (`warden.go`), pause menu (`pause.go`), signals, font drawing with integer scaling over `internal/font` glyphs (`font.go`), dev keys (`dev_on.go`/`dev_off.go`). Logical resolution 320x180, 60 TPS.
 - Level tests in `internal/game/levels_test.go` script a full solution for each level and prove the intended mechanic is required.
 
 ## Level format

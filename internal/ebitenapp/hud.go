@@ -43,7 +43,7 @@ func drawPanel(dst *ebiten.Image, r geom.Rect, pal palette) {
 	drawFramedPanel(dst, r, pal, pal.tile)
 }
 
-func drawFramedPanel(dst *ebiten.Image, r geom.Rect, pal palette, border color.Color) {
+func drawFramedPanel(dst *ebiten.Image, r geom.Rect, pal palette, border color.RGBA) {
 	fillRect(dst, geom.Rect{X: r.X - 1, Y: r.Y - 1, W: r.W + 2, H: r.H + 2}, border, 1)
 	fillRect(dst, r, pal.panel, panelAlpha)
 }
@@ -131,7 +131,7 @@ func drawWorldIndicator(dst *ebiten.Image, s *game.Session, pal palette, tick in
 	drawText(dst, label, swatch.Right()+hudPadding, panel.Y+hudPadding, pal.panelInk, 1)
 }
 
-func drawPanelText(dst *ebiten.Image, msg string, x float64, pal palette, c color.Color) {
+func drawPanelText(dst *ebiten.Image, msg string, x float64, pal palette, c color.RGBA) {
 	panel := panelAt(x, textWidth(msg))
 	drawPanel(dst, panel, pal)
 	drawText(dst, msg, panel.X+hudPadding, panel.Y+hudPadding, c, 1)
@@ -151,11 +151,11 @@ func drawFragmentCounter(dst *ebiten.Image, s *game.Session, pal palette, tick i
 	return panel.X
 }
 
-func drawCentered(dst *ebiten.Image, msg string, pal palette, c color.Color) {
+func drawCentered(dst *ebiten.Image, msg string, pal palette, c color.RGBA) {
 	drawPanelText(dst, msg, (float64(dst.Bounds().Dx())-textWidth(msg))/2-hudPadding, pal, c)
 }
 
-func counterColor(flash float64, pal palette, tick int) color.Color {
+func counterColor(flash float64, pal palette, tick int) color.RGBA {
 	if flash > 0 && (tick/blinkTicks)%2 == 0 {
 		return dangerColor
 	}

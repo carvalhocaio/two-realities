@@ -14,17 +14,17 @@ const spikesPerTile = 2
 
 var spikeRows = []int{1, 1, 3, 3, 5}
 
-func spikeTeeth(p level.Point) []geom.Rect {
+func spikeTeeth(p level.Point) [spikesPerTile]geom.Rect {
 	box := game.SpikeBox(p)
 	w := box.W / spikesPerTile
-	teeth := make([]geom.Rect, spikesPerTile)
+	var teeth [spikesPerTile]geom.Rect
 	for i := range teeth {
 		teeth[i] = geom.Rect{X: box.X + float64(i)*w, Y: box.Y, W: w, H: box.H}
 	}
 	return teeth
 }
 
-func drawSpikes(dst *ebiten.Image, spikes []level.Point, c color.Color) {
+func drawSpikes(dst *ebiten.Image, spikes []level.Point, c color.RGBA) {
 	for _, p := range spikes {
 		for _, tooth := range spikeTeeth(p) {
 			drawRows(dst, tooth, spikeRows, c, 1)
@@ -32,7 +32,7 @@ func drawSpikes(dst *ebiten.Image, spikes []level.Point, c color.Color) {
 	}
 }
 
-func drawGhostSpikes(dst *ebiten.Image, spikes []level.Point, c color.Color) {
+func drawGhostSpikes(dst *ebiten.Image, spikes []level.Point, c color.RGBA) {
 	for _, p := range spikes {
 		for _, tooth := range spikeTeeth(p) {
 			drawToothOutline(dst, tooth, c)
@@ -40,7 +40,7 @@ func drawGhostSpikes(dst *ebiten.Image, spikes []level.Point, c color.Color) {
 	}
 }
 
-func drawToothOutline(dst *ebiten.Image, tooth geom.Rect, c color.Color) {
+func drawToothOutline(dst *ebiten.Image, tooth geom.Rect, c color.RGBA) {
 	for i, w := range spikeRows {
 		left := tooth.X + float64(int(tooth.W)-w)/2
 		y := tooth.Y + float64(i)

@@ -26,11 +26,11 @@ type line struct {
 	text  string
 	y     float64
 	scale float64
-	c     color.Color
+	c     color.RGBA
 	blink bool
 }
 
-func drawLines(dst *ebiten.Image, bg color.Color, lines []line, tick int) {
+func drawLines(dst *ebiten.Image, bg color.RGBA, lines []line, tick int) {
 	dst.Fill(bg)
 	for _, l := range lines {
 		if l.blink && (tick/promptBlink)%2 == 1 {

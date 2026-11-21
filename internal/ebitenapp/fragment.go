@@ -22,7 +22,7 @@ const (
 
 var diamondRows = []int{2, 4, 6, 6, 4, 2}
 
-func drawRows(dst *ebiten.Image, box geom.Rect, rows []int, c color.Color, alpha float32) {
+func drawRows(dst *ebiten.Image, box geom.Rect, rows []int, c color.RGBA, alpha float32) {
 	for i, w := range rows {
 		row := geom.Rect{
 			X: box.X + math.Floor((box.W-float64(w))/2),

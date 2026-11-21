@@ -24,16 +24,21 @@ var pixel = func() *ebiten.Image {
 	return img
 }()
 
-func fillRect(dst *ebiten.Image, r geom.Rect, c color.Color, alpha float32) {
+func fillRect(dst *ebiten.Image, r geom.Rect, c color.RGBA, alpha float32) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(r.W, r.H)
 	op.GeoM.Translate(r.X, r.Y)
-	op.ColorScale.ScaleWithColor(c)
+	scaleRGBA(&op.ColorScale, c)
 	op.ColorScale.ScaleAlpha(alpha)
 	dst.DrawImage(pixel, op)
 }
 
-func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
+func scaleRGBA(cs *ebiten.ColorScale, c color.RGBA) {
+	channel := func(v uint8) float32 { return float32(uint32(v)|uint32(v)<<8) / 0xffff }
+	cs.Scale(channel(c.R), channel(c.G), channel(c.B), channel(c.A))
+}
+
+func drawLayer(dst *ebiten.Image, g level.Grid, c color.RGBA) {
 	for y := range g.Height() {
 		for x := range g.Width() {
 			if g.Solid(x, y) {
@@ -51,7 +56,7 @@ type sceneFX struct {
 	reduced  bool
 }
 
-func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, fx sceneFX, tick int) {
+func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, solid *ebiten.Image, fx sceneFX, tick int) {
 	active := s.Active()
 	lvl := s.Level()
 	pal := palettes[active]
@@ -59,8 +64,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	op := &ebiten.DrawImageOptions{}
 	op.ColorScale.ScaleAlpha(ghostAlpha)
 	dst.DrawImage(ghost, op)
-	drawLayer(dst, lvl.Layer(active), pal.tile)
-	drawSpikes(dst, lvl.Spikes[active], pal.spike)
+	dst.DrawImage(solid, nil)
 	drawSpikeGlints(dst, lvl.Spikes[active], tick)
 	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s), s.ExitOpen(), tick)
 	drawCheckpoints(dst, s, pal, fx.pickups.hoistProgress(), tick)
@@ -97,7 +101,7 @@ func fragmentAlpha(active world.World) float32 {
 	return inactiveFragmentAlpha
 }
 
-func drawFlash(dst *ebiten.Image, area geom.Rect, c color.Color, strength float64) {
+func drawFlash(dst *ebiten.Image, area geom.Rect, c color.RGBA, strength float64) {
 	if strength <= 0 {
 		return
 	}

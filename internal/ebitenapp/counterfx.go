@@ -36,7 +36,7 @@ func (f *counterFX) update(s *game.Session) {
 	f.count = s.Fragments()
 }
 
-func (f *counterFX) icon() (lift float64, c color.Color, alpha float32) {
+func (f *counterFX) icon() (lift float64, c color.RGBA, alpha float32) {
 	switch {
 	case f.gain > 0:
 		return 1, secretColor, 1
