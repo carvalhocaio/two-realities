@@ -26,7 +26,7 @@ Then the shift stops being yours. In the third act it snaps to the beat of the m
 **Accessibility**
 - A short "How to play" card on your first start (H on the title or in the pause menu to see it again)
 - Assist mode (pause menu): watchers take longer to notice you, the auto shift never crushes you, and you can skip a level
-- Separate music and sound volumes, and a reduce effects option (no screen shake, softer flashes; on by default if your system asks for reduced motion)
+- Separate music and sound volumes, and a reduce effects option (no screen shake, softer flashes, calmer animations; on by default if your system asks for reduced motion)
 - When a shift is blocked, the tiles in the way light up red, so you always know why
 - Audio offset (pause menu) for Bluetooth headphones and laggy speakers
 - Keyboard or gamepad (on-screen hints follow the device you use)
@@ -67,7 +67,7 @@ Depois a troca deixa de ser sua. No terceiro ato ela obedece à batida da músic
 **Acessibilidade**
 - Um cartão curto de "Como jogar" na primeira partida (H no título ou no menu de pausa para rever)
 - Modo assistido (menu de pausa): os vigias demoram mais para te notar, a troca automática nunca te esmaga e dá para pular a fase
-- Volumes separados de música e efeitos, e a opção reduzir efeitos (sem tremor de tela, flashes suaves; ligada sozinha se o sistema pede menos movimento)
+- Volumes separados de música e efeitos, e a opção reduzir efeitos (sem tremor de tela, flashes suaves, animações mais calmas; ligada sozinha se o sistema pede menos movimento)
 - Quando a troca é bloqueada, os blocos no caminho acendem em vermelho, então você sempre sabe o motivo
 - Ajuste de atraso do áudio (menu de pausa) para fones Bluetooth e caixas com atraso
 - Teclado ou controle (as dicas da tela seguem o dispositivo que você usa)

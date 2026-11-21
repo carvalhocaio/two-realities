@@ -14,6 +14,7 @@ The **yellow** world is warm and open. The **grey** world is cold, and it is wat
 - Speedrun timer and personal bests, Pressure 1-5 challenge mode after the first clear
 - Continue from the furthest level reached, assist mode with level skip, separate music and sound volumes, a reduce effects option (follows the browser's reduced motion setting), audio offset, English and Brazilian Portuguese
 - Sound effects synthesized in code, like the music
+- Readable at a glance: the tiles that block a shift light up red, and every hazard and every way of dying has its own animation
 
 | Yellow | Grey |
 |---|---|
