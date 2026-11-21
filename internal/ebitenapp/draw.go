@@ -58,7 +58,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	drawCheckpoints(dst, s, pal, pickups.hoistProgress(), tick)
 	drawWardenBack(dst, s, pal, tick)
 	drawFragments(dst, s, tick, fragmentAlpha(active))
-	drawSignals(dst, s, pal)
+	drawSignals(dst, s, pal, tick)
 	drawSecret(dst, s, tick)
 	drawSecretGlint(dst, s, tick)
 	drawSecretBurst(dst, s)
