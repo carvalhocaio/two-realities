@@ -33,6 +33,7 @@ type App struct {
 	input       input.Source
 	view        *worldView
 	textbox     textbox
+	counter     counterFX
 	title       string
 	tick        int
 	notice      string
@@ -71,6 +72,7 @@ func (a *App) Update() error {
 	handleDevKeys(a)
 	if a.flow.Screen() == game.ScreenPlaying {
 		a.view.follow(a.flow.Session())
+		a.counter.update(a.flow.Session())
 	}
 	a.setTitle(windowTitle(a.flow))
 	return nil
@@ -100,7 +102,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 }
 
 func (a *App) hudState() hudState {
-	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer, lang: a.flow.Language(), pad: a.pad().using}
+	h := hudState{phase: a.music.Phase(), muted: a.music.muted, timer: a.showTimer, lang: a.flow.Language(), pad: a.pad().using, count: &a.counter}
 	if a.noticeTimer > 0 {
 		h.notice = a.notice
 	}

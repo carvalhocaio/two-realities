@@ -30,6 +30,7 @@ type hudState struct {
 	notice string
 	lang   i18n.Lang
 	pad    bool
+	count  *counterFX
 }
 
 var hudDiamondRows = []int{1, 3, 5, 3, 1}
@@ -52,7 +53,7 @@ func drawHUD(dst *ebiten.Image, s *game.Session, tick int, h hudState) {
 	fillRect(dst, geom.Rect{W: ScreenWidth, H: HUDHeight}, pal.background, 1)
 	drawBeatPulse(dst, h.phase, pal)
 	drawWorldIndicator(dst, s, pal, tick, h.lang)
-	right := drawFragmentCounter(dst, s, pal, tick)
+	right := drawFragmentCounter(dst, s, pal, tick, h.count)
 	if h.muted {
 		muted := h.lang.T(i18n.HudMuted)
 		drawPanelText(dst, muted, right-hudMargin-textWidth(muted)-2*hudPadding, pal, pal.panelInk)
@@ -136,15 +137,16 @@ func drawPanelText(dst *ebiten.Image, msg string, x float64, pal palette, c colo
 	drawText(dst, msg, panel.X+hudPadding, panel.Y+hudPadding, c, 1)
 }
 
-func drawFragmentCounter(dst *ebiten.Image, s *game.Session, pal palette, tick int) float64 {
+func drawFragmentCounter(dst *ebiten.Image, s *game.Session, pal palette, tick int, fx *counterFX) float64 {
 	label := fmt.Sprintf("x%d", s.Fragments())
 	iconWidth := float64(hudDiamondRows[len(hudDiamondRows)/2])
 	w := iconWidth + hudPadding + textWidth(label)
 	panel := panelAt(float64(dst.Bounds().Dx())-hudMargin-w-2*hudPadding, w)
 	drawPanel(dst, panel, pal)
 
-	icon := geom.Rect{X: panel.X + hudPadding, Y: panel.Y + hudPadding, W: iconWidth, H: glyphHeight}
-	drawRows(dst, icon, hudDiamondRows, fragmentColor, 1)
+	lift, c, alpha := fx.icon()
+	icon := geom.Rect{X: panel.X + hudPadding, Y: panel.Y + hudPadding - lift, W: iconWidth, H: glyphHeight}
+	drawRows(dst, icon, hudDiamondRows, c, alpha)
 	drawText(dst, label, icon.Right()+hudPadding, panel.Y+hudPadding, counterColor(s.Feedback().CounterFlash, pal, tick), 1)
 	return panel.X
 }
