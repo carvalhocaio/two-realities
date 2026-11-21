@@ -44,7 +44,14 @@ func drawLayer(dst *ebiten.Image, g level.Grid, c color.Color) {
 	}
 }
 
-func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, fx *playerFX, pickups *pickupFX, tick int) {
+type sceneFX struct {
+	player  *playerFX
+	pickups *pickupFX
+	warden  *wardenFX
+	reduced bool
+}
+
+func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlpha float32, fx sceneFX, tick int) {
 	active := s.Active()
 	lvl := s.Level()
 	pal := palettes[active]
@@ -55,18 +62,18 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	drawLayer(dst, lvl.Layer(active), pal.tile)
 	drawSpikes(dst, lvl.Spikes[active], pal.spike)
 	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s), s.ExitOpen(), tick)
-	drawCheckpoints(dst, s, pal, pickups.hoistProgress(), tick)
-	drawWardenBack(dst, s, pal, tick)
+	drawCheckpoints(dst, s, pal, fx.pickups.hoistProgress(), tick)
+	drawWardenBack(dst, s, pal, fx.warden, fx.reduced, tick)
 	drawFragments(dst, s, tick, fragmentAlpha(active))
 	drawSignals(dst, s, pal, tick)
 	drawSecret(dst, s, tick)
 	drawSecretGlint(dst, s, tick)
 	drawSecretBurst(dst, s)
-	pickups.draw(dst)
+	fx.pickups.draw(dst)
 	drawWatchers(dst, s.Watchers(), lvl.Layer(world.Grey), active == world.Grey, s.AlertLimit())
 	drawGlows(dst, s, tick)
-	fx.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick))
-	drawWardenFront(dst, s, tick)
+	fx.player.draw(dst, s.PlayerBox(), pal, playerVisible(s, tick))
+	drawWardenFront(dst, s, fx.warden, fx.reduced, tick)
 }
 
 func exitAlpha(s *game.Session) float32 {
