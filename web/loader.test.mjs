@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { download, expectedSize, fraction, label, language } from "./loader.js";
+import { download, expectedSize, fraction, keyInit, label, language } from "./loader.js";
 
 const headers = (h) => new Headers(h);
 
@@ -105,4 +105,17 @@ test("download rejects a broken stream", async () => {
     },
   });
   await assert.rejects(download(new Response(broken), 10, () => {}), /connection reset/);
+});
+
+test("keyInit copies the key fields and always bubbles", () => {
+  const event = {
+    type: "keydown", key: "R", code: "KeyR", location: 0, repeat: true,
+    shiftKey: true, ctrlKey: false, altKey: false, metaKey: true,
+    bubbles: false, cancelable: false, target: "outside",
+  };
+  assert.deepEqual(keyInit(event), {
+    key: "R", code: "KeyR", location: 0, repeat: true,
+    shiftKey: true, ctrlKey: false, altKey: false, metaKey: true,
+    bubbles: true, cancelable: true,
+  });
 });
