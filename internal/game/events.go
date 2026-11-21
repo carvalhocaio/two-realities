@@ -34,6 +34,6 @@ func (s *Session) emitShift(to world.World) {
 
 func (s *Session) Events() []Event {
 	out := s.events
-	s.events = nil
+	s.events = s.events[:0]
 	return out
 }

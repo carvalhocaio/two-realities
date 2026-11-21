@@ -65,3 +65,20 @@ func TestEventsDrainOnce(t *testing.T) {
 		t.Fatal("events should be returned once")
 	}
 }
+
+func TestEventsReuseTheirBuffer(t *testing.T) {
+	s := newSession(t, openLevel)
+	s.emit(EventJump)
+	s.emit(EventLand)
+	s.Events()
+	allocs := testing.AllocsPerRun(100, func() {
+		s.emit(EventJump)
+		s.emit(EventLand)
+		if got := s.Events(); len(got) != 2 {
+			t.Fatalf("drained %v, want two events", got)
+		}
+	})
+	if allocs != 0 {
+		t.Fatalf("emit and drain allocated %v times per tick", allocs)
+	}
+}

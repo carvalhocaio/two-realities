@@ -11,7 +11,6 @@ const (
 	squashTicks    = 7
 	squashWiden    = 2
 	squashLower    = 2
-	landingSpeed   = 2.0
 	dustTicks      = 14
 	dustSpeed      = 0.6
 	dustLift       = 0.15
@@ -29,20 +28,18 @@ type dust struct {
 }
 
 type playerFX struct {
-	prev     geom.Rect
-	fallDY   float64
-	grounded bool
-	facing   int
-	squash   int
-	dust     []dust
-	epoch    int
-	session  *game.Session
+	prev    geom.Rect
+	facing  int
+	squash  int
+	dust    []dust
+	epoch   int
+	session *game.Session
 }
 
-func (f *playerFX) update(s *game.Session) {
+func (f *playerFX) update(s *game.Session, events []game.Event) {
 	box := s.PlayerBox()
 	if s != f.session || s.Epoch() != f.epoch {
-		*f = playerFX{prev: box, grounded: true, facing: 1, epoch: s.Epoch(), session: s}
+		*f = playerFX{prev: box, facing: 1, epoch: s.Epoch(), session: s}
 		return
 	}
 	switch dx := box.X - f.prev.X; {
@@ -52,12 +49,12 @@ func (f *playerFX) update(s *game.Session) {
 		f.facing = -1
 	}
 	f.squash = max(f.squash-1, 0)
-	grounded := s.PlayerGrounded()
-	if grounded && !f.grounded && f.fallDY >= landingSpeed {
-		f.land(box)
+	for _, e := range events {
+		if e == game.EventLand {
+			f.land(box)
+		}
 	}
-	f.fallDY = box.Y - f.prev.Y
-	f.grounded, f.prev = grounded, box
+	f.prev = box
 	f.ageDust()
 }
 

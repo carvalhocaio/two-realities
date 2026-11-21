@@ -24,7 +24,7 @@ func TestLandingSquashesAndRaisesDust(t *testing.T) {
 	for range 120 {
 		clock.Advance(time.Second / 60)
 		s.Update(input.Intent{})
-		fx.update(s)
+		fx.update(s, s.Events())
 		if fx.squash == squashTicks {
 			landed = true
 			break
@@ -39,7 +39,7 @@ func TestLandingSquashesAndRaisesDust(t *testing.T) {
 	}
 	for range dustTicks {
 		s.Update(input.Intent{Left: true})
-		fx.update(s)
+		fx.update(s, s.Events())
 	}
 	if fx.squash != 0 || len(fx.dust) != 0 || fx.facing != -1 {
 		t.Fatalf("after settling: squash=%d dust=%d facing=%d", fx.squash, len(fx.dust), fx.facing)
