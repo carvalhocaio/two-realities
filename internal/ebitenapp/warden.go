@@ -34,19 +34,21 @@ const (
 
 var lampRows = []int{2, 4, 4, 2}
 
-func drawWardenBack(dst *ebiten.Image, s *game.Session, pal palette, tick int) {
+func drawWardenBack(dst *ebiten.Image, s *game.Session, pal palette, fx *wardenFX, reduced bool, tick int) {
 	w, ok := s.Warden()
 	if !ok {
 		return
 	}
-	for _, gate := range s.Level().Boss.Gates[min(w.Lit, level.GateCount):] {
+	boss := s.Level().Boss
+	for _, gate := range boss.Gates[min(w.Lit, level.GateCount):] {
 		drawGates(dst, gate, pal)
 	}
-	drawLamps(dst, s.Level().Boss.Lamps, w.Lit, pal, tick)
-	drawBeam(dst, w.Beam, s.Active() == world.Grey, tick)
+	fx.drawOpening(dst, boss, pal, tick)
+	drawLamps(dst, boss.Lamps, w.Lit, pal, tick)
+	drawBeam(dst, w.Beam, s.Active() == world.Grey, fx.recoil > 0, reduced, tick)
 }
 
-func drawWardenFront(dst *ebiten.Image, s *game.Session, tick int) {
+func drawWardenFront(dst *ebiten.Image, s *game.Session, fx *wardenFX, reduced bool, tick int) {
 	w, ok := s.Warden()
 	if !ok {
 		return
@@ -54,8 +56,9 @@ func drawWardenFront(dst *ebiten.Image, s *game.Session, tick int) {
 	rail := s.Level().Boss.Rail
 	drawRail(dst, rail)
 	if w.Lit < level.LampCount {
-		drawWardenEye(dst, w, rail, s.PlayerBox(), s.Active() == world.Grey, tick)
+		drawWardenEye(dst, w, rail, s.PlayerBox(), s.Active() == world.Grey, fx.eyeLift(reduced), tick)
 	}
+	fx.drawShock(dst, s.Active(), reduced)
 }
 
 func drawRail(dst *ebiten.Image, r level.Rail) {
@@ -64,8 +67,8 @@ func drawRail(dst *ebiten.Image, r level.Rail) {
 	fillRect(dst, geom.Rect{X: x0, Y: y, W: float64((r.To - r.From + 1) * level.TileSize), H: 1}, dangerColor, railAlpha)
 }
 
-func drawWardenEye(dst *ebiten.Image, w game.WardenView, r level.Rail, target geom.Rect, active bool, tick int) {
-	box := geom.Rect{X: math.Round(w.Beam.X - eyeWidth/2), Y: float64(r.Row*level.TileSize) + 1, W: eyeWidth, H: eyeHeight}
+func drawWardenEye(dst *ebiten.Image, w game.WardenView, r level.Rail, target geom.Rect, active bool, lift float64, tick int) {
+	box := geom.Rect{X: math.Round(w.Beam.X - eyeWidth/2), Y: float64(r.Row*level.TileSize) + 1 - lift, W: eyeWidth, H: eyeHeight}
 	if !active {
 		drawDottedBox(dst, box, enemyColor)
 		return
@@ -85,7 +88,7 @@ func drawWardenEye(dst *ebiten.Image, w game.WardenView, r level.Rail, target ge
 	fillRect(dst, pupil, dangerColor, 1)
 }
 
-func drawBeam(dst *ebiten.Image, b game.Beam, active bool, tick int) {
+func drawBeam(dst *ebiten.Image, b game.Beam, active, snap, reduced bool, tick int) {
 	switch b.Stage {
 	case game.BeamFiring:
 		if !active {
@@ -94,7 +97,8 @@ func drawBeam(dst *ebiten.Image, b game.Beam, active bool, tick int) {
 		}
 		fillRect(dst, b.Box, dangerColor, beamAlpha)
 		core := geom.Rect{X: b.Box.X + 2, Y: b.Box.Y, W: b.Box.W - 4, H: b.Box.H}
-		fillRect(dst, core, beamCoreColor, beamCoreAlpha)
+		fillRect(dst, core, beamCoreColor, coreAlpha(snap))
+		drawBeamImpact(dst, b.Box, tick, reduced)
 	case game.BeamTelegraph:
 		alpha := float32(telegraphMinAlpha + (1-telegraphMinAlpha)*b.Progress)
 		if !active {
@@ -107,6 +111,13 @@ func drawBeam(dst *ebiten.Image, b game.Beam, active bool, tick int) {
 			fillRect(dst, geom.Rect{X: x, Y: top, W: 1, H: min(y+telegraphDash, b.Box.Bottom()) - top}, dangerColor, alpha)
 		}
 	}
+}
+
+func coreAlpha(snap bool) float32 {
+	if snap {
+		return 1
+	}
+	return beamCoreAlpha
 }
 
 func drawLamps(dst *ebiten.Image, lamps []level.Point, lit int, pal palette, tick int) {

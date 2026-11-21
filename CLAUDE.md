@@ -98,6 +98,7 @@ Shift swaps the active reality. Only the active world's tiles collide. The inact
   1. free shift; searchlight **sweeps** continuously at 80 px/beat, ping-pong along the rail, starting at the end farthest from the player.
   2. quantized shift; sweep at 100 px/beat (queue the yellow before the light arrives: queued shifts resolve before the beam on the same beat).
   3. auto shift every 2 beats; the beam **tracks**: aims at the player's column, dotted telegraph for 2 beats, fires for half a beat.
+- Visual only (`ebitenapp/wardenfx.go`, from session state each tick): lighting a lamp sends a spark ring with a glow out of it (`shockTicks` 12) and retracts that phase's gate bars upward with sparks (`gateOpenTicks` 14); a firing beam has a light flare and sparks where it lands; when a tracked shot turns from telegraph to firing, the eye lifts 1px and the beam core is full for `recoilTicks` (3). Reduce effects drops the ring, the recoil and the impact sparks.
 - Assist: sweep ×0.6, track telegraph +1 beat. Each phase plays its own Warden track (more layers per phase), switched on a bar line.
 - `warden_level_test.go` solves the fight on all 36 beat phases with a planner that predicts the light and only crosses open stretches it can clear; rushing the bridge and standing still in phase 3 die to the beam.
 
