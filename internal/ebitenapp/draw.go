@@ -57,7 +57,7 @@ func drawScene(dst *ebiten.Image, s *game.Session, ghost *ebiten.Image, ghostAlp
 	drawExit(dst, level.TileRect(lvl.Exit), pal, exitAlpha(s), s.ExitOpen(), tick)
 	drawCheckpoints(dst, s, pal)
 	drawWardenBack(dst, s, pal, tick)
-	drawFragments(dst, s.RemainingFragments(), tick, fragmentAlpha(active))
+	drawFragments(dst, s, tick, fragmentAlpha(active))
 	drawSignals(dst, s, pal)
 	drawSecret(dst, s, tick)
 	drawSecretGlint(dst, s, tick)

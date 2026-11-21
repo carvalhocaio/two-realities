@@ -95,3 +95,14 @@ func TestWardenView(t *testing.T) {
 		t.Fatalf("warden view %+v %v at the start of the fight", w, ok)
 	}
 }
+
+func TestFragmentCollected(t *testing.T) {
+	s := newSession(t, fragmentLevel)
+	if s.FragmentCollected(0) {
+		t.Fatal("fragment collected before touching it")
+	}
+	play(s, then(one(shift), ticks(right, 10)))
+	if !s.FragmentCollected(0) || len(s.RemainingFragments()) != 0 {
+		t.Fatalf("fragment not collected: collected %v, remaining %d", s.FragmentCollected(0), len(s.RemainingFragments()))
+	}
+}

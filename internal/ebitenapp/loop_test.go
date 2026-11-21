@@ -30,3 +30,17 @@ func TestLoopSwitchesTracksOnlyOnBarLines(t *testing.T) {
 		}
 	}
 }
+
+func TestLoopStartsOnTheCuedTrack(t *testing.T) {
+	a := []float32{1, 1}
+	b := []float32{5, 5}
+	l := newLoopReader([][]float32{a, b}, 2)
+	l.next.Store(1)
+	p := make([]byte, bytesPerFrame)
+	if _, err := l.Read(p); err != nil {
+		t.Fatal(err)
+	}
+	if got := math.Float32frombits(binary.LittleEndian.Uint32(p)); got != 5 {
+		t.Fatalf("first frame %v, want the cued track (5)", got)
+	}
+}
