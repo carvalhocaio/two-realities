@@ -1,6 +1,7 @@
 package ebitenapp
 
 import (
+	"math"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,6 +18,7 @@ const (
 	boxAlpha       = 0.92
 	typewriterRate = 1
 	boxClearance   = 6
+	boxOpenTicks   = 6
 )
 
 type textbox struct {
@@ -46,7 +48,7 @@ func (t *textbox) rect(height float64) geom.Rect {
 	return geom.Rect{X: boxMargin, Y: y, W: ScreenWidth - 2*boxMargin, H: height}
 }
 
-func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lang i18n.Lang) {
+func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lang i18n.Lang, reduced bool) {
 	view, ok := s.Transmission()
 	if !ok {
 		t.open = false
@@ -59,9 +61,14 @@ func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lan
 	height := float64(len(lines))*(glyphHeight+boxLineGap) - boxLineGap + 2*boxPadding
 	box := t.place(player, height)
 
-	fillRect(dst, box, pal.panel, boxAlpha*alpha)
-	drawOutline(dst, box, pal.tile, ghostOutlineAlpha)
-	shown := view.Age / typewriterRate
+	open := boxOpening(view.Age, reduced)
+	panel := unfold(box, open)
+	fillRect(dst, panel, pal.panel, boxAlpha*alpha*float32(open))
+	drawOutline(dst, panel, pal.tile, ghostOutlineAlpha*float32(open))
+	if open < 1 {
+		return
+	}
+	shown := typedRunes(view.Age, reduced)
 	y := box.Y + boxPadding
 	for _, line := range lines {
 		runes := []rune(line)
@@ -87,4 +94,23 @@ func wrapText(text string, width float64) []string {
 		line = next
 	}
 	return append(lines, line)
+}
+
+func boxOpening(age int, reduced bool) float64 {
+	if reduced {
+		return 1
+	}
+	return min(float64(age)/boxOpenTicks, 1)
+}
+
+func unfold(box geom.Rect, open float64) geom.Rect {
+	h := max(math.Round(box.H*open), 2)
+	return geom.Rect{X: box.X, Y: box.Y + math.Round((box.H-h)/2), W: box.W, H: h}
+}
+
+func typedRunes(age int, reduced bool) int {
+	if !reduced {
+		age -= boxOpenTicks
+	}
+	return age / typewriterRate
 }
