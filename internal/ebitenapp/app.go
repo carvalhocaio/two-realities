@@ -62,8 +62,10 @@ func (a *App) Update() error {
 		a.music.start()
 	}
 	a.music.setVolume(a.flow.Muted(), a.flow.MusicVolume())
+	var events []game.Event
 	if s := a.flow.Session(); s != nil {
-		a.sfx.play(s.Events(), mixVolume(sfxVolume, a.flow.Muted(), a.flow.SoundVolume()))
+		events = s.Events()
+		a.sfx.play(events, mixVolume(sfxVolume, a.flow.Muted(), a.flow.SoundVolume()))
 	}
 	a.music.setOffset(a.flow.AudioOffsetMs())
 	if anyJustPressed(timerKeys) {
@@ -71,7 +73,7 @@ func (a *App) Update() error {
 	}
 	handleDevKeys(a)
 	if a.flow.Screen() == game.ScreenPlaying {
-		a.view.follow(a.flow.Session())
+		a.view.follow(a.flow.Session(), events)
 		a.counter.update(a.flow.Session())
 	}
 	a.setTitle(windowTitle(a.flow))

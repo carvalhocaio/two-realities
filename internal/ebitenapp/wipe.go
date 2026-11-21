@@ -5,8 +5,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/carvalhocaio/two-realities/internal/game"
 	"github.com/carvalhocaio/two-realities/internal/geom"
-	"github.com/carvalhocaio/two-realities/internal/world"
 )
 
 const (
@@ -18,8 +18,7 @@ const (
 
 type wipe struct {
 	last, from *ebiten.Image
-	active     world.World
-	epoch      int
+	shifted    bool
 	start      int
 	running    bool
 }
@@ -31,12 +30,19 @@ func newWipe() *wipe {
 	}
 }
 
-func (w *wipe) begin(active world.World, epoch, tick int) {
-	shifted := active != w.active && epoch == w.epoch
-	w.active, w.epoch = active, epoch
-	if !shifted {
+func (w *wipe) notice(events []game.Event) {
+	for _, e := range events {
+		if e == game.EventShiftGrey || e == game.EventShiftYellow {
+			w.shifted = true
+		}
+	}
+}
+
+func (w *wipe) begin(tick int) {
+	if !w.shifted {
 		return
 	}
+	w.shifted = false
 	w.from.Clear()
 	w.from.DrawImage(w.last, nil)
 	w.start, w.running = tick, true

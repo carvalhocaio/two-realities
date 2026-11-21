@@ -15,7 +15,7 @@ const (
 	dotSpacing        = 2
 )
 
-func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *ebiten.Image {
+func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.RGBA) *ebiten.Image {
 	img := ebiten.NewImage(g.Width()*level.TileSize, g.Height()*level.TileSize)
 	for y := range g.Height() {
 		for x := range g.Width() {
@@ -28,13 +28,13 @@ func newGhostImage(g level.Grid, spikes []level.Point, c, spike color.Color) *eb
 	return img
 }
 
-func drawDot(dst *ebiten.Image, x, y float64, c color.Color) {
+func drawDot(dst *ebiten.Image, x, y float64, c color.RGBA) {
 	if (int(x)+int(y))%dotSpacing == 0 {
 		fillRect(dst, geom.Rect{X: x, Y: y, W: 1, H: 1}, c, ghostDotAlpha)
 	}
 }
 
-func drawDottedEdges(dst *ebiten.Image, g level.Grid, x, y int, c color.Color) {
+func drawDottedEdges(dst *ebiten.Image, g level.Grid, x, y int, c color.RGBA) {
 	r := level.TileRect(level.Point{X: x, Y: y})
 	for i := range level.TileSize {
 		o := float64(i)
@@ -53,7 +53,7 @@ func drawDottedEdges(dst *ebiten.Image, g level.Grid, x, y int, c color.Color) {
 	}
 }
 
-func drawDottedBox(dst *ebiten.Image, r geom.Rect, c color.Color) {
+func drawDottedBox(dst *ebiten.Image, r geom.Rect, c color.RGBA) {
 	r = geom.Rect{X: float64(int(r.X)), Y: float64(int(r.Y)), W: r.W, H: r.H}
 	for x := r.X; x < r.Right(); x++ {
 		drawDot(dst, x, r.Y, c)

@@ -3,6 +3,7 @@ package ebitenapp
 import (
 	"math"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -22,8 +23,18 @@ const (
 )
 
 type textbox struct {
-	open bool
-	top  bool
+	open  bool
+	top   bool
+	text  string
+	width float64
+	lines []string
+}
+
+func (t *textbox) wrapped(text string, width float64) []string {
+	if text != t.text || width != t.width || t.lines == nil {
+		t.text, t.width, t.lines = text, width, wrapText(text, width)
+	}
+	return t.lines
 }
 
 func (t *textbox) place(player geom.Rect, height float64) geom.Rect {
@@ -57,7 +68,7 @@ func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lan
 	pal := palettes[s.Active()]
 	alpha := float32(1 - view.Fade)
 	width := float64(ScreenWidth - 2*boxMargin)
-	lines := wrapText(view.TextIn(lang), width-2*boxPadding)
+	lines := t.wrapped(view.TextIn(lang), width-2*boxPadding)
 	height := float64(len(lines))*(glyphHeight+boxLineGap) - boxLineGap + 2*boxPadding
 	box := t.place(player, height)
 
@@ -71,10 +82,8 @@ func (t *textbox) draw(dst *ebiten.Image, s *game.Session, player geom.Rect, lan
 	shown := typedRunes(view.Age, reduced)
 	y := box.Y + boxPadding
 	for _, line := range lines {
-		runes := []rune(line)
-		n := min(len(runes), max(shown, 0))
-		drawText(dst, string(runes[:n]), box.X+boxPadding, y, pal.panelInk, alpha)
-		shown -= len(runes) + 1
+		drawText(dst, runePrefix(line, shown), box.X+boxPadding, y, pal.panelInk, alpha)
+		shown -= utf8.RuneCountInString(line) + 1
 		y += glyphHeight + boxLineGap
 	}
 }
